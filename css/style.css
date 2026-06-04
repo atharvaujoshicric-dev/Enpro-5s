@@ -181,3 +181,10 @@ select option { background: var(--surface); }
   .sidebar.open { transform: none; }
   .main-content { margin-left: 0; padding: 16px; }
 }
+
+/* ─── ADDITIONAL STYLES ─── */
+.record-photos { display:flex; gap:12px; flex-wrap:wrap; }
+.photo-placeholder { width:120px; height:90px; border:1px dashed var(--border); border-radius:6px; display:flex; align-items:center; justify-content:center; padding:8px; text-align:center; font-size:0.75rem; color:var(--muted); }
+.page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:12px; }
+.page-title { font-family:var(--font-head); font-size:1.8rem; font-weight:700; }
+.page-sub { color:var(--muted); font-size:0.85rem; margin-top:2px; }
