@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>5S Management System — Enpro Industries</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ═══════════════ AUTH SCREEN ═══════════════ -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">5S·PRO</div>
+    <div class="auth-sub">Enpro Industries — Zone Management System</div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="your@email.com" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div class="auth-error" id="login-error"></div>
+    <button class="btn btn-primary" id="login-btn">Sign In</button>
+    <div class="demo-creds">
+      <p>Demo Credentials</p>
+      <table>
+        <tr><td>Admin</td><td>admin@enpro.com</td><td>Admin@123</td></tr>
+        <tr><td>CEO</td><td>ceo@enpro.com</td><td>Ceo@123</td></tr>
+        <tr><td>Manager</td><td>manager1@enpro.com</td><td>Manager@123</td></tr>
+        <tr><td>User</td><td>user1@enpro.com</td><td>User@123</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ APP SCREEN ════════════════ -->
+<div id="app-screen">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><span>5S·PRO</span></div>
+    <div class="sidebar-user">
+      <div class="uname" id="sidebar-uname">—</div>
+      <span class="role-badge" id="sidebar-role">—</span>
+    </div>
+    <nav class="sidebar-nav" id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+      <button class="btn btn-outline btn-sm" id="logout-btn" style="width:100%">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+          <polyline points="16,17 21,12 16,7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+    <div class="page" id="page-dashboard"><div id="dash-content"></div></div>
+    <div class="page" id="page-zones"><div id="zones-content"></div></div>
+    <div class="page" id="page-records"><div id="records-content"></div></div>
+    <div class="page" id="page-users"><div id="users-content"></div></div>
+    <div class="page" id="page-reports"><div id="reports-content"></div></div>
+    <div class="page" id="page-pings"><div id="pings-content"></div></div>
+  </main>
+</div>
+
+<!-- ═══════════════ MODALS ════════════════════ -->
+
+<!-- Add / Edit Zone -->
+<div class="modal-overlay" id="modal-add-zone">
+  <div class="modal">
+    <div class="modal-title" id="modal-zone-title">Add Zone</div>
+    <input type="hidden" id="zone-modal-id">
+    <div class="field"><label>Zone Name</label><input type="text" id="zone-modal-name" placeholder="e.g. Zone A"></div>
+    <div class="field"><label>Description</label><input type="text" id="zone-modal-desc" placeholder="Brief description"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-zone')">Cancel</button>
+      <button class="btn btn-primary" id="save-zone-btn">Save Zone</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Record -->
+<div class="modal-overlay" id="modal-add-record">
+  <div class="modal">
+    <div class="modal-title">New Work Record</div>
+    <div class="field"><label>Title / Task</label><input type="text" id="rec-title" placeholder="e.g. Floor cleaning FPP"></div>
+    <div class="field"><label>Zone</label><select id="rec-zone-sel"></select></div>
+    <div class="field">
+      <label>Work Type</label>
+      <select id="rec-worktype">
+        <option value="FPP">FPP — 90 Day Deadline</option>
+        <option value="WPP">WPP — 48 Hour Deadline</option>
+        <option value="WFP">WFP — General</option>
+      </select>
+    </div>
+    <div class="field"><label>Notes (optional)</label><textarea id="rec-notes" rows="2" placeholder="Any additional info..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-record')">Cancel</button>
+      <button class="btn btn-primary" id="save-record-btn">Create Record</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add / Edit User -->
+<div class="modal-overlay" id="modal-add-user">
+  <div class="modal">
+    <div class="modal-title" id="modal-user-title">Add User</div>
+    <input type="hidden" id="user-edit-email">
+    <div class="field"><label>Full Name</label><input type="text" id="user-name" placeholder="Name Surname"></div>
+    <div class="field"><label>Email (Microsoft)</label><input type="email" id="user-email" placeholder="user@enpro.com"></div>
+    <div class="field"><label>Password <span style="color:var(--muted);font-size:0.8em">(leave blank to keep existing)</span></label><input type="password" id="user-password" placeholder="••••••••"></div>
+    <div class="field">
+      <label>Role</label>
+      <select id="user-role">
+        <option value="user">User</option>
+        <option value="zone_manager">Zone Manager</option>
+        <option value="ceo">CEO</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <div class="field"><label>Assigned Zone</label><select id="user-zone-sel"></select></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-user')">Cancel</button>
+      <button class="btn btn-primary" id="save-user-btn">Save User</button>
+    </div>
+  </div>
+</div>
+
+<!-- Send Ping -->
+<div class="modal-overlay" id="modal-add-ping">
+  <div class="modal">
+    <div class="modal-title">Send Ping / Reminder</div>
+    <div class="field"><label>To (Name / Zone)</label><input type="text" id="ping-to" placeholder="e.g. Zone A Manager"></div>
+    <div class="field"><label>Message</label><textarea id="ping-message" rows="3" placeholder="Reminder message..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-ping')">Cancel</button>
+      <button class="btn btn-primary" id="save-ping-btn">Send Ping</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox"><img src="" alt="Photo"></div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script src="js/config.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
