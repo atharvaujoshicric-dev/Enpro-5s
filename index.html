@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>5S Management — Enpro Industries</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -13,8 +13,8 @@
   <div class="auth-card">
     <div class="auth-logo">5S·PRO</div>
     <div class="auth-sub">Enpro Industries — Zone Management System</div>
-    <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="your@email.com"></div>
-    <div class="field"><label>Password</label><input type="password" id="login-pass" placeholder="••••••••"></div>
+    <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="your@email.com" autocomplete="username"></div>
+    <div class="field"><label>Password</label><input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"></div>
     <div class="auth-error" id="login-error"></div>
     <button class="btn btn-primary" id="login-btn">Sign In</button>
     <div class="demo-creds">
@@ -22,8 +22,8 @@
       <table>
         <tr><td>Admin</td><td>admin@enpro.com</td><td>Admin@123</td></tr>
         <tr><td>CEO</td><td>ceo@enpro.com</td><td>Ceo@123</td></tr>
-        <tr><td>Manager</td><td>manager1@enpro.com</td><td>Manager@123</td></tr>
-        <tr><td>User</td><td>user1@enpro.com</td><td>User@123</td></tr>
+        <tr><td>Manager 1</td><td>manager1@enpro.com</td><td>Manager@123</td></tr>
+        <tr><td>User 1</td><td>user1@enpro.com</td><td>User@123</td></tr>
       </table>
     </div>
   </div>
@@ -78,9 +78,9 @@
     <div class="field"><label>Zone</label><select id="rec-zone-sel"></select></div>
     <div class="field"><label>Work Type</label>
       <select id="rec-worktype">
-        <option value="FPP">FPP — 90 Day (6+ staged after photos)</option>
-        <option value="WPP">WPP — 48 Hour (single before→after)</option>
-        <option value="WFP">WFP — General (single before→after)</option>
+        <option value="FPP">FPP — 90 Day (6 staged after photos)</option>
+        <option value="WPP">WPP — 48 Hour (single before → after)</option>
+        <option value="WFP">WFP — General (single before → after)</option>
       </select>
     </div>
     <div class="field"><label>Notes (optional)</label><textarea id="rec-notes" rows="2"></textarea></div>
@@ -119,7 +119,7 @@
 <div class="modal-overlay" id="modal-reject">
   <div class="modal">
     <div class="modal-title">Reject — Add Comment</div>
-    <div style="font-size:0.85rem;color:var(--accent);margin-bottom:14px" id="reject-stage-label"></div>
+    <div style="font-size:.85rem;color:var(--accent);margin-bottom:14px;font-weight:500" id="reject-stage-label"></div>
     <div class="field"><label>Rejection Reason</label>
       <textarea id="reject-comment" rows="4" placeholder="Explain what needs to be corrected..."></textarea>
     </div>
@@ -134,8 +134,8 @@
 <div class="modal-overlay" id="modal-add-ping">
   <div class="modal">
     <div class="modal-title">Send Ping / Reminder</div>
-    <div class="field"><label>To (Name)</label><input type="text" id="ping-to" placeholder="e.g. Zone A Manager"></div>
-    <div class="field"><label>Send To Role</label>
+    <div class="field"><label>To (Label)</label><input type="text" id="ping-to" placeholder="e.g. Zone A Manager"></div>
+    <div class="field"><label>Send to Role</label>
       <select id="ping-torole">
         <option value="zone_manager">Zone Manager</option>
         <option value="user">User</option>
@@ -147,27 +147,6 @@
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modal-add-ping')">Cancel</button>
       <button class="btn btn-primary" id="save-ping-btn">Send Ping</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: Admin Override -->
-<div class="modal-overlay" id="modal-admin-panel">
-  <div class="modal">
-    <div class="modal-title">⚙ Admin Override</div>
-    <input type="hidden" id="admin-rec-id">
-    <div class="field"><label>Force Status</label>
-      <select id="admin-status-sel">
-        <option value="pending">Pending</option>
-        <option value="awaiting_ceo">Awaiting CEO</option>
-        <option value="approved">Approved</option>
-        <option value="rework">Rework Required</option>
-      </select>
-    </div>
-    <p style="font-size:0.78rem;color:var(--muted);margin-top:4px">Admin god mode — bypasses normal workflow.</p>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-admin-panel')">Cancel</button>
-      <button class="btn btn-danger" id="save-admin-panel-btn">Apply Override</button>
     </div>
   </div>
 </div>
