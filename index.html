@@ -518,7 +518,7 @@ async function runSetup() {
     if (!authId) throw new Error("Authentication user was not created successfully.");
 
     // Create user record in public users table
-    const users = await sb('users', { method:'POST', body:{ auth_user_id: authId, employee_id:'EMP001', full_name:'Admin', email, role:'admin', must_change_password:false, is_active:true }});
+    const users = await sb('users', { method:'POST', body:{ auth_id: authId, employee_id:'EMP001', full_name:'Admin', email, role:'admin', must_change_password:false, is_active:true }});
     const userId = users[0]?.id;
     if (!userId) throw new Error("Could not create reference record inside 'users' data table.");
 
@@ -583,7 +583,7 @@ async function doChangePassword() {
   if (np !== cp) { msg.innerHTML='<div class="alert alert-danger">Passwords do not match.</div>'; return; }
   try {
     // FIX: Pass the payload parameters wrapper object explicitly expected by the admin/users PUT endpoint
-    await sbAuth(`admin/users/${currentUser.auth_user_id}`, { password: np }, 'PUT');
+    await sbAuth(`admin/users/${currentUser.auth_id}`, { password: np }, 'PUT');
     await sb(`users?id=eq.${currentUser.id}`, { method:'PATCH', body:{ must_change_password: false }});
     currentUser.must_change_password = false;
     document.getElementById('change-pass-modal').classList.remove('open');
