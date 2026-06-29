@@ -437,7 +437,7 @@ async function sbLoginManual(empId, pw) {
 
 async function loadSession(user) {
   // Set session variable for RLS
-  await SB.rpc('set_app_user', { p_user_id: user.id }).catch(()=>{});
+  try { await SB.rpc('set_app_user', { p_user_id: user.id }); } catch(e) {}
 
   // Load permissions
   const { data: perms } = await SB
