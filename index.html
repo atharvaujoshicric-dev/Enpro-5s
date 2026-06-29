@@ -389,50 +389,41 @@ function clearSetup() {
 async function doLogin() {
   const empId = document.getElementById('login-emp').value.trim().toUpperCase();
   const pw    = document.getElementById('login-pw').value;
-  if (!empId || !pw) return toast('Enter your Employee ID and password.','error');
+  if (!empId || !pw) return toast('Enter your Employee ID and password.', 'error');
 
   document.getElementById('login-btn').disabled = true;
   document.getElementById('login-btn').textContent = 'Signing in…';
 
   try {
-    // Verify credentials via RPC — we do a raw select with password check
-    const { data, error } = await SB.rpc('verify_user_password', { p_employee_id: empId, p_password: pw });
-    if (error || !data || data.length === 0) {
-      // Fallback: try direct select (RPC may not exist yet — we handle manually)
-      const res = await sbLoginManual(empId, pw);
-      if (!res) throw new Error('Invalid credentials.');
-    } else {
-      await loadSession(data[0]);
-    }
+    // Step 1: fetch user row by employee_id
+    const { data: user, error: ue } = await SB
+      .from('users')
+      .select('id,employee_id,full_name,email,is_admin,is_active,must_change_pw,department_id,reports_to')
+      .eq('employee_id', empId)
+      .eq('is_active', true)
+      .maybeSingle();
+
+    if (ue) { toast('DB error: ' + ue.message, 'error'); return; }
+    if (!user) { toast('Employee ID not found.', 'error'); return; }
+
+    // Step 2: verify password via RPC
+    const { data: valid, error: ve } = await SB.rpc('check_user_password', {
+      p_user_id: user.id,
+      p_password: pw
+    });
+
+    if (ve) { toast('Password check error: ' + ve.message, 'error'); return; }
+    if (!valid) { toast('Incorrect password.', 'error'); return; }
+
+    // Step 3: load session
+    await loadSession(user);
+
   } catch(e) {
-    toast(e.message || 'Login failed.','error');
+    toast('Login error: ' + (e.message || String(e)), 'error');
   }
+
   document.getElementById('login-btn').disabled = false;
   document.getElementById('login-btn').textContent = 'Sign In';
-}
-
-async function sbLoginManual(empId, pw) {
-  // Fetch the user row; bcrypt verification is done server-side via a function
-  // We'll use a small RPC workaround: select where employee_id matches,
-  // then verify hash in a postgres function call
-  const { data, error } = await SB
-    .from('users')
-    .select('id,employee_id,full_name,email,is_admin,is_active,must_change_pw,department_id,reports_to')
-    .eq('employee_id', empId)
-    .eq('is_active', true)
-    .single();
-
-  if (error || !data) return false;
-
-  // Verify password via RPC (we call a simple pg function)
-  const { data: valid, error: ve } = await SB.rpc('check_user_password', {
-    p_user_id: data.id,
-    p_password: pw
-  });
-  if (ve || !valid) return false;
-
-  await loadSession(data);
-  return true;
 }
 
 async function loadSession(user) {
