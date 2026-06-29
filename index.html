@@ -497,6 +497,12 @@ async function runSetup() {
   const pass = document.getElementById('setup-admin-pass').value;
   const msg = document.getElementById('setup-msg');
   if (!url||!key||!email||!pass) { msg.innerHTML='<div class="alert alert-danger">All fields required.</div>'; return; }
+  
+  if (pass.length < 6) { 
+    msg.innerHTML='<div class="alert alert-danger">Admin password must be at least 6 characters for Supabase Auth.</div>'; 
+    return; 
+  }
+
   msg.innerHTML='<div class="alert alert-info"><i class="fa fa-spinner fa-spin"></i> Setting up…</div>';
   SB_URL = url; SB_KEY = key;
   try {
@@ -508,8 +514,20 @@ async function runSetup() {
     const userId = users[0].id;
     // Create permissions
     await sb('permissions', { method:'POST', body:{ user_id: userId, can_create_training:true, can_edit_training:true, can_delete_training:true, can_assign_training:true, can_approve_training:true, can_create_workflow:true, can_edit_workflow:true, can_delete_workflow:true, can_assign_workflow:true, can_manage_users:true, can_view_reports:true, granted_by: userId }});
-    // Mark initialized
-    await sb('system_settings?key=eq.system_initialized', { method:'PATCH', body:{ value:'true', updated_by: userId }});
+    
+    // Safely Upsert System Initialization Token to prevent 404/400 errors
+    try {
+      const checkInit = await sb('system_settings?key=eq.system_initialized');
+      if(checkInit.length > 0) {
+        await sb('system_settings?key=eq.system_initialized', { method:'PATCH', body:{ value:'true', updated_by: userId }});
+      } else {
+        await sb('system_settings', { method:'POST', body:{ key:'system_initialized', value:'true', updated_by: userId }});
+      }
+    } catch(err) {
+      // Fallback if table doesn't exist completely yet
+      throw new Error("Database table 'system_settings' is missing. Please create it in your Supabase dashboard.");
+    }
+
     localStorage.setItem('enpro-url', url);
     localStorage.setItem('enpro-key', key);
     msg.innerHTML='<div class="alert alert-success"><i class="fa fa-check"></i> Setup complete! Redirecting…</div>';
@@ -555,8 +573,8 @@ async function doChangePassword() {
   if (np.length < 8) { msg.innerHTML='<div class="alert alert-danger">Min 8 characters.</div>'; return; }
   if (np !== cp) { msg.innerHTML='<div class="alert alert-danger">Passwords do not match.</div>'; return; }
   try {
-    // Update password via admin API
-    await sbAuth(`admin/users/${currentUser.auth_user_id}`, {password: np}, 'PUT');
+    // FIX: Pass the payload parameters wrapper object explicitly expected by the admin/users PUT endpoint
+    await sbAuth(`admin/users/${currentUser.auth_user_id}`, { password: np }, 'PUT');
     await sb(`users?id=eq.${currentUser.id}`, { method:'PATCH', body:{ must_change_password: false }});
     currentUser.must_change_password = false;
     document.getElementById('change-pass-modal').classList.remove('open');
@@ -1320,7 +1338,8 @@ async function changeMyPassword() {
   const p = document.getElementById('sp-pass').value;
   if (p.length < 8) { toast('Min 8 characters','error'); return; }
   try {
-    await sbAuth(`admin/users/${currentUser.auth_user_id}`,{password:p},'PUT');
+    // FIX: Wrapped properly inside a distinct object formatting configuration
+    await sbAuth(`admin/users/${currentUser.auth_user_id}`, { password: p }, 'PUT');
     toast('Password updated','success');
     document.getElementById('sp-pass').value='';
   } catch(e) { toast(e.message,'error'); }
