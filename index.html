@@ -347,7 +347,7 @@ tr:hover td { background: var(--bg-surface); }
 <div id="config-banner">⚠️ Supabase not configured. Open this file and set <strong>SUPABASE_URL</strong> and <strong>SUPABASE_KEY (anon key)</strong> at the top of the script.</div>
 
 <!-- LOGIN PAGE -->
-<div id="login-page">
+<div id="login-page" style="display:flex;">
   <div class="login-card">
     <div class="login-logo">
       <div class="login-logo-mark">E</div>
@@ -371,7 +371,7 @@ tr:hover td { background: var(--bg-surface); }
 </div>
 
 <!-- FORCE PASSWORD CHANGE -->
-<div id="password-change-page" style="display:none; min-height:100vh; align-items:center; justify-content:center; background:var(--bg); padding:16px;">
+<div id="password-change-page" style="display:none; min-height:100vh; align-items:center; justify-content:center; background:var(--bg); padding:16px; flex-direction:column;">
   <div class="login-card">
     <div class="login-logo">
       <div class="login-logo-mark">E</div>
@@ -440,6 +440,21 @@ const SUPABASE_URL = 'https://xnppjwzikoouscqlzlxc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhucHBqd3ppa29vdXNjcWx6bHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjI0MDMsImV4cCI6MjA5ODI5ODQwM30.fgmTrSy9GhEYzXTzUc18PbpNMtT-huxPdTN6YYxTa78'; // service_role key
 
 // =========================================================
+// BCRYPT SHIM — normalise across CDN variants
+// =========================================================
+const bcrypt = window.bcrypt || (window.dcodeIO && window.dcodeIO.bcrypt) || window.bcryptjs;
+
+// =========================================================
+// PAGE VISIBILITY HELPERS
+// =========================================================
+function showPage(id, displayType) {
+  ['login-page','password-change-page','app-shell'].forEach(p => {
+    document.getElementById(p).style.display = 'none';
+  });
+  document.getElementById(id).style.display = displayType || 'flex';
+}
+
+// =========================================================
 // INIT
 // =========================================================
 let supabase;
@@ -447,7 +462,7 @@ let currentUser = null;
 let currentPerms = null;
 
 function initSupabase() {
-  if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_KEY === 'YOUR_SUPABASE_SERVICE_ROLE_KEY') {
+  if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_KEY === 'YOUR_SUPABASE_ANON_KEY') {
     document.getElementById('config-banner').style.display = 'block';
     return false;
   }
@@ -532,9 +547,7 @@ async function handleLogin() {
 }
 
 function showPasswordChangePage() {
-  document.getElementById('login-page').style.display = 'none';
-  const pg = document.getElementById('password-change-page');
-  pg.style.display = 'flex';
+  showPage('password-change-page', 'flex');
 }
 
 async function handlePasswordChange() {
@@ -565,8 +578,7 @@ async function handlePasswordChange() {
 function handleLogout() {
   sessionStorage.removeItem('enpro_user');
   currentUser = null; currentPerms = null;
-  document.getElementById('app-shell').style.display = 'none';
-  document.getElementById('login-page').style.display = 'flex';
+  showPage('login-page', 'flex');
 }
 
 // =========================================================
@@ -575,8 +587,7 @@ function handleLogout() {
 function isAdmin() { return currentPerms && Object.values(currentPerms).every(v => v === true || typeof v !== 'boolean') && currentPerms.can_create_users; }
 
 function showApp() {
-  document.getElementById('login-page').style.display = 'none';
-  document.getElementById('app-shell').style.display = 'flex';
+  showPage('app-shell', 'flex');
   document.getElementById('sidebar-name').textContent = currentUser.name;
   const av = document.getElementById('sidebar-avatar');
   av.textContent = currentUser.name.charAt(0).toUpperCase();
