@@ -2,1439 +2,1138 @@
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Enpro Training Management</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-/* =========================================================
-   DESIGN TOKENS
-   ========================================================= */
-:root {
-  --red:        #C8102E;
-  --red-dark:   #9B0C22;
-  --red-light:  #FDEAED;
-  --white:      #FFFFFF;
-  --black:      #111111;
-  --gray-50:    #F9F9F9;
-  --gray-100:   #F2F2F2;
-  --gray-200:   #E5E5E5;
-  --gray-400:   #9E9E9E;
-  --gray-600:   #5C5C5C;
-  --success:    #1A7F4B;
-  --success-bg: #E6F4ED;
-  --warn:       #B45309;
-  --warn-bg:    #FEF3C7;
-  --danger:     #C8102E;
-  --danger-bg:  #FDEAED;
-  --info:       #1D4ED8;
-  --info-bg:    #EFF6FF;
+:root{
+  --red:#C8102E;--red-dark:#9B0C22;--red-light:#FDEAED;
+  --white:#FFFFFF;--black:#111111;
+  --g50:#F9F9F9;--g100:#F2F2F2;--g200:#E5E5E5;--g400:#9E9E9E;--g600:#5C5C5C;
+  --ok:#1A7F4B;--ok-bg:#E6F4ED;--warn:#B45309;--warn-bg:#FEF3C7;
+  --err:#C8102E;--err-bg:#FDEAED;--info:#1D4ED8;--info-bg:#EFF6FF;
+  --bg:var(--white);--bg-surf:var(--g50);--bg-card:var(--white);
+  --border:var(--g200);--txt:var(--black);--txt-m:var(--g600);
+  --shadow:0 1px 4px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06);
+  --shadow-sm:0 1px 3px rgba(0,0,0,.08);
+  --r:10px;--r-sm:6px;--font:'Segoe UI',system-ui,-apple-system,sans-serif;
+}
+[data-theme=dark]{
+  --bg:#0F0F0F;--bg-surf:#1A1A1A;--bg-card:#1F1F1F;--border:#2E2E2E;
+  --txt:#F0F0F0;--txt-m:#888;--red-light:#2A0A10;
+  --shadow:0 1px 4px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.2);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px}
+body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;transition:background .2s,color .2s}
+button{font-family:var(--font);cursor:pointer;border:none;outline:none}
+input,textarea,select{font-family:var(--font)}
 
-  --bg:         var(--white);
-  --bg-surface: var(--gray-50);
-  --bg-card:    var(--white);
-  --border:     var(--gray-200);
-  --text:       var(--black);
-  --text-muted: var(--gray-600);
-  --shadow:     0 1px 4px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
-  --shadow-sm:  0 1px 3px rgba(0,0,0,.08);
-  --radius:     10px;
-  --radius-sm:  6px;
-  --font:       'Segoe UI', system-ui, -apple-system, sans-serif;
-}
+/* LAYOUT */
+#sidebar{width:240px;min-height:100vh;background:var(--bg-card);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:200;transition:transform .25s}
+#sb-logo{padding:20px 20px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo-mark{width:36px;height:36px;border-radius:8px;background:var(--red);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px;flex-shrink:0}
+.logo-text{font-size:13px;font-weight:700;line-height:1.3}
+.logo-text span{display:block;color:var(--txt-m);font-weight:400;font-size:11px}
+#sb-nav{flex:1;overflow-y:auto;padding:12px 0}
+.nav-sec{padding:4px 12px 2px;font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--txt-m);text-transform:uppercase;margin-top:8px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:13.5px;color:var(--txt);border-radius:var(--r-sm);margin:1px 8px;cursor:pointer;transition:background .15s,color .15s}
+.nav-item:hover{background:var(--g100)}
+[data-theme=dark] .nav-item:hover{background:#2a2a2a}
+.nav-item.active{background:var(--red-light);color:var(--red);font-weight:600}
+[data-theme=dark] .nav-item.active{background:#2A0A10}
+.nav-icon{width:18px;text-align:center;flex-shrink:0}
+#sb-foot{padding:12px;border-top:1px solid var(--border)}
+.user-chip{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r-sm);background:var(--bg-surf)}
+.u-av{width:32px;height:32px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.u-info{flex:1;min-width:0}
+.u-name{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.u-role{font-size:11px;color:var(--txt-m)}
+#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:150}
+#overlay.show{display:block}
+#main{flex:1;margin-left:240px;min-height:100vh;display:flex;flex-direction:column}
+@media(max-width:768px){#main{margin-left:0}#sidebar{transform:translateX(-100%)}#sidebar.open{transform:translateX(0)}#menu-toggle{display:block!important}}
+#topbar{height:56px;background:var(--bg-card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;position:sticky;top:0;z-index:100}
+#menu-toggle{display:none;background:none;padding:6px;color:var(--txt);font-size:20px}
+#topbar-title{font-size:15px;font-weight:700;flex:1}
+#theme-btn{width:34px;height:34px;border-radius:var(--r-sm);background:var(--bg-surf);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px}
+#logout-btn{padding:6px 14px;border-radius:var(--r-sm);background:var(--red-light);color:var(--red);font-size:13px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:background .15s}
+#logout-btn:hover{background:var(--red);color:#fff}
+#pg{flex:1;padding:24px;max-width:1100px;width:100%}
+@media(max-width:480px){#pg{padding:16px}}
 
-[data-theme="dark"] {
-  --bg:         #0F0F0F;
-  --bg-surface: #1A1A1A;
-  --bg-card:    #1F1F1F;
-  --border:     #2E2E2E;
-  --text:       #F0F0F0;
-  --text-muted: #888;
-  --shadow:     0 1px 4px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.2);
-  --red-light:  #2A0A10;
-}
+/* LOGIN */
+#login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:16px}
+#pw-page{min-height:100vh;display:none;align-items:center;justify-content:center;background:var(--bg);padding:16px}
+#app-shell{display:none;min-height:100vh}
+.login-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:40px 36px;width:100%;max-width:400px;box-shadow:var(--shadow)}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-lm{width:56px;height:56px;border-radius:14px;background:var(--red);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:22px;margin-bottom:10px}
+.login-logo h1{font-size:20px;font-weight:800}
+.login-logo p{font-size:12.5px;color:var(--txt-m)}
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 16px; }
-body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; transition: background .2s, color .2s; }
-a { color: var(--red); text-decoration: none; }
-img { max-width: 100%; }
-button { font-family: var(--font); cursor: pointer; border: none; outline: none; }
-input, textarea, select { font-family: var(--font); }
-
-/* =========================================================
-   LAYOUT
-   ========================================================= */
-#app { display: flex; min-height: 100vh; }
-
-/* Sidebar */
-#sidebar {
-  width: 240px; min-height: 100vh; background: var(--bg-card);
-  border-right: 1px solid var(--border); display: flex; flex-direction: column;
-  position: fixed; top: 0; left: 0; z-index: 200; transition: transform .25s;
-}
-#sidebar.hidden { transform: translateX(-100%); }
-#sidebar-logo {
-  padding: 20px 20px 16px; border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; gap: 10px;
-}
-#sidebar-logo .logo-mark {
-  width: 36px; height: 36px; border-radius: 8px; background: var(--red);
-  display: flex; align-items: center; justify-content: center;
-  color: white; font-weight: 800; font-size: 15px; flex-shrink: 0;
-}
-#sidebar-logo .logo-text { font-size: 13px; font-weight: 700; line-height: 1.3; }
-#sidebar-logo .logo-text span { display: block; color: var(--text-muted); font-weight: 400; font-size: 11px; }
-#sidebar-nav { flex: 1; overflow-y: auto; padding: 12px 0; }
-.nav-section { padding: 4px 12px 2px; font-size: 10px; font-weight: 700; letter-spacing: .08em; color: var(--text-muted); text-transform: uppercase; margin-top: 8px; }
-.nav-item {
-  display: flex; align-items: center; gap: 10px; padding: 9px 16px;
-  font-size: 13.5px; color: var(--text); border-radius: var(--radius-sm);
-  margin: 1px 8px; cursor: pointer; transition: background .15s, color .15s;
-}
-.nav-item:hover { background: var(--gray-100); }
-.nav-item.active { background: var(--red-light); color: var(--red); font-weight: 600; }
-[data-theme="dark"] .nav-item:hover { background: #2a2a2a; }
-[data-theme="dark"] .nav-item.active { background: #2A0A10; }
-.nav-item .nav-icon { width: 18px; text-align: center; flex-shrink: 0; }
-#sidebar-footer { padding: 12px; border-top: 1px solid var(--border); }
-.user-chip {
-  display: flex; align-items: center; gap: 10px; padding: 8px 10px;
-  border-radius: var(--radius-sm); background: var(--bg-surface);
-}
-.user-avatar {
-  width: 32px; height: 32px; border-radius: 50%; background: var(--red);
-  color: white; display: flex; align-items: center; justify-content: center;
-  font-size: 13px; font-weight: 700; flex-shrink: 0;
-}
-.user-chip-info { flex: 1; min-width: 0; }
-.user-chip-name { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-chip-role { font-size: 11px; color: var(--text-muted); }
-
-/* Overlay */
-#overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 150; }
-#overlay.show { display: block; }
-
-/* Main content */
-#main {
-  flex: 1; margin-left: 240px; min-height: 100vh;
-  display: flex; flex-direction: column;
-}
-@media (max-width: 768px) {
-  #main { margin-left: 0; }
-  #sidebar { transform: translateX(-100%); }
-  #sidebar.open { transform: translateX(0); }
-}
-
-/* Topbar */
-#topbar {
-  height: 56px; background: var(--bg-card); border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; padding: 0 20px; gap: 12px; position: sticky; top: 0; z-index: 100;
-}
-#menu-toggle { display: none; background: none; padding: 6px; color: var(--text); font-size: 20px; }
-@media (max-width: 768px) { #menu-toggle { display: block; } }
-#topbar-title { font-size: 15px; font-weight: 700; flex: 1; }
-#theme-toggle {
-  width: 34px; height: 34px; border-radius: var(--radius-sm); background: var(--bg-surface);
-  border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
-  cursor: pointer; font-size: 16px; color: var(--text);
-}
-#logout-btn {
-  padding: 6px 14px; border-radius: var(--radius-sm); background: var(--red-light);
-  color: var(--red); font-size: 13px; font-weight: 600; cursor: pointer;
-  border: 1px solid transparent; transition: background .15s;
-}
-#logout-btn:hover { background: var(--red); color: white; }
-
-/* Page content */
-#page-content { flex: 1; padding: 24px; max-width: 1100px; width: 100%; }
-@media (max-width: 480px) { #page-content { padding: 16px; } }
-
-/* =========================================================
-   LOGIN PAGE
-   ========================================================= */
-#login-page {
-  min-height: 100vh; display: flex; align-items: center; justify-content: center;
-  background: var(--bg); padding: 16px;
-}
-.login-card {
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
-  padding: 40px 36px; width: 100%; max-width: 400px; box-shadow: var(--shadow);
-}
-.login-logo { text-align: center; margin-bottom: 28px; }
-.login-logo-mark {
-  width: 56px; height: 56px; border-radius: 14px; background: var(--red);
-  display: inline-flex; align-items: center; justify-content: center;
-  color: white; font-weight: 900; font-size: 22px; margin-bottom: 10px;
-}
-.login-logo h1 { font-size: 20px; font-weight: 800; }
-.login-logo p { font-size: 12.5px; color: var(--text-muted); }
-
-/* =========================================================
-   COMPONENTS
-   ========================================================= */
-/* Cards */
-.card {
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--radius); box-shadow: var(--shadow-sm); overflow: hidden;
-}
-.card-header {
-  padding: 16px 20px; border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-}
-.card-title { font-size: 14px; font-weight: 700; }
-.card-body { padding: 20px; }
-
-/* Stats grid */
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
-.stat-card {
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 18px 20px; box-shadow: var(--shadow-sm);
-}
-.stat-label { font-size: 11.5px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
-.stat-value { font-size: 28px; font-weight: 800; color: var(--red); line-height: 1; }
-.stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-
-/* Form elements */
-.form-group { margin-bottom: 16px; }
-.form-label { display: block; font-size: 12.5px; font-weight: 600; margin-bottom: 6px; }
-.form-control {
-  width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
-  background: var(--bg); color: var(--text); font-size: 14px; transition: border-color .15s;
-}
-.form-control:focus { outline: none; border-color: var(--red); }
-.form-control::placeholder { color: var(--gray-400); }
-.form-hint { font-size: 11.5px; color: var(--text-muted); margin-top: 4px; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-@media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } }
-
-/* Buttons */
-.btn {
-  display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px;
-  border-radius: var(--radius-sm); font-size: 13.5px; font-weight: 600;
-  cursor: pointer; border: 1px solid transparent; transition: all .15s; white-space: nowrap;
-}
-.btn-sm { padding: 6px 12px; font-size: 12.5px; }
-.btn-primary { background: var(--red); color: white; }
-.btn-primary:hover { background: var(--red-dark); }
-.btn-secondary { background: var(--bg-surface); color: var(--text); border-color: var(--border); }
-.btn-secondary:hover { background: var(--gray-200); }
-.btn-danger { background: var(--danger-bg); color: var(--danger); }
-.btn-danger:hover { background: var(--danger); color: white; }
-.btn-success { background: var(--success-bg); color: var(--success); }
-.btn-success:hover { background: var(--success); color: white; }
-.btn-full { width: 100%; justify-content: center; }
-.btn:disabled { opacity: .5; cursor: not-allowed; }
-
-/* Badges */
-.badge {
-  display: inline-flex; align-items: center; padding: 2px 8px;
-  border-radius: 100px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
-}
-.badge-pending  { background: var(--warn-bg);    color: var(--warn);    }
-.badge-submitted{ background: var(--info-bg);    color: var(--info);    }
-.badge-approved { background: var(--success-bg); color: var(--success); }
-.badge-rejected { background: var(--danger-bg);  color: var(--danger);  }
-.badge-active   { background: var(--success-bg); color: var(--success); }
-.badge-inactive { background: var(--gray-100);   color: var(--gray-600);}
-.badge-reset    { background: var(--warn-bg);    color: var(--warn);    }
-
-/* Table */
-.table-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-th { padding: 10px 14px; text-align: left; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
-td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: var(--bg-surface); }
-
-/* Alerts */
-.alert { padding: 11px 14px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 14px; }
-.alert-error   { background: var(--danger-bg);  color: var(--danger);  border: 1px solid #f5c6cb; }
-.alert-success { background: var(--success-bg); color: var(--success); border: 1px solid #b7dfc9; }
-.alert-info    { background: var(--info-bg);    color: var(--info);    border: 1px solid #bfdbfe; }
-.alert-warn    { background: var(--warn-bg);    color: var(--warn);    border: 1px solid #fde68a; }
-
-/* Modal */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 500;
-  display: flex; align-items: center; justify-content: center; padding: 16px;
-}
-.modal {
-  background: var(--bg-card); border-radius: var(--radius); box-shadow: var(--shadow);
-  width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto;
-}
-.modal-header {
-  padding: 16px 20px; border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between;
-}
-.modal-title { font-size: 15px; font-weight: 700; }
-.modal-close { background: none; font-size: 20px; color: var(--text-muted); padding: 2px 6px; border-radius: 4px; }
-.modal-close:hover { background: var(--bg-surface); }
-.modal-body { padding: 20px; }
-.modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
-
-/* Checklist */
-.checklist-item {
-  display: flex; align-items: flex-start; gap: 12px; padding: 12px 0;
-  border-bottom: 1px solid var(--border);
-}
-.checklist-item:last-child { border-bottom: none; }
-.checklist-item input[type="checkbox"] { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--red); flex-shrink: 0; }
-.checklist-item-label { flex: 1; font-size: 14px; }
-.checklist-item-photo { margin-top: 8px; }
-
-/* Page header */
-.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 12px; flex-wrap: wrap; }
-.page-title { font-size: 20px; font-weight: 800; }
-.page-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
-
-/* Empty state */
-.empty-state { text-align: center; padding: 48px 24px; color: var(--text-muted); }
-.empty-icon { font-size: 40px; margin-bottom: 12px; }
-.empty-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-.empty-text { font-size: 13px; }
-
-/* Tabs */
-.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
-.tab-btn {
-  padding: 9px 16px; font-size: 13.5px; font-weight: 600; background: none;
-  color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -1px;
-  cursor: pointer; transition: color .15s, border-color .15s;
-}
-.tab-btn.active { color: var(--red); border-bottom-color: var(--red); }
-
-/* Permission grid */
-.perm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
-.perm-item {
-  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
-  border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer;
-}
-.perm-item input[type="checkbox"] { accent-color: var(--red); width: 16px; height: 16px; flex-shrink: 0; }
-.perm-item label { font-size: 13px; cursor: pointer; }
-
-/* Drag handle placeholder for checklist ordering */
-.drag-handle { color: var(--gray-400); cursor: grab; font-size: 16px; padding: 0 4px; }
-
-/* Loading spinner */
-.spinner {
-  width: 20px; height: 20px; border: 2px solid var(--border);
-  border-top-color: var(--red); border-radius: 50%; animation: spin .6s linear infinite; display: inline-block;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* Photo preview */
-.photo-preview { width: 80px; height: 80px; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--border); }
-
-/* Config notice */
-#config-banner {
-  background: var(--warn-bg); border-bottom: 1px solid #fde68a;
-  padding: 10px 20px; font-size: 13px; color: var(--warn); text-align: center; display: none;
-}
-
-/* =========================================================
-   RESPONSIVE UTILITIES
-   ========================================================= */
-.hide-mobile { }
-@media (max-width: 480px) {
-  .hide-mobile { display: none !important; }
-  .card-header { flex-wrap: wrap; }
-}
+/* COMPONENTS */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-sm);overflow:hidden}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.card-title{font-size:14px;font-weight:700}
+.card-body{padding:20px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow-sm)}
+.stat-lbl{font-size:11.5px;color:var(--txt-m);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.stat-val{font-size:28px;font-weight:800;color:var(--red);line-height:1}
+.stat-sub{font-size:12px;color:var(--txt-m);margin-top:4px}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:12.5px;font-weight:600;margin-bottom:6px}
+.form-ctrl{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--bg);color:var(--txt);font-size:14px;transition:border-color .15s}
+.form-ctrl:focus{outline:none;border-color:var(--red)}
+.form-ctrl::placeholder{color:var(--g400)}
+.form-hint{font-size:11.5px;color:var(--txt-m);margin-top:4px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:480px){.form-row{grid-template-columns:1fr}}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--r-sm);font-size:13.5px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .15s;white-space:nowrap}
+.btn-sm{padding:6px 12px;font-size:12.5px}
+.btn-primary{background:var(--red);color:#fff}
+.btn-primary:hover{background:var(--red-dark)}
+.btn-secondary{background:var(--bg-surf);color:var(--txt);border-color:var(--border)}
+.btn-secondary:hover{background:var(--g200)}
+.btn-danger{background:var(--err-bg);color:var(--err)}
+.btn-danger:hover{background:var(--err);color:#fff}
+.btn-success{background:var(--ok-bg);color:var(--ok)}
+.btn-success:hover{background:var(--ok);color:#fff}
+.btn-full{width:100%;justify-content:center}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:100px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.bp{background:var(--warn-bg);color:var(--warn)}
+.bs{background:var(--info-bg);color:var(--info)}
+.ba{background:var(--ok-bg);color:var(--ok)}
+.br{background:var(--err-bg);color:var(--err)}
+.bact{background:var(--ok-bg);color:var(--ok)}
+.binact{background:var(--g100);color:var(--g600)}
+.bpwr{background:var(--warn-bg);color:var(--warn)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{padding:10px 14px;text-align:left;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--txt-m);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg-surf)}
+.alert{padding:11px 14px;border-radius:var(--r-sm);font-size:13px;margin-bottom:14px}
+.alert-error{background:var(--err-bg);color:var(--err);border:1px solid #f5c6cb}
+.alert-success{background:var(--ok-bg);color:var(--ok);border:1px solid #b7dfc9}
+.alert-info{background:var(--info-bg);color:var(--info);border:1px solid #bfdbfe}
+.alert-warn{background:var(--warn-bg);color:var(--warn);border:1px solid #fde68a}
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:var(--bg-card);border-radius:var(--r);box-shadow:var(--shadow);width:100%;max-width:560px;max-height:90vh;overflow-y:auto}
+.modal-hd{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:15px;font-weight:700}
+.modal-close{background:none;font-size:20px;color:var(--txt-m);padding:2px 6px;border-radius:4px}
+.modal-close:hover{background:var(--bg-surf)}
+.modal-body{padding:20px}
+.modal-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+.ci-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.ci-row:last-child{border-bottom:none}
+.ci-row input[type=checkbox]{width:18px;height:18px;margin-top:2px;accent-color:var(--red);flex-shrink:0}
+.ci-label{flex:1;font-size:14px}
+.ph-prev{width:80px;height:80px;object-fit:cover;border-radius:var(--r-sm);border:1px solid var(--border)}
+.page-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap}
+.page-title{font-size:20px;font-weight:800}
+.page-sub{font-size:13px;color:var(--txt-m);margin-top:2px}
+.empty{text-align:center;padding:48px 24px;color:var(--txt-m)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-title{font-size:15px;font-weight:600;color:var(--txt);margin-bottom:6px}
+.empty-txt{font-size:13px}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:20px}
+.tab-btn{padding:9px 16px;font-size:13.5px;font-weight:600;background:none;color:var(--txt-m);border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;transition:color .15s,border-color .15s}
+.tab-btn.active{color:var(--red);border-bottom-color:var(--red)}
+.perm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.perm-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r-sm)}
+.perm-item input[type=checkbox]{accent-color:var(--red);width:16px;height:16px;flex-shrink:0}
+.perm-item label{font-size:13px;cursor:pointer}
+.spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--red);border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+#cfg-banner{background:var(--warn-bg);border-bottom:1px solid #fde68a;padding:10px 20px;font-size:13px;color:var(--warn);text-align:center;display:none}
 </style>
 </head>
 <body>
 
-<!-- Config banner shown if Supabase not configured -->
-<div id="config-banner">⚠️ Supabase not configured. Open this file and set <strong>SUPABASE_URL</strong> and <strong>SUPABASE_KEY (anon key)</strong> at the top of the script.</div>
+<div id="cfg-banner">⚠️ Set <strong>SUPABASE_URL</strong> and <strong>SUPABASE_ANON_KEY</strong> in the script config below before deploying.</div>
 
-<!-- LOGIN PAGE -->
-<div id="login-page" style="display:flex;">
+<!-- LOGIN -->
+<div id="login-page">
   <div class="login-card">
     <div class="login-logo">
-      <div class="login-logo-mark">E</div>
+      <div class="login-lm">E</div>
       <h1>Enpro Industries</h1>
       <p>Training Management System</p>
     </div>
     <div id="login-alert"></div>
     <div class="form-group">
       <label class="form-label">Email</label>
-      <input class="form-control" type="email" id="login-email" placeholder="admin@enpro.com" autocomplete="username"/>
+      <input class="form-ctrl" type="email" id="li-email" placeholder="admin@enpro.com" autocomplete="username"/>
     </div>
     <div class="form-group">
       <label class="form-label">Password</label>
-      <input class="form-control" type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"/>
+      <input class="form-ctrl" type="password" id="li-pass" placeholder="••••••••" autocomplete="current-password"/>
     </div>
-    <button class="btn btn-primary btn-full" id="login-btn" onclick="handleLogin()">Sign In</button>
-    <div style="margin-top:16px; text-align:center;">
-      <button class="btn btn-secondary btn-sm" onclick="toggleTheme()" style="width:auto;">🌓 Toggle theme</button>
+    <button class="btn btn-primary btn-full" id="li-btn" onclick="doLogin()">Sign In</button>
+    <div style="margin-top:14px;text-align:center">
+      <button class="btn btn-secondary btn-sm" onclick="toggleTheme()">🌓 Toggle theme</button>
     </div>
   </div>
 </div>
 
 <!-- FORCE PASSWORD CHANGE -->
-<div id="password-change-page" style="display:none; min-height:100vh; align-items:center; justify-content:center; background:var(--bg); padding:16px; flex-direction:column;">
+<div id="pw-page" style="display:none">
   <div class="login-card">
     <div class="login-logo">
-      <div class="login-logo-mark">E</div>
+      <div class="login-lm">E</div>
       <h1>Set New Password</h1>
-      <p>You must change your temporary password before continuing.</p>
+      <p>Change your temporary password to continue.</p>
     </div>
-    <div id="pwchange-alert"></div>
+    <div id="pw-alert"></div>
     <div class="form-group">
       <label class="form-label">New Password</label>
-      <input class="form-control" type="password" id="new-password" placeholder="Min 8 characters"/>
+      <input class="form-ctrl" type="password" id="pw-new" placeholder="Min 8 characters"/>
     </div>
     <div class="form-group">
-      <label class="form-label">Confirm New Password</label>
-      <input class="form-control" type="password" id="confirm-password" placeholder="Repeat password"/>
+      <label class="form-label">Confirm Password</label>
+      <input class="form-ctrl" type="password" id="pw-confirm" placeholder="Repeat password"/>
     </div>
-    <button class="btn btn-primary btn-full" onclick="handlePasswordChange()">Save & Continue</button>
+    <button class="btn btn-primary btn-full" onclick="doPasswordChange()">Save &amp; Continue</button>
   </div>
 </div>
 
 <!-- MAIN APP -->
-<div id="app-shell" style="display:none;">
-  <div id="overlay" onclick="closeSidebar()"></div>
-
-  <!-- Sidebar -->
+<div id="app-shell" style="display:none">
+  <div id="overlay" onclick="closeSB()"></div>
   <div id="sidebar">
-    <div id="sidebar-logo">
+    <div id="sb-logo">
       <div class="logo-mark">E</div>
       <div class="logo-text">Enpro Industries<span>Training System</span></div>
     </div>
-    <nav id="sidebar-nav">
-      <!-- Rendered by JS based on permissions -->
-    </nav>
-    <div id="sidebar-footer">
+    <nav id="sb-nav"></nav>
+    <div id="sb-foot">
       <div class="user-chip">
-        <div class="user-avatar" id="sidebar-avatar">?</div>
-        <div class="user-chip-info">
-          <div class="user-chip-name" id="sidebar-name">—</div>
-          <div class="user-chip-role" id="sidebar-role">—</div>
+        <div class="u-av" id="u-av">?</div>
+        <div class="u-info">
+          <div class="u-name" id="u-name">—</div>
+          <div class="u-role" id="u-role">—</div>
         </div>
       </div>
     </div>
   </div>
-
-  <!-- Main -->
   <div id="main">
     <div id="topbar">
-      <button id="menu-toggle" onclick="toggleSidebar()">☰</button>
+      <button id="menu-toggle" onclick="toggleSB()">☰</button>
       <div id="topbar-title">Dashboard</div>
-      <button id="theme-toggle" onclick="toggleTheme()">🌓</button>
-      <button id="logout-btn" onclick="handleLogout()">Sign out</button>
+      <button id="theme-btn" onclick="toggleTheme()">🌓</button>
+      <button id="logout-btn" onclick="doLogout()">Sign out</button>
     </div>
-    <div id="page-content">
-      <!-- Pages rendered here -->
-    </div>
+    <div id="pg"></div>
   </div>
 </div>
 
-<!-- MODAL CONTAINER -->
-<div id="modal-container"></div>
+<div id="modal-wrap"></div>
 
 <script>
-// =========================================================
-// CONFIGURATION — SET THESE BEFORE DEPLOYING
-// =========================================================
-const SUPABASE_URL = 'https://xnppjwzikoouscqlzlxc.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhucHBqd3ppa29vdXNjcWx6bHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjI0MDMsImV4cCI6MjA5ODI5ODQwM30.fgmTrSy9GhEYzXTzUc18PbpNMtT-huxPdTN6YYxTa78'; // service_role key
+// ─────────────────────────────────────────────
+// CONFIG — fill these in before deploying
+// ─────────────────────────────────────────────
+const CFG = {
+  url: 'https://xnppjwzikoouscqlzlxc.supabase.co',       // e.g. https://xxxx.supabase.co
+  key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhucHBqd3ppa29vdXNjcWx6bHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjI0MDMsImV4cCI6MjA5ODI5ODQwM30.fgmTrSy9GhEYzXTzUc18PbpNMtT-huxPdTN6YYxTa78'   // anon/public key from Project Settings → API
+};
 
-// =========================================================
-// BCRYPT SHIM — normalise across CDN variants
-// =========================================================
-const bcrypt = window.bcrypt || (window.dcodeIO && window.dcodeIO.bcrypt) || window.bcryptjs;
+// ─────────────────────────────────────────────
+// BCRYPT — cdnjs build exposes dcodeIO.bcrypt
+// ─────────────────────────────────────────────
+const BC = window.dcodeIO ? window.dcodeIO.bcrypt : window.bcrypt;
 
-// =========================================================
-// PAGE VISIBILITY HELPERS
-// =========================================================
-function showPage(id, displayType) {
-  ['login-page','password-change-page','app-shell'].forEach(p => {
-    document.getElementById(p).style.display = 'none';
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let ME = null;   // current app_user row
+let PERMS = {};  // current user_permissions row
+
+// ─────────────────────────────────────────────
+// RAW REST HELPER  — no Supabase JS client used
+// All queries go through this function.
+// ─────────────────────────────────────────────
+async function q(path, opts = {}) {
+  if (!CFG.url || CFG.url === 'YOUR_SUPABASE_URL') throw new Error('Supabase not configured.');
+  const base = CFG.url.replace(/\/$/, '') + '/rest/v1/';
+  const res = await fetch(base + path, {
+    method: opts.method || 'GET',
+    headers: {
+      'apikey': CFG.key,
+      'Authorization': 'Bearer ' + CFG.key,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Prefer': opts.prefer || (opts.method === 'POST' ? 'return=representation' : 'return=representation'),
+      ...(opts.headers || {})
+    },
+    body: opts.body ? JSON.stringify(opts.body) : undefined
   });
-  document.getElementById(id).style.display = displayType || 'flex';
+  const text = await res.text();
+  let data;
+  try { data = text ? JSON.parse(text) : null; } catch { data = { message: text }; }
+  if (!res.ok) {
+    const msg = (data && (data.message || data.error || data.hint)) || ('HTTP ' + res.status);
+    throw new Error(msg);
+  }
+  return data;
 }
 
-// =========================================================
+// Convenience wrappers
+const db = {
+  get:    (table, qs)     => q(table + (qs ? '?' + qs : '')),
+  post:   (table, body)   => q(table, { method:'POST',  body }),
+  patch:  (table, qs, body) => q(table + '?' + qs, { method:'PATCH', prefer:'return=minimal', body }),
+  del:    (table, qs)     => q(table + '?' + qs, { method:'DELETE', prefer:'return=minimal' }),
+  count:  (table, qs)     => fetch(
+    CFG.url.replace(/\/$/, '') + '/rest/v1/' + table + (qs ? '?' + qs : ''),
+    { headers:{ apikey:CFG.key, Authorization:'Bearer '+CFG.key, Accept:'application/json', Prefer:'count=exact', 'Range-Unit':'items', Range:'0-0' } }
+  ).then(r => parseInt(r.headers.get('Content-Range')?.split('/')[1] || '0'))
+};
+
+// ─────────────────────────────────────────────
 // INIT
-// =========================================================
-let supabase;
-let currentUser = null;
-let currentPerms = null;
-
-function initSupabase() {
-  if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_KEY === 'YOUR_SUPABASE_ANON_KEY') {
-    document.getElementById('config-banner').style.display = 'block';
-    return false;
-  }
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  return true;
-}
-
+// ─────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-  initSupabase();
-  const saved = sessionStorage.getItem('enpro_user');
-  if (saved) {
-    const data = JSON.parse(saved);
-    currentUser = data.user;
-    currentPerms = data.perms;
-    showApp();
+  // Check config
+  if (CFG.url === 'YOUR_SUPABASE_URL' || CFG.key === 'YOUR_SUPABASE_ANON_KEY') {
+    document.getElementById('cfg-banner').style.display = 'block';
   }
-  // Apply saved theme
-  const t = localStorage.getItem('enpro_theme') || 'light';
-  document.documentElement.setAttribute('data-theme', t);
+  // Theme
+  document.documentElement.setAttribute('data-theme', localStorage.getItem('enpro_theme') || 'light');
+  // Restore session
+  try {
+    const s = sessionStorage.getItem('enpro_session');
+    if (s) { const d = JSON.parse(s); ME = d.me; PERMS = d.perms; showApp(); return; }
+  } catch {}
+  showPage('login-page');
 });
 
-// =========================================================
-// THEME
-// =========================================================
-function toggleTheme() {
-  const current = document.documentElement.getAttribute('data-theme');
-  const next = current === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem('enpro_theme', next);
+// ─────────────────────────────────────────────
+// PAGE SHOW/HIDE
+// ─────────────────────────────────────────────
+function showPage(id) {
+  ['login-page','pw-page','app-shell'].forEach(p => {
+    const el = document.getElementById(p);
+    el.style.display = 'none';
+    el.style.flexDirection = '';
+  });
+  const target = document.getElementById(id);
+  target.style.display = 'flex';
+  if (id !== 'app-shell') target.style.flexDirection = 'column';
 }
 
-// =========================================================
-// AUTH
-// =========================================================
-async function handleLogin() {
-  if (!supabase) { showAlert('login-alert', 'Supabase not configured.', 'error'); return; }
-  const email = document.getElementById('login-email').value.trim();
-  const password = document.getElementById('login-password').value;
-  if (!email || !password) { showAlert('login-alert', 'Please enter email and password.', 'error'); return; }
+// ─────────────────────────────────────────────
+// THEME
+// ─────────────────────────────────────────────
+function toggleTheme() {
+  const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('enpro_theme', t);
+}
 
-  const btn = document.getElementById('login-btn');
+// ─────────────────────────────────────────────
+// AUTH — LOGIN
+// ─────────────────────────────────────────────
+async function doLogin() {
+  const email    = document.getElementById('li-email').value.trim().toLowerCase();
+  const password = document.getElementById('li-pass').value;
+  if (!email || !password) { alert2('login-alert', 'Enter email and password.', 'error'); return; }
+
+  const btn = document.getElementById('li-btn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
 
   try {
-    const { data: users, error } = await supabase
-      .from('app_users').select('*, user_permissions(*)')
-      .eq('email', email).eq('status', 'active').limit(1);
+    // Fetch user row + permissions in one call using PostgREST embedding
+    const rows = await db.get('app_users', 'email=eq.' + encodeURIComponent(email) + '&select=*,user_permissions(*)&limit=1');
 
-    if (error) throw error;
-    
-    // Also check password_reset_required
-    const { data: allUsers } = await supabase
-      .from('app_users').select('*, user_permissions(*)')
-      .eq('email', email).limit(1);
+    if (!rows || rows.length === 0) {
+      alert2('login-alert', 'Incorrect email or password.', 'error'); return;
+    }
+    const user = rows[0];
 
-    const user = allUsers && allUsers[0];
-    if (!user) { showAlert('login-alert', 'Invalid email or password.', 'error'); return; }
-    if (user.status === 'inactive') { showAlert('login-alert', 'Your account is inactive. Contact admin.', 'error'); return; }
+    if (user.status === 'inactive') {
+      alert2('login-alert', 'This account is inactive. Contact your admin.', 'error'); return;
+    }
 
-    const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid) { showAlert('login-alert', 'Invalid email or password.', 'error'); return; }
+    // Verify password with bcrypt
+    const ok = await BC.compare(password, user.password_hash);
+    if (!ok) { alert2('login-alert', 'Incorrect email or password.', 'error'); return; }
 
-    // Log login
-    await supabase.from('audit_log').insert({ actor_id: user.id, action: 'login', target_type: 'user', target_id: user.id });
+    // Log login (best-effort)
+    db.post('audit_log', { actor_id: user.id, action: 'login', target_type: 'user', target_id: user.id }).catch(() => {});
 
-    currentUser = user;
-    currentPerms = user.user_permissions[0] || {};
+    ME    = user;
+    PERMS = (user.user_permissions && user.user_permissions[0]) || {};
 
     if (user.status === 'password_reset_required') {
-      sessionStorage.setItem('enpro_pending_user', JSON.stringify({ user, perms: currentPerms }));
-      showPasswordChangePage();
+      sessionStorage.setItem('enpro_pending', JSON.stringify({ me: ME, perms: PERMS }));
+      showPage('pw-page');
       return;
     }
 
-    sessionStorage.setItem('enpro_user', JSON.stringify({ user, perms: currentPerms }));
+    sessionStorage.setItem('enpro_session', JSON.stringify({ me: ME, perms: PERMS }));
     showApp();
-  } catch(e) {
-    showAlert('login-alert', 'Login failed: ' + e.message, 'error');
+
+  } catch (e) {
+    alert2('login-alert', 'Login failed: ' + e.message, 'error');
   } finally {
     btn.disabled = false; btn.textContent = 'Sign In';
   }
 }
 
-function showPasswordChangePage() {
-  showPage('password-change-page', 'flex');
-}
+// ─────────────────────────────────────────────
+// AUTH — FORCED PASSWORD CHANGE
+// ─────────────────────────────────────────────
+async function doPasswordChange() {
+  const np = document.getElementById('pw-new').value;
+  const cp = document.getElementById('pw-confirm').value;
+  if (np.length < 8) { alert2('pw-alert', 'Password must be at least 8 characters.', 'error'); return; }
+  if (np !== cp)      { alert2('pw-alert', 'Passwords do not match.', 'error'); return; }
 
-async function handlePasswordChange() {
-  const np = document.getElementById('new-password').value;
-  const cp = document.getElementById('confirm-password').value;
-  if (np.length < 8) { showAlert('pwchange-alert', 'Password must be at least 8 characters.', 'error'); return; }
-  if (np !== cp) { showAlert('pwchange-alert', 'Passwords do not match.', 'error'); return; }
-
-  const pending = JSON.parse(sessionStorage.getItem('enpro_pending_user'));
-  const hash = await bcrypt.hash(np, 10);
-  const { error } = await supabase.from('app_users')
-    .update({ password_hash: hash, status: 'active' })
-    .eq('id', pending.user.id);
-  if (error) { showAlert('pwchange-alert', 'Failed to update password.', 'error'); return; }
-
-  await supabase.from('audit_log').insert({ actor_id: pending.user.id, action: 'password_changed', target_type: 'user', target_id: pending.user.id });
-
-  pending.user.status = 'active';
-  sessionStorage.removeItem('enpro_pending_user');
-  sessionStorage.setItem('enpro_user', JSON.stringify(pending));
-  currentUser = pending.user;
-  currentPerms = pending.perms;
-
-  document.getElementById('password-change-page').style.display = 'none';
-  showApp();
-}
-
-function handleLogout() {
-  sessionStorage.removeItem('enpro_user');
-  currentUser = null; currentPerms = null;
-  showPage('login-page', 'flex');
-}
-
-// =========================================================
-// APP SHELL
-// =========================================================
-function isAdmin() { return currentPerms && Object.values(currentPerms).every(v => v === true || typeof v !== 'boolean') && currentPerms.can_create_users; }
-
-function showApp() {
-  showPage('app-shell', 'flex');
-  document.getElementById('sidebar-name').textContent = currentUser.name;
-  const av = document.getElementById('sidebar-avatar');
-  av.textContent = currentUser.name.charAt(0).toUpperCase();
-  
-  // Role label
-  if (currentPerms.can_create_users && currentPerms.can_manage_departments) {
-    document.getElementById('sidebar-role').textContent = 'Admin';
-  } else {
-    document.getElementById('sidebar-role').textContent = 'User';
-  }
-
-  buildSidebar();
-  navigateTo('dashboard');
-}
-
-function buildSidebar() {
-  const nav = document.getElementById('sidebar-nav');
-  const p = currentPerms;
-  let html = '';
-
-  html += `<div class="nav-section">Overview</div>
-    <div class="nav-item" onclick="navigateTo('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
-    <div class="nav-item" onclick="navigateTo('my-trainings')"><span class="nav-icon">📋</span> My Trainings</div>`;
-
-  if (p.can_assign_trainings || p.can_approve_completions) {
-    html += `<div class="nav-section">Management</div>`;
-    if (p.can_assign_trainings) html += `<div class="nav-item" onclick="navigateTo('assignments')"><span class="nav-icon">📌</span> Assignments</div>`;
-    if (p.can_approve_completions) html += `<div class="nav-item" onclick="navigateTo('approvals')"><span class="nav-icon">✅</span> Approvals</div>`;
-    if (p.can_view_reports) html += `<div class="nav-item" onclick="navigateTo('reports')"><span class="nav-icon">📈</span> Reports</div>`;
-  }
-
-  if (p.can_create_trainings || p.can_create_workflows) {
-    html += `<div class="nav-section">Content</div>`;
-    if (p.can_create_trainings) html += `<div class="nav-item" onclick="navigateTo('trainings')"><span class="nav-icon">📚</span> Trainings</div>`;
-    if (p.can_create_workflows) html += `<div class="nav-item" onclick="navigateTo('workflows')"><span class="nav-icon">🔄</span> Workflows</div>`;
-  }
-
-  if (p.can_create_users || p.can_manage_departments) {
-    html += `<div class="nav-section">Admin</div>`;
-    if (p.can_create_users) html += `<div class="nav-item" onclick="navigateTo('users')"><span class="nav-icon">👥</span> Users</div>`;
-    if (p.can_manage_departments) html += `<div class="nav-item" onclick="navigateTo('departments')"><span class="nav-icon">🏢</span> Departments</div>`;
-    html += `<div class="nav-item" onclick="navigateTo('audit')"><span class="nav-icon">🔎</span> Audit Log</div>`;
-  }
-
-  nav.innerHTML = html;
-}
-
-function setActiveNav(page) {
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(el => {
-    if (el.getAttribute('onclick') && el.getAttribute('onclick').includes(`'${page}'`)) {
-      el.classList.add('active');
-    }
-  });
-}
-
-function navigateTo(page, params = {}) {
-  setActiveNav(page);
-  document.getElementById('topbar-title').textContent = pageTitles[page] || page;
-  closeSidebar();
-  const content = document.getElementById('page-content');
-  content.innerHTML = '<div style="padding:40px;text-align:center"><span class="spinner"></span></div>';
-  pages[page] ? pages[page](params) : (content.innerHTML = '<p>Page not found.</p>');
-}
-
-const pageTitles = {
-  dashboard: 'Dashboard', 'my-trainings': 'My Trainings',
-  assignments: 'Assignments', approvals: 'Pending Approvals',
-  reports: 'Reports', trainings: 'Trainings Library',
-  workflows: 'Workflows', users: 'User Management',
-  departments: 'Departments', audit: 'Audit Log'
-};
-
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('overlay').classList.toggle('show');
-}
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('overlay').classList.remove('show');
-}
-
-// =========================================================
-// PAGES
-// =========================================================
-const pages = {};
-
-// --- DASHBOARD ---
-pages.dashboard = async () => {
-  const el = document.getElementById('page-content');
   try {
-    const [
-      { count: totalUsers },
-      { count: totalTrainings },
-      { count: pending },
-      { count: submitted },
-      { count: approved }
-    ] = await Promise.all([
-      supabase.from('app_users').select('*', { count: 'exact', head: true }),
-      supabase.from('trainings').select('*', { count: 'exact', head: true }),
-      supabase.from('training_assignments').select('*', { count: 'exact', head: true }).eq('status','pending'),
-      supabase.from('training_assignments').select('*', { count: 'exact', head: true }).eq('status','submitted'),
-      supabase.from('training_assignments').select('*', { count: 'exact', head: true }).eq('status','approved')
+    const pending = JSON.parse(sessionStorage.getItem('enpro_pending'));
+    const hash = await BC.hash(np, 10);
+    await db.patch('app_users', 'id=eq.' + pending.me.id, { password_hash: hash, status: 'active' });
+    db.post('audit_log', { actor_id: pending.me.id, action: 'password_changed', target_type: 'user', target_id: pending.me.id }).catch(() => {});
+
+    pending.me.status = 'active';
+    sessionStorage.removeItem('enpro_pending');
+    sessionStorage.setItem('enpro_session', JSON.stringify(pending));
+    ME = pending.me; PERMS = pending.perms;
+    showApp();
+  } catch (e) {
+    alert2('pw-alert', 'Failed to save password: ' + e.message, 'error');
+  }
+}
+
+// ─────────────────────────────────────────────
+// AUTH — LOGOUT
+// ─────────────────────────────────────────────
+function doLogout() {
+  sessionStorage.removeItem('enpro_session');
+  ME = null; PERMS = {};
+  showPage('login-page');
+}
+
+// ─────────────────────────────────────────────
+// APP SHELL
+// ─────────────────────────────────────────────
+function showApp() {
+  showPage('app-shell');
+  document.getElementById('u-av').textContent   = ME.name.charAt(0).toUpperCase();
+  document.getElementById('u-name').textContent = ME.name;
+  document.getElementById('u-role').textContent = (PERMS.can_create_users && PERMS.can_manage_departments) ? 'Admin' : 'User';
+  buildNav();
+  goto('dashboard');
+}
+
+function buildNav() {
+  const p = PERMS;
+  let h = `<div class="nav-sec">Overview</div>
+    <div class="nav-item" onclick="goto('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
+    <div class="nav-item" onclick="goto('my-trainings')"><span class="nav-icon">📋</span> My Trainings</div>`;
+  if (p.can_assign_trainings || p.can_approve_completions) {
+    h += `<div class="nav-sec">Management</div>`;
+    if (p.can_assign_trainings)    h += `<div class="nav-item" onclick="goto('assignments')"><span class="nav-icon">📌</span> Assignments</div>`;
+    if (p.can_approve_completions) h += `<div class="nav-item" onclick="goto('approvals')"><span class="nav-icon">✅</span> Approvals</div>`;
+    if (p.can_view_reports)        h += `<div class="nav-item" onclick="goto('reports')"><span class="nav-icon">📈</span> Reports</div>`;
+  }
+  if (p.can_create_trainings || p.can_create_workflows) {
+    h += `<div class="nav-sec">Content</div>`;
+    if (p.can_create_trainings)  h += `<div class="nav-item" onclick="goto('trainings')"><span class="nav-icon">📚</span> Trainings</div>`;
+    if (p.can_create_workflows)  h += `<div class="nav-item" onclick="goto('workflows')"><span class="nav-icon">🔄</span> Workflows</div>`;
+  }
+  if (p.can_create_users || p.can_manage_departments) {
+    h += `<div class="nav-sec">Admin</div>`;
+    if (p.can_create_users)          h += `<div class="nav-item" onclick="goto('users')"><span class="nav-icon">👥</span> Users</div>`;
+    if (p.can_manage_departments)    h += `<div class="nav-item" onclick="goto('departments')"><span class="nav-icon">🏢</span> Departments</div>`;
+    h += `<div class="nav-item" onclick="goto('audit')"><span class="nav-icon">🔎</span> Audit Log</div>`;
+  }
+  document.getElementById('sb-nav').innerHTML = h;
+}
+
+const PAGE_TITLES = { dashboard:'Dashboard','my-trainings':'My Trainings',assignments:'Assignments',approvals:'Pending Approvals',reports:'Reports',trainings:'Trainings Library',workflows:'Workflows',users:'User Management',departments:'Departments',audit:'Audit Log' };
+
+function goto(page) {
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', (el.getAttribute('onclick') || '').includes(`'${page}'`));
+  });
+  document.getElementById('topbar-title').textContent = PAGE_TITLES[page] || page;
+  closeSB();
+  const el = document.getElementById('pg');
+  el.innerHTML = '<div style="padding:40px;text-align:center"><span class="spinner"></span></div>';
+  (PAGES[page] || (() => el.innerHTML = '<p>Page not found.</p>'))();
+}
+
+function toggleSB() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('show'); }
+function closeSB()  { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
+
+// ─────────────────────────────────────────────
+// PAGES
+// ─────────────────────────────────────────────
+const PAGES = {};
+
+// ── DASHBOARD ──────────────────────────────
+PAGES.dashboard = async () => {
+  const el = document.getElementById('pg');
+  try {
+    const [nUsers, nTrainings, nPending, nSubmitted, nApproved, myOpen] = await Promise.all([
+      db.count('app_users'),
+      db.count('trainings'),
+      db.count('training_assignments', 'status=eq.pending'),
+      db.count('training_assignments', 'status=eq.submitted'),
+      db.count('training_assignments', 'status=eq.approved'),
+      db.get('training_assignments', 'assigned_to=eq.' + ME.id + '&status=in.(pending,submitted)&select=id,status,created_at,trainings(title)&order=created_at.desc&limit=5')
     ]);
-
-    const myPending = await supabase.from('training_assignments').select('*, trainings(title)').eq('assigned_to', currentUser.id).in('status', ['pending','submitted']).order('created_at', { ascending: false }).limit(5);
-
     el.innerHTML = `
-      <div class="page-header"><div><div class="page-title">Welcome, ${currentUser.name} 👋</div><div class="page-subtitle">Here's an overview of the training system.</div></div></div>
+      <div class="page-hd"><div><div class="page-title">Welcome, ${esc(ME.name)} 👋</div><div class="page-sub">Here's your training overview.</div></div></div>
       <div class="stats-grid">
-        <div class="stat-card"><div class="stat-label">Total Users</div><div class="stat-value">${totalUsers||0}</div></div>
-        <div class="stat-card"><div class="stat-label">Trainings</div><div class="stat-value">${totalTrainings||0}</div></div>
-        <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value">${pending||0}</div><div class="stat-sub">Awaiting action</div></div>
-        <div class="stat-card"><div class="stat-label">Submitted</div><div class="stat-value">${submitted||0}</div><div class="stat-sub">Awaiting approval</div></div>
-        <div class="stat-card"><div class="stat-label">Approved</div><div class="stat-value">${approved||0}</div><div class="stat-sub">Completed</div></div>
+        <div class="stat-card"><div class="stat-lbl">Total Users</div><div class="stat-val">${nUsers}</div></div>
+        <div class="stat-card"><div class="stat-lbl">Trainings</div><div class="stat-val">${nTrainings}</div></div>
+        <div class="stat-card"><div class="stat-lbl">Pending</div><div class="stat-val">${nPending}</div><div class="stat-sub">Awaiting action</div></div>
+        <div class="stat-card"><div class="stat-lbl">Submitted</div><div class="stat-val">${nSubmitted}</div><div class="stat-sub">Awaiting approval</div></div>
+        <div class="stat-card"><div class="stat-lbl">Approved</div><div class="stat-val">${nApproved}</div></div>
       </div>
       <div class="card">
-        <div class="card-header"><span class="card-title">My Open Trainings</span><button class="btn btn-sm btn-secondary" onclick="navigateTo('my-trainings')">View all</button></div>
+        <div class="card-header"><span class="card-title">My Open Trainings</span><button class="btn btn-sm btn-secondary" onclick="goto('my-trainings')">View all</button></div>
         <div class="card-body" style="padding:0">
-          ${myPending.data && myPending.data.length ? `
-            <div class="table-wrap"><table><thead><tr><th>Training</th><th>Status</th><th>Assigned</th></tr></thead><tbody>
-            ${myPending.data.map(a => `<tr><td>${a.trainings?.title||'—'}</td><td>${badge(a.status)}</td><td>${fmtDate(a.created_at)}</td></tr>`).join('')}
-            </tbody></table></div>` : `<div class="empty-state"><div class="empty-icon">🎉</div><div class="empty-title">All caught up!</div><div class="empty-text">No pending trainings assigned to you.</div></div>`}
+          ${myOpen.length ? `<div class="table-wrap"><table><thead><tr><th>Training</th><th>Status</th><th>Assigned</th></tr></thead><tbody>
+            ${myOpen.map(a=>`<tr><td>${esc(a.trainings?.title||'—')}</td><td>${bdg(a.status)}</td><td>${fd(a.created_at)}</td></tr>`).join('')}
+          </tbody></table></div>` : `<div class="empty"><div class="empty-icon">🎉</div><div class="empty-title">All caught up!</div><div class="empty-txt">No open trainings right now.</div></div>`}
         </div>
       </div>`;
-  } catch(e) { el.innerHTML = `<div class="alert alert-error">Failed to load dashboard: ${e.message}</div>`; }
+  } catch(e) { el.innerHTML = err(e); }
 };
 
-// --- MY TRAININGS ---
-pages['my-trainings'] = async () => {
-  const el = document.getElementById('page-content');
+// ── MY TRAININGS ───────────────────────────
+PAGES['my-trainings'] = async () => {
+  const el = document.getElementById('pg');
   try {
-    const { data, error } = await supabase
-      .from('training_assignments')
-      .select('*, trainings(title, description), workflows(title)')
-      .eq('assigned_to', currentUser.id)
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-
-    const tabs = ['all','pending','submitted','approved','rejected'];
-    let activeTab = 'all';
-
-    function render(tab) {
-      activeTab = tab;
-      const filtered = tab === 'all' ? data : data.filter(a => a.status === tab);
-      const rows = filtered.length ? filtered.map(a => `
-        <tr>
-          <td><strong>${a.trainings?.title||'—'}</strong>${a.workflows ? `<br><span style="font-size:12px;color:var(--text-muted)">Workflow: ${a.workflows.title}</span>` : ''}</td>
-          <td>${badge(a.status)}</td>
-          <td>${a.due_date ? fmtDate(a.due_date) : '—'}</td>
-          <td>${fmtDate(a.created_at)}</td>
-          <td><button class="btn btn-sm btn-secondary" onclick="openAssignment('${a.id}')">Open</button></td>
-        </tr>`).join('') : `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No trainings</div></div></td></tr>`;
-
-      document.getElementById('my-trainings-body').innerHTML = rows;
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-    }
-
+    const data = await db.get('training_assignments', 'assigned_to=eq.' + ME.id + '&select=id,status,due_date,created_at,trainings(title),workflows(title)&order=created_at.desc');
+    let tab = 'all';
+    const render = (t) => {
+      tab = t;
+      const rows = (t === 'all' ? data : data.filter(a => a.status === t));
+      document.getElementById('mt-body').innerHTML = rows.length
+        ? rows.map(a=>`<tr>
+            <td><strong>${esc(a.trainings?.title||'—')}</strong>${a.workflows?`<br><span style="font-size:12px;color:var(--txt-m)">Workflow: ${esc(a.workflows.title)}</span>`:''}</td>
+            <td>${bdg(a.status)}</td><td>${a.due_date||'—'}</td><td>${fd(a.created_at)}</td>
+            <td><button class="btn btn-sm btn-secondary" onclick="openAssign('${a.id}')">Open</button></td>
+          </tr>`).join('')
+        : `<tr><td colspan="5"><div class="empty"><div class="empty-icon">📋</div><div class="empty-title">No trainings here.</div></div></td></tr>`;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === t));
+    };
     el.innerHTML = `
-      <div class="page-header"><div class="page-title">My Trainings</div></div>
-      <div class="tabs">${tabs.map(t => `<button class="tab-btn${t==='all'?' active':''}" data-tab="${t}" onclick="myTrainingsTab('${t}')">${t.charAt(0).toUpperCase()+t.slice(1)}</button>`).join('')}</div>
+      <div class="page-hd"><div class="page-title">My Trainings</div></div>
+      <div class="tabs">${['all','pending','submitted','approved','rejected'].map(t=>`<button class="tab-btn${t==='all'?' active':''}" data-tab="${t}" onclick="window._mtTab('${t}')">${cap(t)}</button>`).join('')}</div>
       <div class="card"><div class="table-wrap"><table>
         <thead><tr><th>Training</th><th>Status</th><th>Due</th><th>Assigned</th><th></th></tr></thead>
-        <tbody id="my-trainings-body"></tbody>
+        <tbody id="mt-body"></tbody>
       </table></div></div>`;
-
-    window.myTrainingsTab = render;
-    render('all');
-  } catch(e) { el.innerHTML = `<div class="alert alert-error">${e.message}</div>`; }
+    window._mtTab = render; render('all');
+  } catch(e) { document.getElementById('pg').innerHTML = err(e); }
 };
 
-// --- OPEN ASSIGNMENT (checklist) ---
-async function openAssignment(id) {
-  const { data: assignment, error } = await supabase
-    .from('training_assignments')
-    .select('*, trainings(title, description, training_checklist_items(*))')
-    .eq('id', id).single();
-  if (error) { showToast('Failed to load assignment', 'error'); return; }
-
-  const items = assignment.trainings?.training_checklist_items || [];
-  const { data: responses } = await supabase.from('assignment_checklist_responses').select('*').eq('assignment_id', id);
-  const respMap = {};
-  (responses||[]).forEach(r => { respMap[r.checklist_item_id] = r; });
-
-  const canEdit = assignment.assigned_to === currentUser.id && ['pending','rejected'].includes(assignment.status);
-  const canApprove = currentPerms.can_approve_completions && assignment.status === 'submitted';
-
-  const checklistHtml = items.sort((a,b)=>a.order_index-b.order_index).map(item => {
-    const resp = respMap[item.id] || {};
-    return `<div class="checklist-item" id="ci-${item.id}">
-      <input type="checkbox" id="chk-${item.id}" ${resp.is_checked?'checked':''} ${canEdit?'':'disabled'} onchange="saveChecklistItem('${id}','${item.id}')"/>
-      <div class="checklist-item-label">
-        <div>${item.description}${item.requires_photo?'<span style="color:var(--red);margin-left:4px;">*photo required</span>':''}</div>
-        ${resp.photo_url ? `<img src="${resp.photo_url}" class="photo-preview" style="margin-top:6px"/>` : ''}
-        ${canEdit && item.requires_photo ? `
-          <div class="checklist-item-photo" style="margin-top:6px">
-            <input type="file" accept="image/*" capture="environment" id="photo-${item.id}" style="display:none" onchange="uploadChecklistPhoto('${id}','${item.id}')"/>
-            <button class="btn btn-sm btn-secondary" onclick="document.getElementById('photo-${item.id}').click()">📷 ${resp.photo_url?'Change photo':'Attach photo'}</button>
-          </div>` : ''}
-        ${canEdit ? `<textarea class="form-control" style="margin-top:6px;font-size:12px;" rows="1" placeholder="Notes (optional)" id="note-${item.id}" onblur="saveChecklistItem('${id}','${item.id}')">${resp.notes||''}</textarea>` : (resp.notes ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px">${resp.notes}</div>` : '')}
-      </div>
-    </div>`;
-  }).join('');
-
-  const approverSection = canApprove ? `
-    <div style="margin-top:16px">
-      <div class="form-group"><label class="form-label">Remarks (optional)</label>
-        <textarea class="form-control" id="approval-remarks" rows="2" placeholder="Add remarks..."></textarea></div>
-      <div style="display:flex;gap:10px">
-        <button class="btn btn-success" onclick="approveAssignment('${id}')">✅ Approve</button>
-        <button class="btn btn-danger" onclick="rejectAssignment('${id}')">❌ Reject</button>
-      </div>
-    </div>` : '';
-
-  const submitBtn = canEdit ? `<div style="margin-top:20px"><button class="btn btn-primary" onclick="submitAssignment('${id}')">Submit for Approval</button></div>` : '';
-
-  showModal(`Training: ${assignment.trainings?.title}`, `
-    <div style="margin-bottom:12px">${badge(assignment.status)}</div>
-    ${assignment.trainings?.description ? `<p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">${assignment.trainings.description}</p>` : ''}
-    ${items.length ? checklistHtml : '<p style="color:var(--text-muted)">No checklist items defined.</p>'}
-    ${submitBtn}
-    ${approverSection}
-    ${assignment.approver_remarks ? `<div class="alert alert-info" style="margin-top:12px"><strong>Approver remarks:</strong> ${assignment.approver_remarks}</div>` : ''}
-  `);
-}
-
-async function saveChecklistItem(assignmentId, itemId) {
-  const chk = document.getElementById(`chk-${itemId}`);
-  const note = document.getElementById(`note-${itemId}`);
-  await supabase.from('assignment_checklist_responses').upsert({
-    assignment_id: assignmentId, checklist_item_id: itemId,
-    is_checked: chk?.checked||false, notes: note?.value||null, updated_at: new Date().toISOString()
-  }, { onConflict: 'assignment_id,checklist_item_id' });
-}
-
-async function uploadChecklistPhoto(assignmentId, itemId) {
-  const file = document.getElementById(`photo-${itemId}`).files[0];
-  if (!file) return;
-  const ext = file.name.split('.').pop();
-  const path = `${assignmentId}/${itemId}.${ext}`;
-  const { error } = await supabase.storage.from('training-photos').upload(path, file, { upsert: true });
-  if (error) { showToast('Photo upload failed: ' + error.message, 'error'); return; }
-  const { data: { publicUrl } } = supabase.storage.from('training-photos').getPublicUrl(path);
-  await supabase.from('assignment_checklist_responses').upsert({
-    assignment_id: assignmentId, checklist_item_id: itemId,
-    photo_url: publicUrl, updated_at: new Date().toISOString()
-  }, { onConflict: 'assignment_id,checklist_item_id' });
-  showToast('Photo uploaded!', 'success');
-}
-
-async function submitAssignment(id) {
-  const { error } = await supabase.from('training_assignments').update({ status: 'submitted', submitted_at: new Date().toISOString() }).eq('id', id);
-  if (error) { showToast('Failed to submit', 'error'); return; }
-  await supabase.from('audit_log').insert({ actor_id: currentUser.id, action: 'assignment_submitted', target_type: 'assignment', target_id: id });
-  closeModal(); showToast('Submitted for approval!', 'success'); pages['my-trainings']();
-}
-
-async function approveAssignment(id) {
-  const remarks = document.getElementById('approval-remarks')?.value||'';
-  const { error } = await supabase.from('training_assignments').update({ status: 'approved', approved_at: new Date().toISOString(), approved_by: currentUser.id, approver_remarks: remarks }).eq('id', id);
-  if (error) { showToast('Failed to approve', 'error'); return; }
-  await supabase.from('audit_log').insert({ actor_id: currentUser.id, action: 'assignment_approved', target_type: 'assignment', target_id: id });
-  closeModal(); showToast('Training approved!', 'success'); pages.approvals();
-}
-
-async function rejectAssignment(id) {
-  const remarks = document.getElementById('approval-remarks')?.value||'';
-  if (!remarks) { showToast('Please add a remark when rejecting.', 'error'); return; }
-  const { error } = await supabase.from('training_assignments').update({ status: 'rejected', approver_remarks: remarks }).eq('id', id);
-  if (error) { showToast('Failed to reject', 'error'); return; }
-  await supabase.from('audit_log').insert({ actor_id: currentUser.id, action: 'assignment_rejected', target_type: 'assignment', target_id: id });
-  closeModal(); showToast('Training rejected.', 'success'); pages.approvals();
-}
-
-// --- APPROVALS ---
-pages.approvals = async () => {
-  const el = document.getElementById('page-content');
+// ── OPEN ASSIGNMENT ────────────────────────
+async function openAssign(id) {
   try {
-    const { data, error } = await supabase
-      .from('training_assignments')
-      .select('*, trainings(title), app_users!training_assignments_assigned_to_fkey(name, email)')
-      .eq('status', 'submitted')
-      .order('submitted_at', { ascending: true });
-    if (error) throw error;
+    const asgn = (await db.get('training_assignments', 'id=eq.' + id + '&select=*,trainings(title,description,training_checklist_items(*))&limit=1'))[0];
+    if (!asgn) { toast('Assignment not found.', 'error'); return; }
+    const items = (asgn.trainings?.training_checklist_items || []).sort((a,b)=>a.order_index-b.order_index);
+    const resps = await db.get('assignment_checklist_responses', 'assignment_id=eq.' + id + '&select=*');
+    const rmap  = {}; resps.forEach(r => rmap[r.checklist_item_id] = r);
 
+    const canEdit    = asgn.assigned_to === ME.id && ['pending','rejected'].includes(asgn.status);
+    const canApprove = PERMS.can_approve_completions && asgn.status === 'submitted';
+
+    const ciHtml = items.map(item => {
+      const r = rmap[item.id] || {};
+      return `<div class="ci-row">
+        <input type="checkbox" id="chk-${item.id}" ${r.is_checked?'checked':''} ${canEdit?'':'disabled'} onchange="saveCi('${id}','${item.id}')"/>
+        <div class="ci-label">
+          <div>${esc(item.description)}${item.requires_photo?'<span style="color:var(--red);margin-left:4px">*photo</span>':''}</div>
+          ${r.photo_url?`<img src="${r.photo_url}" class="ph-prev" style="margin-top:6px"/>`:''}
+          ${canEdit && item.requires_photo ? `<div style="margin-top:6px">
+            <input type="file" accept="image/*" capture="environment" id="ph-${item.id}" style="display:none" onchange="uploadPh('${id}','${item.id}')"/>
+            <button class="btn btn-sm btn-secondary" onclick="document.getElementById('ph-${item.id}').click()">📷 ${r.photo_url?'Change photo':'Attach photo'}</button>
+          </div>` : ''}
+          ${canEdit?`<textarea class="form-ctrl" style="margin-top:6px;font-size:12px" rows="1" placeholder="Notes (optional)" id="note-${item.id}" onblur="saveCi('${id}','${item.id}')">${r.notes||''}</textarea>`:(r.notes?`<div style="font-size:12px;color:var(--txt-m);margin-top:4px">${esc(r.notes)}</div>`:'')}
+        </div>
+      </div>`;
+    }).join('');
+
+    modal(
+      'Training: ' + esc(asgn.trainings?.title),
+      `<div style="margin-bottom:12px">${bdg(asgn.status)}</div>
+       ${asgn.trainings?.description?`<p style="font-size:13px;color:var(--txt-m);margin-bottom:16px">${esc(asgn.trainings.description)}</p>`:''}
+       ${items.length ? ciHtml : '<p style="color:var(--txt-m)">No checklist items.</p>'}
+       ${canEdit?`<div style="margin-top:20px"><button class="btn btn-primary" onclick="submitAsgn('${id}')">Submit for Approval</button></div>`:''}
+       ${canApprove?`<div style="margin-top:16px">
+         <div class="form-group"><label class="form-label">Remarks (optional)</label>
+           <textarea class="form-ctrl" id="apr-remarks" rows="2" placeholder="Add remarks..."></textarea></div>
+         <div style="display:flex;gap:10px">
+           <button class="btn btn-success" onclick="approveAsgn('${id}')">✅ Approve</button>
+           <button class="btn btn-danger" onclick="rejectAsgn('${id}')">❌ Reject</button>
+         </div></div>`:''}
+       ${asgn.approver_remarks?`<div class="alert alert-info" style="margin-top:12px"><strong>Approver remarks:</strong> ${esc(asgn.approver_remarks)}</div>`:''}`
+    );
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function saveCi(asgnId, itemId) {
+  const isChecked = document.getElementById('chk-' + itemId)?.checked || false;
+  const notes     = document.getElementById('note-' + itemId)?.value || null;
+  // upsert via POST with Prefer: resolution=merge-duplicates
+  await fetch(CFG.url.replace(/\/$/,'') + '/rest/v1/assignment_checklist_responses', {
+    method: 'POST',
+    headers: { apikey: CFG.key, Authorization: 'Bearer ' + CFG.key, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify({ assignment_id: asgnId, checklist_item_id: itemId, is_checked: isChecked, notes, updated_at: new Date().toISOString() })
+  });
+}
+
+async function uploadPh(asgnId, itemId) {
+  const file = document.getElementById('ph-' + itemId).files[0];
+  if (!file) return;
+  const path = asgnId + '/' + itemId + '.' + file.name.split('.').pop();
+  const upRes = await fetch(CFG.url.replace(/\/$/,'') + '/storage/v1/object/training-photos/' + path, {
+    method: 'POST', headers: { apikey: CFG.key, Authorization: 'Bearer ' + CFG.key, 'x-upsert': 'true' }, body: file
+  });
+  if (!upRes.ok) { toast('Photo upload failed.', 'error'); return; }
+  const photoUrl = CFG.url.replace(/\/$/,'') + '/storage/v1/object/public/training-photos/' + path;
+  await fetch(CFG.url.replace(/\/$/,'') + '/rest/v1/assignment_checklist_responses', {
+    method: 'POST',
+    headers: { apikey: CFG.key, Authorization: 'Bearer ' + CFG.key, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify({ assignment_id: asgnId, checklist_item_id: itemId, photo_url: photoUrl, updated_at: new Date().toISOString() })
+  });
+  toast('Photo uploaded!');
+}
+
+async function submitAsgn(id) {
+  await db.patch('training_assignments', 'id=eq.' + id, { status: 'submitted', submitted_at: new Date().toISOString() });
+  db.post('audit_log', { actor_id: ME.id, action: 'assignment_submitted', target_type: 'assignment', target_id: id }).catch(()=>{});
+  closeModal(); toast('Submitted for approval!'); PAGES['my-trainings']();
+}
+
+async function approveAsgn(id) {
+  const remarks = document.getElementById('apr-remarks')?.value || '';
+  await db.patch('training_assignments', 'id=eq.' + id, { status: 'approved', approved_at: new Date().toISOString(), approved_by: ME.id, approver_remarks: remarks });
+  db.post('audit_log', { actor_id: ME.id, action: 'assignment_approved', target_type: 'assignment', target_id: id }).catch(()=>{});
+  closeModal(); toast('Training approved!'); PAGES.approvals();
+}
+
+async function rejectAsgn(id) {
+  const remarks = document.getElementById('apr-remarks')?.value || '';
+  if (!remarks) { toast('Add a remark before rejecting.', 'error'); return; }
+  await db.patch('training_assignments', 'id=eq.' + id, { status: 'rejected', approver_remarks: remarks });
+  db.post('audit_log', { actor_id: ME.id, action: 'assignment_rejected', target_type: 'assignment', target_id: id }).catch(()=>{});
+  closeModal(); toast('Rejected.'); PAGES.approvals();
+}
+
+// ── APPROVALS ──────────────────────────────
+PAGES.approvals = async () => {
+  const el = document.getElementById('pg');
+  try {
+    const data = await db.get('training_assignments',
+      'status=eq.submitted&select=id,submitted_at,trainings(title),employee:app_users!training_assignments_assigned_to_fkey(name,email)&order=submitted_at.asc');
     el.innerHTML = `
-      <div class="page-header"><div class="page-title">Pending Approvals</div></div>
+      <div class="page-hd"><div class="page-title">Pending Approvals</div></div>
       <div class="card"><div class="table-wrap"><table>
         <thead><tr><th>Employee</th><th>Training</th><th>Submitted</th><th></th></tr></thead>
-        <tbody>${data.length ? data.map(a => `<tr>
-          <td>${a.users?.name||'—'}<br><span style="font-size:11px;color:var(--text-muted)">${a.users?.email||''}</span></td>
-          <td>${a.trainings?.title||'—'}</td>
-          <td>${fmtDate(a.submitted_at)}</td>
-          <td><button class="btn btn-sm btn-primary" onclick="openAssignment('${a.id}')">Review</button></td>
-        </tr>`).join('') : `<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">No pending approvals</div></div></td></tr>`}</tbody>
+        <tbody>${data.length
+          ? data.map(a=>`<tr>
+              <td>${esc(a.employee?.name||'—')}<br><span style="font-size:11px;color:var(--txt-m)">${esc(a.employee?.email||'')}</span></td>
+              <td>${esc(a.trainings?.title||'—')}</td>
+              <td>${fd(a.submitted_at)}</td>
+              <td><button class="btn btn-sm btn-primary" onclick="openAssign('${a.id}')">Review</button></td>
+            </tr>`).join('')
+          : `<tr><td colspan="4"><div class="empty"><div class="empty-icon">✅</div><div class="empty-title">No pending approvals.</div></div></td></tr>`
+        }</tbody>
       </table></div></div>`;
-  } catch(e) { el.innerHTML = `<div class="alert alert-error">${e.message}</div>`; }
+  } catch(e) { el.innerHTML = err(e); }
 };
 
-// --- ASSIGNMENTS ---
-pages.assignments = async () => {
-  const el = document.getElementById('page-content');
+// ── ASSIGNMENTS ────────────────────────────
+PAGES.assignments = async () => {
+  const el = document.getElementById('pg');
   try {
-    const [trainingsRes, usersRes, workflowsRes] = await Promise.all([
-      supabase.from('trainings').select('id,title').order('title'),
-      supabase.from('app_users').select('id,name,email').eq('status','active').order('name'),
-      supabase.from('workflows').select('id,title').order('title')
+    const [trainings, users, workflows, asgns] = await Promise.all([
+      db.get('trainings', 'select=id,title&order=title'),
+      db.get('app_users', 'status=eq.active&select=id,name,email&order=name'),
+      db.get('workflows', 'select=id,title&order=title'),
+      db.get('training_assignments', 'select=id,status,due_date,created_at,trainings(title),employee:app_users!training_assignments_assigned_to_fkey(name)&order=created_at.desc&limit=50')
     ]);
-
-    const { data: assignments } = await supabase
-      .from('training_assignments')
-      .select('*, trainings(title), app_users!training_assignments_assigned_to_fkey(name)')
-      .order('created_at', { ascending: false }).limit(50);
-
-    const trainings = trainingsRes.data || [];
-    const users = usersRes.data || [];
-    const workflows = workflowsRes.data || [];
-
     el.innerHTML = `
-      <div class="page-header"><div class="page-title">Assignments</div><button class="btn btn-primary" onclick="showAssignModal()">+ Assign Training</button></div>
+      <div class="page-hd"><div class="page-title">Assignments</div><button class="btn btn-primary" onclick="_showAssignModal()">+ Assign Training</button></div>
       <div class="card"><div class="table-wrap"><table>
         <thead><tr><th>Employee</th><th>Training</th><th>Status</th><th>Due</th><th>Assigned</th></tr></thead>
-        <tbody>${(assignments||[]).map(a => `<tr>
-          <td>${a.users?.name||'—'}</td>
-          <td>${a.trainings?.title||'—'}</td>
-          <td>${badge(a.status)}</td>
+        <tbody>${asgns.map(a=>`<tr>
+          <td>${esc(a.employee?.name||'—')}</td>
+          <td>${esc(a.trainings?.title||'—')}</td>
+          <td>${bdg(a.status)}</td>
           <td>${a.due_date||'—'}</td>
-          <td>${fmtDate(a.created_at)}</td>
+          <td>${fd(a.created_at)}</td>
         </tr>`).join('')}</tbody>
       </table></div></div>`;
 
-    window.showAssignModal = () => {
-      showModal('Assign Training', `
+    window._showAssignModal = () => {
+      modal('Assign Training', `
         <div class="form-group"><label class="form-label">Employee *</label>
-          <select class="form-control" id="a-user"><option value="">Select employee…</option>${users.map(u=>`<option value="${u.id}">${u.name} (${u.email})</option>`).join('')}</select></div>
+          <select class="form-ctrl" id="as-user"><option value="">Select…</option>${users.map(u=>`<option value="${u.id}">${esc(u.name)} (${esc(u.email)})</option>`).join('')}</select></div>
         <div class="form-group"><label class="form-label">Training *</label>
-          <select class="form-control" id="a-training"><option value="">Select training…</option>${trainings.map(t=>`<option value="${t.id}">${t.title}</option>`).join('')}</select></div>
+          <select class="form-ctrl" id="as-trn"><option value="">Select…</option>${trainings.map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join('')}</select></div>
         <div class="form-group"><label class="form-label">Workflow (optional)</label>
-          <select class="form-control" id="a-workflow"><option value="">Standalone assignment</option>${workflows.map(w=>`<option value="${w.id}">${w.title}</option>`).join('')}</select></div>
+          <select class="form-ctrl" id="as-wf"><option value="">Standalone</option>${workflows.map(w=>`<option value="${w.id}">${esc(w.title)}</option>`).join('')}</select></div>
         <div class="form-group"><label class="form-label">Due Date (optional)</label>
-          <input type="date" class="form-control" id="a-due"/></div>
-        <div id="assign-alert"></div>`,
-        [{ label: 'Assign', cls: 'btn-primary', fn: doAssign }]
-      );
-    };
-
-    async function doAssign() {
-      const userId = document.getElementById('a-user').value;
-      const trainingId = document.getElementById('a-training').value;
-      const workflowId = document.getElementById('a-workflow').value || null;
-      const due = document.getElementById('a-due').value || null;
-      if (!userId || !trainingId) { showAlert('assign-alert','Please select employee and training.','error'); return; }
-      const { error } = await supabase.from('training_assignments').insert({
-        assigned_to: userId, training_id: trainingId, workflow_id: workflowId,
-        assigned_by: currentUser.id, due_date: due, status: 'pending'
-      });
-      if (error) { showAlert('assign-alert', error.message, 'error'); return; }
-      await supabase.from('audit_log').insert({ actor_id: currentUser.id, action: 'assignment_created', target_type: 'assignment', details: { to: userId, training: trainingId } });
-      closeModal(); showToast('Training assigned!', 'success'); pages.assignments();
-    }
-  } catch(e) { el.innerHTML = `<div class="alert alert-error">${e.message}</div>`; }
-};
-
-// --- TRAININGS LIBRARY ---
-pages.trainings = async () => {
-  const el = document.getElementById('page-content');
-  try {
-    const { data, error } = await supabase.from('trainings').select('*, training_checklist_items(id)').order('title');
-    if (error) throw error;
-
-    el.innerHTML = `
-      <div class="page-header"><div class="page-title">Trainings Library</div><button class="btn btn-primary" onclick="showCreateTrainingModal()">+ New Training</button></div>
-      <div class="card"><div class="table-wrap"><table>
-        <thead><tr><th>Title</th><th>Checklist Items</th><th>Created</th><th></th></tr></thead>
-        <tbody>${data.length ? data.map(t => `<tr>
-          <td><strong>${t.title}</strong>${t.description?`<br><span style="font-size:12px;color:var(--text-muted)">${t.description}</span>`:''}</td>
-          <td>${t.training_checklist_items?.length||0} items</td>
-          <td>${fmtDate(t.created_at)}</td>
-          <td style="display:flex;gap:6px">
-            <button class="btn btn-sm btn-secondary" onclick="editTraining('${t.id}')">Edit</button>
-            <button class="btn btn-sm btn-danger" onclick="deleteTraining('${t.id}','${t.title}')">Delete</button>
-          </td>
-        </tr>`).join('') : `<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">📚</div><div class="empty-title">No trainings yet</div><div class="empty-text">Create your first training to get started.</div></div></td></tr>`}</tbody>
-      </table></div></div>`;
-
-    window.showCreateTrainingModal = () => openTrainingModal(null);
-    window.editTraining = async (id) => {
-      const { data: t } = await supabase.from('trainings').select('*, training_checklist_items(*)').eq('id', id).single();
-      openTrainingModal(t);
-    };
-    window.deleteTraining = (id, title) => {
-      showModal('Delete Training', `<p>Are you sure you want to delete "<strong>${title}</strong>"? This will also remove all assignments.</p>`,
-        [{ label: 'Delete', cls: 'btn-danger', fn: async () => {
-          await supabase.from('trainings').delete().eq('id', id);
-          await supabase.from('audit_log').insert({ actor_id: currentUser.id, action: 'training_deleted', target_type: 'training', target_id: id });
-          closeModal(); showToast('Training deleted.', 'success'); pages.trainings();
-        }}]);
-    };
-  } catch(e) { el.innerHTML = `<div class="alert alert-error">${e.message}</div>`; }
-};
-
-function openTrainingModal(training) {
-  const items = training?.training_checklist_items?.sort((a,b)=>a.order_index-b.order_index) || [];
-  let checklistHtml = items.map((item, i) => checklistItemRow(item.id, item.description, item.requires_photo, i)).join('');
-
-  showModal(training ? 'Edit Training' : 'New Training', `
-    <div class="form-group"><label class="form-label">Title *</label>
-      <input class="form-control" id="t-title" value="${training?.title||''}"/></div>
-    <div class="form-group"><label class="form-label">Description</label>
-      <textarea class="form-control" id="t-desc" rows="2">${training?.description||''}</textarea></div>
-    <div style="font-weight:700;font-size:13px;margin-bottom:10px">Checklist Items</div>
-    <div id="checklist-editor">${checklistHtml}</div>
-    <button class="btn btn-secondary btn-sm" style="margin-top:8px" onclick="addChecklistRow()">+ Add Item</button>
-    <div id="training-alert" style="margin-top:12px"></div>`,
-    [{ label: training ? 'Save Changes' : 'Create Training', cls: 'btn-primary', fn: () => saveTraining(training?.id) }]
-  );
-}
-
-let _ciCounter = 1000;
-function checklistItemRow(id, desc, requiresPhoto, idx) {
-  const uid = id || `new-${_ciCounter++}`;
-  return `<div class="checklist-item" id="cirow-${uid}" style="align-items:center">
-    <span class="drag-handle">⠿</span>
-    <input class="form-control" style="flex:1;margin-right:8px" value="${desc||''}" id="cidesc-${uid}" placeholder="Checklist item description"/>
-    <label style="font-size:12px;white-space:nowrap;display:flex;align-items:center;gap:4px;margin-right:8px">
-      <input type="checkbox" ${requiresPhoto?'checked':''} id="ciphoto-${uid}"/> Photo
-    </label>
-    <button class="btn btn-sm btn-danger" onclick="document.getElementById('cirow-${uid}').remove()">✕</button>
-  </div>`;
-}
-
-window.addChecklistRow = () => {
-  document.getElementById('checklist-editor').insertAdjacentHTML('beforeend', checklistItemRow(null,'',false,0));
-};
-
-async function saveTraining(existingId) {
-  const title = document.getElementById('t-title').value.trim();
-  if (!title) { showAlert('training-alert','Title is required.','error'); return; }
-  const desc = document.getElementById('t-desc').value.trim();
-
-  let trainingId = existingId;
-  if (existingId) {
-    await supabase.from('trainings').update({ title, description: desc||null }).eq('id', existingId);
-  } else {
-    const { data, error } = await supabase.from('trainings').insert({ title, description: desc||null, created_by: currentUser.id }).select().single();
-    if (error) { showAlert('training-alert', error.message, 'error'); return; }
-    trainingId = data.id;
-  }
-
-  // Rebuild checklist items
-  if (existingId) await supabase.from('training_checklist_items').delete().eq('training_id', trainingId);
-  const rows = document.querySelectorAll('#checklist-editor .checklist-item');
-  const items = [];
-  rows.forEach((row, i) => {
-    const id = row.id.replace('cirow-','');
-    const desc = document.getElementById(`cidesc-${id}`)?.value?.trim();
-    const photo = document.getElementById(`ciphoto-${id}`)?.checked;
-    if (desc) items.push({ training_id: trainingId, description: desc, requires_photo: photo||false, order_index: i });
-  });
-  if (items.length) await supabase.from('training_checklist_items').insert(items);
-
-  await supabase.from('audit_log').insert({ actor_id: currentUser.id, action: existingId ? 'training_updated' : 'training_created', target_type: 'training', target_id: trainingId });
-  closeModal(); showToast(existingId ? 'Training updated!' : 'Training created!', 'success'); pages.trainings();
-}
-
-// --- WORKFLOWS ---
-pages.workflows = async () => {
-  const el = document.getElementById('page-content');
-  try {
-    const { data, error } = await supabase.from('workflows').select('*, workflow_trainings(id)').order('title');
-    if (error) throw error;
-
-    el.innerHTML = `
-      <div class="page-header"><div class="page-title">Workflows</div><button class="btn btn-primary" onclick="showCreateWorkflowModal()">+ New Workflow</button></div>
-      <div class="card"><div class="table-wrap"><table>
-        <thead><tr><th>Title</th><th>Type</th><th>Trainings</th><th>Created</th><th></th></tr></thead>
-        <tbody>${data.length ? data.map(w => `<tr>
-          <td><strong>${w.title}</strong>${w.description?`<br><span style="font-size:12px;color:var(--text-muted)">${w.description}</span>`:''}</td>
-          <td><span class="badge ${w.type==='sequential'?'badge-submitted':'badge-approved'}">${w.type}</span></td>
-          <td>${w.workflow_trainings?.length||0}</td>
-          <td>${fmtDate(w.created_at)}</td>
-          <td style="display:flex;gap:6px">
-            <button class="btn btn-sm btn-secondary" onclick="editWorkflow('${w.id}')">Edit</button>
-            <button class="btn btn-sm btn-danger" onclick="deleteWorkflow('${w.id}','${w.title}')">Delete</button>
-          </td>
-        </tr>`).join('') : `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">🔄</div><div class="empty-title">No workflows yet</div></div></td></tr>`}</tbody>
-      </table></div></div>`;
-
-    window.showCreateWorkflowModal = () => openWorkflowModal(null);
-    window.editWorkflow = async (id) => {
-      const { data: w } = await supabase.from('workflows').select('*, workflow_trainings(*, trainings(title)), workflow_managers(*, users(name))').eq('id', id).single();
-      openWorkflowModal(w);
-    };
-    window.deleteWorkflow = (id, title) => {
-      showModal('Delete Workflow', `<p>Delete "<strong>${title}</strong>"?</p>`,
-        [{ label: 'Delete', cls: 'btn-danger', fn: async () => {
-          await supabase.from('workflows').delete().eq('id', id);
-          closeModal(); showToast('Workflow deleted.', 'success'); pages.workflows();
-        }}]);
-    };
-  } catch(e) { el.innerHTML = `<div class="alert alert-error">${e.message}</div>`; }
-};
-
-async function openWorkflowModal(workflow) {
-  const { data: allTrainings } = await supabase.from('trainings').select('id,title').order('title');
-  const { data: allUsers } = await supabase.from('app_users').select('id,name').eq('status','active').order('name');
-  const wt = workflow?.workflow_trainings?.sort((a,b)=>a.order_index-b.order_index)||[];
-  const wm = workflow?.workflow_managers||[];
-
-  showModal(workflow ? 'Edit Workflow' : 'New Workflow', `
-    <div class="form-group"><label class="form-label">Title *</label><input class="form-control" id="w-title" value="${workflow?.title||''}"/></div>
-    <div class="form-group"><label class="form-label">Description</label><textarea class="form-control" id="w-desc" rows="2">${workflow?.description||''}</textarea></div>
-    <div class="form-group"><label class="form-label">Type</label>
-      <select class="form-control" id="w-type">
-        <option value="sequential" ${workflow?.type==='sequential'?'selected':''}>Sequential (must complete in order)</option>
-        <option value="flexible" ${workflow?.type==='flexible'?'selected':''}>Flexible (any order)</option>
-      </select></div>
-    <div class="form-group"><label class="form-label">Trainings in this workflow</label>
-      <select class="form-control" id="w-trainings" multiple style="height:100px">
-        ${(allTrainings||[]).map(t => `<option value="${t.id}" ${wt.find(x=>x.training_id===t.id)?'selected':''}>${t.title}</option>`).join('')}
-      </select>
-      <div class="form-hint">Hold Ctrl/Cmd to select multiple. Order reflects sequence for sequential workflows.</div></div>
-    <div class="form-group"><label class="form-label">Managers (can manage this workflow)</label>
-      <select class="form-control" id="w-managers" multiple style="height:80px">
-        ${(allUsers||[]).map(u => `<option value="${u.id}" ${wm.find(x=>x.user_id===u.id)?'selected':''}>${u.name}</option>`).join('')}
-      </select></div>
-    <div id="workflow-alert"></div>`,
-    [{ label: workflow ? 'Save Changes' : 'Create Workflow', cls: 'btn-primary', fn: () => saveWorkflow(workflow?.id) }]
-  );
-}
-
-async function saveWorkflow(existingId) {
-  const title = document.getElementById('w-title').value.trim();
-  if (!title) { showAlert('workflow-alert','Title is required.','error'); return; }
-  const desc = document.getElementById('w-desc').value.trim();
-  const type = document.getElementById('w-type').value;
-  const trainingIds = Array.from(document.getElementById('w-trainings').selectedOptions).map(o=>o.value);
-  const managerIds = Array.from(document.getElementById('w-managers').selectedOptions).map(o=>o.value);
-
-  let wid = existingId;
-  if (existingId) {
-    await supabase.from('workflows').update({ title, description: desc||null, type }).eq('id', existingId);
-    await supabase.from('workflow_trainings').delete().eq('workflow_id', existingId);
-    await supabase.from('workflow_managers').delete().eq('workflow_id', existingId);
-  } else {
-    const { data, error } = await supabase.from('workflows').insert({ title, description: desc||null, type, created_by: currentUser.id }).select().single();
-    if (error) { showAlert('workflow-alert', error.message, 'error'); return; }
-    wid = data.id;
-  }
-
-  if (trainingIds.length) await supabase.from('workflow_trainings').insert(trainingIds.map((tid,i) => ({ workflow_id: wid, training_id: tid, order_index: i })));
-  if (managerIds.length) await supabase.from('workflow_managers').insert(managerIds.map(uid => ({ workflow_id: wid, user_id: uid })));
-
-  closeModal(); showToast(existingId ? 'Workflow updated!' : 'Workflow created!', 'success'); pages.workflows();
-}
-
-// --- USERS ---
-pages.users = async () => {
-  const el = document.getElementById('page-content');
-  try {
-    const { data, error } = await supabase.from('app_users').select('*, departments(name), user_permissions(*)').order('name');
-    if (error) throw error;
-
-    el.innerHTML = `
-      <div class="page-header"><div class="page-title">User Management</div><button class="btn btn-primary" onclick="showCreateUserModal()">+ New User</button></div>
-      <div class="card"><div class="table-wrap"><table>
-        <thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Status</th><th>Temp Password</th><th></th></tr></thead>
-        <tbody>${data.map(u => `<tr>
-          <td><strong>${u.name}</strong></td>
-          <td>${u.email}</td>
-          <td>${u.departments?.name||'—'}</td>
-          <td>${badge(u.status)}</td>
-          <td id="tpw-${u.id}" style="font-size:12px;color:var(--text-muted)">—</td>
-          <td style="display:flex;gap:4px;flex-wrap:wrap">
-            <button class="btn btn-sm btn-secondary" onclick="editUser('${u.id}')">Edit</button>
-            <button class="btn btn-sm btn-secondary" onclick="editPermissions('${u.id}','${u.name}')">Perms</button>
-            ${u.id !== currentUser.id ? `<button class="btn btn-sm btn-danger" onclick="toggleUserActive('${u.id}','${u.status}')">
-              ${u.status==='inactive'?'Activate':'Deactivate'}</button>` : ''}
-          </td>
-        </tr>`).join('')}</tbody>
-      </table></div></div>`;
-
-    window.showCreateUserModal = () => openUserModal(null, data);
-    window.editUser = (id) => openUserModal(data.find(u=>u.id===id), data);
-    window.toggleUserActive = async (id, status) => {
-      const newStatus = status === 'inactive' ? 'active' : 'inactive';
-      await supabase.from('app_users').update({ status: newStatus }).eq('id', id);
-      pages.users();
-    };
-    window.editPermissions = async (userId, userName) => {
-      const user = data.find(u=>u.id===userId);
-      const p = user?.user_permissions?.[0] || {};
-      const permFields = ['can_create_users','can_manage_departments','can_create_trainings','can_create_workflows','can_assign_trainings','can_approve_completions','can_view_reports','can_manage_notifications'];
-      const labels = { can_create_users:'Create Users', can_manage_departments:'Manage Departments', can_create_trainings:'Create Trainings', can_create_workflows:'Create Workflows', can_assign_trainings:'Assign Trainings', can_approve_completions:'Approve Completions', can_view_reports:'View Reports', can_manage_notifications:'Manage Notifications' };
-      showModal(`Permissions: ${userName}`, `
-        <div class="perm-grid">${permFields.map(f=>`
-          <div class="perm-item">
-            <input type="checkbox" id="perm-${f}" ${p[f]?'checked':''}/>
-            <label for="perm-${f}">${labels[f]}</label>
-          </div>`).join('')}</div>
-        <div id="perm-alert" style="margin-top:12px"></div>`,
-        [{ label: 'Save Permissions', cls: 'btn-primary', fn: async () => {
-          const updates = {};
-          permFields.forEach(f => updates[f] = document.getElementById(`perm-${f}`).checked);
-          updates.granted_by = currentUser.id;
-          const existing = p.id;
-          if (existing) await supabase.from('user_permissions').update(updates).eq('id', existing);
-          else await supabase.from('user_permissions').insert({ user_id: userId, ...updates });
-          await supabase.from('audit_log').insert({ actor_id: currentUser.id, action: 'permission_granted', target_type: 'user', target_id: userId });
-          closeModal(); showToast('Permissions saved!', 'success');
+          <input type="date" class="form-ctrl" id="as-due"/></div>
+        <div id="as-alert"></div>`,
+        [{ label:'Assign', cls:'btn-primary', fn: async () => {
+          const uid = document.getElementById('as-user').value;
+          const tid = document.getElementById('as-trn').value;
+          const wid = document.getElementById('as-wf').value || null;
+          const due = document.getElementById('as-due').value || null;
+          if (!uid || !tid) { alert2('as-alert','Select employee and training.','error'); return; }
+          await db.post('training_assignments', { assigned_to:uid, training_id:tid, workflow_id:wid, assigned_by:ME.id, due_date:due, status:'pending' });
+          db.post('audit_log',{ actor_id:ME.id, action:'assignment_created', target_type:'assignment', details:{to:uid,training:tid} }).catch(()=>{});
+          closeModal(); toast('Training assigned!'); PAGES.assignments();
         }}]
       );
     };
-  } catch(e) { el.innerHTML = `<div class="alert alert-error">${e.message}</div>`; }
+  } catch(e) { el.innerHTML = err(e); }
 };
 
-async function openUserModal(user, allUsers) {
-  const { data: depts } = await supabase.from('departments').select('id,name').order('name');
-  const reportOptions = (allUsers||[]).filter(u=>u.id!==user?.id).map(u=>`<option value="${u.id}" ${user?.reports_to===u.id?'selected':''}>${u.name}</option>`).join('');
-
-  showModal(user ? 'Edit User' : 'New User', `
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Full Name *</label><input class="form-control" id="u-name" value="${user?.name||''}"/></div>
-      <div class="form-group"><label class="form-label">Email *</label><input class="form-control" type="email" id="u-email" value="${user?.email||''}" ${user?'readonly':''}/></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Department</label>
-        <select class="form-control" id="u-dept">
-          <option value="">No department</option>
-          ${(depts||[]).map(d=>`<option value="${d.id}" ${user?.department_id===d.id?'selected':''}>${d.name}</option>`).join('')}
-        </select></div>
-      <div class="form-group"><label class="form-label">Reports To</label>
-        <select class="form-control" id="u-reports">
-          <option value="">Nobody</option>${reportOptions}
-        </select></div>
-    </div>
-    ${!user ? `<div class="alert alert-info">A temporary password will be generated and shown after creation. Share it with the user — they must change it on first login.</div>` : ''}
-    <div id="user-alert"></div>`,
-    [{ label: user ? 'Save Changes' : 'Create User', cls: 'btn-primary', fn: () => saveUser(user?.id) }]
-  );
-}
-
-async function saveUser(existingId) {
-  const name = document.getElementById('u-name').value.trim();
-  const email = document.getElementById('u-email').value.trim();
-  const dept = document.getElementById('u-dept').value || null;
-  const reports = document.getElementById('u-reports').value || null;
-
-  if (!name || !email) { showAlert('user-alert','Name and email are required.','error'); return; }
-
-  if (existingId) {
-    const { error } = await supabase.from('app_users').update({ name, department_id: dept, reports_to: reports }).eq('id', existingId);
-    if (error) { showAlert('user-alert', error.message, 'error'); return; }
-    closeModal(); showToast('User updated!', 'success'); pages.users();
-  } else {
-    // Generate temp password
-    const tempPw = 'Enp' + Math.random().toString(36).slice(2,6).toUpperCase() + Math.floor(10+Math.random()*90);
-    const hash = await bcrypt.hash(tempPw, 10);
-    const { data, error } = await supabase.from('app_users').insert({
-      name, email, password_hash: hash, status: 'password_reset_required',
-      department_id: dept, reports_to: reports, created_by: currentUser.id
-    }).select().single();
-    if (error) { showAlert('user-alert', error.message, 'error'); return; }
-    // Create default (empty) permissions
-    await supabase.from('user_permissions').insert({ user_id: data.id, granted_by: currentUser.id });
-    // Create notification settings
-    await supabase.from('notification_settings').insert({ user_id: data.id });
-    await supabase.from('audit_log').insert({ actor_id: currentUser.id, action: 'user_created', target_type: 'user', target_id: data.id });
-    closeModal();
-    showToast('User created!', 'success');
-    // Show temp password prominently
-    showModal('User Created', `
-      <div class="alert alert-warn"><strong>Temporary Password — share this with ${name}:</strong></div>
-      <div style="font-size:28px;font-weight:800;letter-spacing:.1em;text-align:center;padding:16px;background:var(--bg-surface);border-radius:var(--radius-sm);margin:12px 0">${tempPw}</div>
-      <p style="font-size:13px;color:var(--text-muted)">The user will be required to change this password on first login. Copy it now — it won't be shown again.</p>`,
-      [{ label: 'Done', cls: 'btn-primary', fn: () => { closeModal(); pages.users(); } }]
-    );
-  }
-}
-
-// --- DEPARTMENTS ---
-pages.departments = async () => {
-  const el = document.getElementById('page-content');
+// ── TRAININGS ──────────────────────────────
+PAGES.trainings = async () => {
+  const el = document.getElementById('pg');
   try {
-    const { data, error } = await supabase.from('departments').select('*').order('name');
-    if (error) throw error;
-
+    const data = await db.get('trainings', 'select=id,title,description,created_at,training_checklist_items(id)&order=title');
     el.innerHTML = `
-      <div class="page-header"><div class="page-title">Departments</div><button class="btn btn-primary" onclick="showCreateDeptModal()">+ New Department</button></div>
+      <div class="page-hd"><div class="page-title">Trainings Library</div><button class="btn btn-primary" onclick="_openTrnModal(null)">+ New Training</button></div>
       <div class="card"><div class="table-wrap"><table>
-        <thead><tr><th>Department Name</th><th>Created</th><th></th></tr></thead>
-        <tbody>${data.length ? data.map(d => `<tr>
-          <td><strong>${d.name}</strong></td>
-          <td>${fmtDate(d.created_at)}</td>
-          <td style="display:flex;gap:6px">
-            <button class="btn btn-sm btn-secondary" onclick="editDept('${d.id}','${d.name}')">Edit</button>
-            <button class="btn btn-sm btn-danger" onclick="deleteDept('${d.id}','${d.name}')">Delete</button>
-          </td>
-        </tr>`).join('') : `<tr><td colspan="3"><div class="empty-state"><div class="empty-icon">🏢</div><div class="empty-title">No departments yet</div></div></td></tr>`}</tbody>
+        <thead><tr><th>Title</th><th>Items</th><th>Created</th><th></th></tr></thead>
+        <tbody>${data.length
+          ? data.map(t=>`<tr>
+              <td><strong>${esc(t.title)}</strong>${t.description?`<br><span style="font-size:12px;color:var(--txt-m)">${esc(t.description)}</span>`:''}</td>
+              <td>${t.training_checklist_items?.length||0}</td>
+              <td>${fd(t.created_at)}</td>
+              <td style="display:flex;gap:6px">
+                <button class="btn btn-sm btn-secondary" onclick="_editTrn('${t.id}')">Edit</button>
+                <button class="btn btn-sm btn-danger" onclick="_delTrn('${t.id}','${esc(t.title)}')">Delete</button>
+              </td>
+            </tr>`).join('')
+          : `<tr><td colspan="4"><div class="empty"><div class="empty-icon">📚</div><div class="empty-title">No trainings yet.</div></div></td></tr>`
+        }</tbody>
       </table></div></div>`;
 
-    window.showCreateDeptModal = () => openDeptModal(null, '');
-    window.editDept = (id, name) => openDeptModal(id, name);
-    window.deleteDept = (id, name) => {
-      showModal('Delete Department', `<p>Delete department "<strong>${name}</strong>"? Users in this department will have their department cleared.</p>`,
-        [{ label: 'Delete', cls: 'btn-danger', fn: async () => {
-          await supabase.from('departments').delete().eq('id', id);
-          closeModal(); showToast('Department deleted.', 'success'); pages.departments();
+    window._editTrn = async (id) => {
+      const rows = await db.get('trainings', 'id=eq.' + id + '&select=*,training_checklist_items(*)&limit=1');
+      _openTrnModal(rows[0]);
+    };
+    window._delTrn = (id, title) => {
+      modal('Delete Training', `<p>Delete "<strong>${title}</strong>"? All assignments will also be deleted.</p>`,
+        [{ label:'Delete', cls:'btn-danger', fn: async () => {
+          await db.del('trainings', 'id=eq.' + id);
+          db.post('audit_log',{actor_id:ME.id,action:'training_deleted',target_type:'training',target_id:id}).catch(()=>{});
+          closeModal(); toast('Deleted.'); PAGES.trainings();
         }}]);
     };
-  } catch(e) { el.innerHTML = `<div class="alert alert-error">${e.message}</div>`; }
+  } catch(e) { el.innerHTML = err(e); }
 };
 
-function openDeptModal(id, name) {
-  showModal(id ? 'Edit Department' : 'New Department', `
-    <div class="form-group"><label class="form-label">Department Name *</label>
-      <input class="form-control" id="d-name" value="${name}"/></div>
-    <div id="dept-alert"></div>`,
-    [{ label: id ? 'Save' : 'Create', cls: 'btn-primary', fn: async () => {
-      const n = document.getElementById('d-name').value.trim();
-      if (!n) { showAlert('dept-alert','Name is required.','error'); return; }
-      if (id) {
-        await supabase.from('departments').update({ name: n }).eq('id', id);
+let _cic = 1000;
+function _ciRow(id, desc, reqPhoto) {
+  const uid = id || 'n' + (_cic++);
+  return `<div class="ci-row" id="cir-${uid}" style="align-items:center">
+    <input class="form-ctrl" style="flex:1;margin-right:8px" value="${esc(desc||'')}" id="cd-${uid}" placeholder="Item description"/>
+    <label style="font-size:12px;white-space:nowrap;display:flex;align-items:center;gap:4px;margin-right:8px">
+      <input type="checkbox" ${reqPhoto?'checked':''} id="cp-${uid}"/> Photo
+    </label>
+    <button class="btn btn-sm btn-danger" onclick="document.getElementById('cir-${uid}').remove()">✕</button>
+  </div>`;
+}
+window.addCiRow = () => document.getElementById('ci-editor').insertAdjacentHTML('beforeend', _ciRow(null,'',false));
+
+function _openTrnModal(t) {
+  const items = (t?.training_checklist_items||[]).sort((a,b)=>a.order_index-b.order_index);
+  modal(t ? 'Edit Training' : 'New Training', `
+    <div class="form-group"><label class="form-label">Title *</label><input class="form-ctrl" id="t-title" value="${esc(t?.title||'')}"/></div>
+    <div class="form-group"><label class="form-label">Description</label><textarea class="form-ctrl" id="t-desc" rows="2">${esc(t?.description||'')}</textarea></div>
+    <div style="font-weight:700;font-size:13px;margin-bottom:10px">Checklist Items</div>
+    <div id="ci-editor">${items.map(i=>_ciRow(i.id,i.description,i.requires_photo)).join('')}</div>
+    <button class="btn btn-secondary btn-sm" style="margin-top:8px" onclick="addCiRow()">+ Add Item</button>
+    <div id="t-alert" style="margin-top:12px"></div>`,
+    [{ label: t ? 'Save Changes':'Create Training', cls:'btn-primary', fn: async () => {
+      const title = document.getElementById('t-title').value.trim();
+      if (!title) { alert2('t-alert','Title required.','error'); return; }
+      const desc = document.getElementById('t-desc').value.trim() || null;
+      let tid = t?.id;
+      if (tid) {
+        await db.patch('trainings','id=eq.'+tid,{title,description:desc});
+        await db.del('training_checklist_items','training_id=eq.'+tid);
       } else {
-        const { error } = await supabase.from('departments').insert({ name: n, created_by: currentUser.id });
-        if (error) { showAlert('dept-alert', error.message, 'error'); return; }
+        const rows = await db.post('trainings',{title,description:desc,created_by:ME.id});
+        tid = rows[0].id;
       }
-      closeModal(); showToast(id ? 'Department updated!' : 'Department created!', 'success'); pages.departments();
+      const ciRows = [...document.querySelectorAll('#ci-editor .ci-row')];
+      const ciData = ciRows.map((row,i)=>{
+        const uid = row.id.replace('cir-','');
+        const d   = document.getElementById('cd-'+uid)?.value?.trim();
+        const ph  = document.getElementById('cp-'+uid)?.checked;
+        return d ? {training_id:tid,description:d,requires_photo:ph||false,order_index:i} : null;
+      }).filter(Boolean);
+      if (ciData.length) await db.post('training_checklist_items', ciData);
+      db.post('audit_log',{actor_id:ME.id,action:t?'training_updated':'training_created',target_type:'training',target_id:tid}).catch(()=>{});
+      closeModal(); toast(t?'Training updated!':'Training created!'); PAGES.trainings();
     }}]
   );
 }
 
-// --- REPORTS ---
-pages.reports = async () => {
-  const el = document.getElementById('page-content');
+// ── WORKFLOWS ──────────────────────────────
+PAGES.workflows = async () => {
+  const el = document.getElementById('pg');
   try {
-    const { data, error } = await supabase
-      .from('training_assignments')
-      .select(`*, trainings(title), workflows(title),
-        assigned_user:app_users!training_assignments_assigned_to_fkey(name,email,departments(name)),
-        approver:app_users!training_assignments_approved_by_fkey(name)`)
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-
+    const data = await db.get('workflows', 'select=id,title,description,type,created_at,workflow_trainings(id)&order=title');
     el.innerHTML = `
-      <div class="page-header"><div class="page-title">Reports</div></div>
-      <div class="card"><div class="card-header"><span class="card-title">All Training Records</span></div>
-      <div class="table-wrap"><table>
-        <thead><tr><th>Employee</th><th>Department</th><th>Training</th><th>Workflow</th><th>Status</th><th>Assigned</th><th>Submitted</th><th>Approved</th><th>Approver</th><th>Remarks</th></tr></thead>
-        <tbody>${data.map(a => `<tr>
-          <td>${a.assigned_user?.name||'—'}<br><span style="font-size:11px;color:var(--text-muted)">${a.assigned_user?.email||''}</span></td>
-          <td>${a.assigned_user?.departments?.name||'—'}</td>
-          <td>${a.trainings?.title||'—'}</td>
-          <td>${a.workflows?.title||'—'}</td>
-          <td>${badge(a.status)}</td>
-          <td>${fmtDate(a.created_at)}</td>
-          <td>${a.submitted_at ? fmtDate(a.submitted_at) : '—'}</td>
-          <td>${a.approved_at ? fmtDate(a.approved_at) : '—'}</td>
-          <td>${a.approver?.name||'—'}</td>
-          <td style="max-width:180px;font-size:12px">${a.approver_remarks||'—'}</td>
-        </tr>`).join('')}</tbody>
+      <div class="page-hd"><div class="page-title">Workflows</div><button class="btn btn-primary" onclick="_openWfModal(null)">+ New Workflow</button></div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>Title</th><th>Type</th><th>Trainings</th><th>Created</th><th></th></tr></thead>
+        <tbody>${data.length
+          ? data.map(w=>`<tr>
+              <td><strong>${esc(w.title)}</strong>${w.description?`<br><span style="font-size:12px;color:var(--txt-m)">${esc(w.description)}</span>`:''}</td>
+              <td><span class="badge ${w.type==='sequential'?'bs':'ba'}">${w.type}</span></td>
+              <td>${w.workflow_trainings?.length||0}</td>
+              <td>${fd(w.created_at)}</td>
+              <td style="display:flex;gap:6px">
+                <button class="btn btn-sm btn-secondary" onclick="_editWf('${w.id}')">Edit</button>
+                <button class="btn btn-sm btn-danger" onclick="_delWf('${w.id}','${esc(w.title)}')">Delete</button>
+              </td>
+            </tr>`).join('')
+          : `<tr><td colspan="5"><div class="empty"><div class="empty-icon">🔄</div><div class="empty-title">No workflows yet.</div></div></td></tr>`
+        }</tbody>
       </table></div></div>`;
-  } catch(e) { el.innerHTML = `<div class="alert alert-error">${e.message}</div>`; }
+
+    window._editWf = async (id) => {
+      const rows = await db.get('workflows', 'id=eq.'+id+'&select=*,workflow_trainings(*),workflow_managers(*)&limit=1');
+      _openWfModal(rows[0]);
+    };
+    window._delWf = (id, title) => {
+      modal('Delete Workflow',`<p>Delete "<strong>${title}</strong>"?</p>`,
+        [{ label:'Delete',cls:'btn-danger',fn:async()=>{ await db.del('workflows','id=eq.'+id); closeModal(); toast('Deleted.'); PAGES.workflows(); }}]);
+    };
+  } catch(e) { el.innerHTML = err(e); }
 };
 
-// --- AUDIT LOG ---
-pages.audit = async () => {
-  const el = document.getElementById('page-content');
-  try {
-    const { data, error } = await supabase
-      .from('audit_log')
-      .select('*, actor:app_users!audit_log_actor_id_fkey(name)')
-      .order('created_at', { ascending: false }).limit(200);
-    if (error) throw error;
+async function _openWfModal(w) {
+  const [allTrn, allUsr] = await Promise.all([
+    db.get('trainings','select=id,title&order=title'),
+    db.get('app_users','status=eq.active&select=id,name&order=name')
+  ]);
+  const selTrn = (w?.workflow_trainings||[]).map(x=>x.training_id);
+  const selUsr = (w?.workflow_managers||[]).map(x=>x.user_id);
+  modal(w?'Edit Workflow':'New Workflow', `
+    <div class="form-group"><label class="form-label">Title *</label><input class="form-ctrl" id="w-title" value="${esc(w?.title||'')}"/></div>
+    <div class="form-group"><label class="form-label">Description</label><textarea class="form-ctrl" id="w-desc" rows="2">${esc(w?.description||'')}</textarea></div>
+    <div class="form-group"><label class="form-label">Type</label>
+      <select class="form-ctrl" id="w-type">
+        <option value="sequential" ${w?.type==='sequential'?'selected':''}>Sequential (must complete in order)</option>
+        <option value="flexible"   ${w?.type==='flexible'  ?'selected':''}>Flexible (any order)</option>
+      </select></div>
+    <div class="form-group"><label class="form-label">Trainings (Ctrl/Cmd to multi-select)</label>
+      <select class="form-ctrl" id="w-trns" multiple style="height:100px">
+        ${allTrn.map(t=>`<option value="${t.id}" ${selTrn.includes(t.id)?'selected':''}>${esc(t.title)}</option>`).join('')}
+      </select></div>
+    <div class="form-group"><label class="form-label">Managers (can manage this workflow)</label>
+      <select class="form-ctrl" id="w-mgrs" multiple style="height:80px">
+        ${allUsr.map(u=>`<option value="${u.id}" ${selUsr.includes(u.id)?'selected':''}>${esc(u.name)}</option>`).join('')}
+      </select></div>
+    <div id="w-alert"></div>`,
+    [{ label:w?'Save Changes':'Create Workflow', cls:'btn-primary', fn:async()=>{
+      const title = document.getElementById('w-title').value.trim();
+      if (!title) { alert2('w-alert','Title required.','error'); return; }
+      const desc  = document.getElementById('w-desc').value.trim() || null;
+      const type  = document.getElementById('w-type').value;
+      const trnIds = [...document.getElementById('w-trns').selectedOptions].map(o=>o.value);
+      const mgrIds = [...document.getElementById('w-mgrs').selectedOptions].map(o=>o.value);
+      let wid = w?.id;
+      if (wid) {
+        await db.patch('workflows','id=eq.'+wid,{title,description:desc,type});
+        await db.del('workflow_trainings','workflow_id=eq.'+wid);
+        await db.del('workflow_managers','workflow_id=eq.'+wid);
+      } else {
+        const rows = await db.post('workflows',{title,description:desc,type,created_by:ME.id});
+        wid = rows[0].id;
+      }
+      if (trnIds.length) await db.post('workflow_trainings', trnIds.map((tid,i)=>({workflow_id:wid,training_id:tid,order_index:i})));
+      if (mgrIds.length) await db.post('workflow_managers',  mgrIds.map(uid=>({workflow_id:wid,user_id:uid})));
+      closeModal(); toast(w?'Workflow updated!':'Workflow created!'); PAGES.workflows();
+    }}]
+  );
+}
 
+// ── USERS ──────────────────────────────────
+PAGES.users = async () => {
+  const el = document.getElementById('pg');
+  try {
+    const data = await db.get('app_users', 'select=id,name,email,status,department_id,reports_to,departments(name),user_permissions(*)&order=name');
     el.innerHTML = `
-      <div class="page-header"><div class="page-title">Audit Log</div></div>
+      <div class="page-hd"><div class="page-title">User Management</div><button class="btn btn-primary" onclick="_openUsrModal(null)">+ New User</button></div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>Name</th><th>Email</th><th>Dept</th><th>Status</th><th></th></tr></thead>
+        <tbody>${data.map(u=>`<tr>
+          <td><strong>${esc(u.name)}</strong></td>
+          <td style="font-size:13px">${esc(u.email)}</td>
+          <td>${esc(u.departments?.name||'—')}</td>
+          <td>${bdg(u.status)}</td>
+          <td style="display:flex;gap:4px;flex-wrap:wrap">
+            <button class="btn btn-sm btn-secondary" onclick="_openUsrModal('${u.id}')">Edit</button>
+            <button class="btn btn-sm btn-secondary" onclick="_editPerms('${u.id}','${esc(u.name)}')">Perms</button>
+            ${u.id!==ME.id?`<button class="btn btn-sm btn-danger" onclick="_toggleActive('${u.id}','${u.status}')">${u.status==='inactive'?'Activate':'Deactivate'}</button>`:''}
+          </td>
+        </tr>`).join('')}</tbody>
+      </table></div></div>`;
+
+    window._toggleActive = async (id, status) => {
+      await db.patch('app_users','id=eq.'+id,{status: status==='inactive'?'active':'inactive'});
+      PAGES.users();
+    };
+    window._editPerms = async (userId, userName) => {
+      const u = data.find(x=>x.id===userId);
+      const p = u?.user_permissions?.[0] || {};
+      const fields = ['can_create_users','can_manage_departments','can_create_trainings','can_create_workflows','can_assign_trainings','can_approve_completions','can_view_reports','can_manage_notifications'];
+      const labels = { can_create_users:'Create Users', can_manage_departments:'Manage Departments', can_create_trainings:'Create Trainings', can_create_workflows:'Create Workflows', can_assign_trainings:'Assign Trainings', can_approve_completions:'Approve Completions', can_view_reports:'View Reports', can_manage_notifications:'Manage Notifications' };
+      modal('Permissions: ' + userName, `
+        <div class="perm-grid">${fields.map(f=>`
+          <div class="perm-item">
+            <input type="checkbox" id="pm-${f}" ${p[f]?'checked':''}/>
+            <label for="pm-${f}">${labels[f]}</label>
+          </div>`).join('')}</div>
+        <div id="pm-alert" style="margin-top:12px"></div>`,
+        [{ label:'Save Permissions', cls:'btn-primary', fn:async()=>{
+          const upd = {}; fields.forEach(f=>upd[f]=document.getElementById('pm-'+f).checked);
+          upd.granted_by = ME.id;
+          if (p.id) await db.patch('user_permissions','id=eq.'+p.id, upd);
+          else       await db.post('user_permissions', { user_id:userId, ...upd });
+          db.post('audit_log',{actor_id:ME.id,action:'permission_granted',target_type:'user',target_id:userId}).catch(()=>{});
+          closeModal(); toast('Permissions saved!');
+        }}]
+      );
+    };
+  } catch(e) { el.innerHTML = err(e); }
+};
+
+async function _openUsrModal(userId) {
+  const [allUsers, depts] = await Promise.all([
+    db.get('app_users','select=id,name&order=name'),
+    db.get('departments','select=id,name&order=name')
+  ]);
+  let u = null;
+  if (userId) { const rows = await db.get('app_users','id=eq.'+userId+'&select=*&limit=1'); u = rows[0]; }
+  modal(u?'Edit User':'New User', `
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Full Name *</label><input class="form-ctrl" id="u-name" value="${esc(u?.name||'')}"/></div>
+      <div class="form-group"><label class="form-label">Email *</label><input class="form-ctrl" type="email" id="u-email" value="${esc(u?.email||'')}" ${u?'readonly':''}/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Department</label>
+        <select class="form-ctrl" id="u-dept">
+          <option value="">No department</option>
+          ${depts.map(d=>`<option value="${d.id}" ${u?.department_id===d.id?'selected':''}>${esc(d.name)}</option>`).join('')}
+        </select></div>
+      <div class="form-group"><label class="form-label">Reports To</label>
+        <select class="form-ctrl" id="u-rpt">
+          <option value="">Nobody</option>
+          ${allUsers.filter(x=>x.id!==userId).map(x=>`<option value="${x.id}" ${u?.reports_to===x.id?'selected':''}>${esc(x.name)}</option>`).join('')}
+        </select></div>
+    </div>
+    ${!u?`<div class="alert alert-info">A temporary password will be shown after creation. Share it with the user — they must change it on first login.</div>`:''}
+    <div id="u-alert"></div>`,
+    [{ label:u?'Save Changes':'Create User', cls:'btn-primary', fn:async()=>{
+      const name  = document.getElementById('u-name').value.trim();
+      const email = document.getElementById('u-email').value.trim().toLowerCase();
+      const dept  = document.getElementById('u-dept').value || null;
+      const rpt   = document.getElementById('u-rpt').value  || null;
+      if (!name||!email) { alert2('u-alert','Name and email required.','error'); return; }
+      if (u) {
+        await db.patch('app_users','id=eq.'+u.id,{name,department_id:dept,reports_to:rpt});
+        closeModal(); toast('User updated!'); PAGES.users();
+      } else {
+        const tmpPw = 'Enp' + Math.random().toString(36).slice(2,6).toUpperCase() + (10+Math.floor(Math.random()*90));
+        const hash  = await BC.hash(tmpPw, 10);
+        const rows  = await db.post('app_users',{name,email,password_hash:hash,status:'password_reset_required',department_id:dept,reports_to:rpt,created_by:ME.id});
+        const newId = rows[0].id;
+        await db.post('user_permissions',{user_id:newId,granted_by:ME.id});
+        await db.post('notification_settings',{user_id:newId});
+        db.post('audit_log',{actor_id:ME.id,action:'user_created',target_type:'user',target_id:newId}).catch(()=>{});
+        closeModal();
+        modal('User Created — Temporary Password', `
+          <div class="alert alert-warn">Share this password with <strong>${esc(name)}</strong>. It will not be shown again.</div>
+          <div style="font-size:28px;font-weight:800;letter-spacing:.1em;text-align:center;padding:16px;background:var(--bg-surf);border-radius:var(--r-sm);margin:12px 0">${tmpPw}</div>
+          <p style="font-size:13px;color:var(--txt-m)">The user must change this on first login.</p>`,
+          [{ label:'Done', cls:'btn-primary', fn:()=>{ closeModal(); PAGES.users(); }}]
+        );
+      }
+    }}]
+  );
+}
+
+// ── DEPARTMENTS ────────────────────────────
+PAGES.departments = async () => {
+  const el = document.getElementById('pg');
+  try {
+    const data = await db.get('departments','select=id,name,created_at&order=name');
+    el.innerHTML = `
+      <div class="page-hd"><div class="page-title">Departments</div><button class="btn btn-primary" onclick="_deptModal(null,'')">+ New Department</button></div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>Name</th><th>Created</th><th></th></tr></thead>
+        <tbody>${data.length
+          ? data.map(d=>`<tr>
+              <td><strong>${esc(d.name)}</strong></td>
+              <td>${fd(d.created_at)}</td>
+              <td style="display:flex;gap:6px">
+                <button class="btn btn-sm btn-secondary" onclick="_deptModal('${d.id}','${esc(d.name)}')">Edit</button>
+                <button class="btn btn-sm btn-danger" onclick="_delDept('${d.id}','${esc(d.name)}')">Delete</button>
+              </td>
+            </tr>`).join('')
+          : `<tr><td colspan="3"><div class="empty"><div class="empty-icon">🏢</div><div class="empty-title">No departments yet.</div></div></td></tr>`
+        }</tbody>
+      </table></div></div>`;
+
+    window._delDept = (id, name) => {
+      modal('Delete Department',`<p>Delete "<strong>${name}</strong>"? Users in it will lose their department.</p>`,
+        [{ label:'Delete',cls:'btn-danger',fn:async()=>{ await db.del('departments','id=eq.'+id); closeModal(); toast('Deleted.'); PAGES.departments(); }}]);
+    };
+  } catch(e) { el.innerHTML = err(e); }
+};
+
+window._deptModal = (id, name) => {
+  modal(id?'Edit Department':'New Department', `
+    <div class="form-group"><label class="form-label">Name *</label><input class="form-ctrl" id="dm-name" value="${esc(name)}"/></div>
+    <div id="dm-alert"></div>`,
+    [{ label:id?'Save':'Create', cls:'btn-primary', fn:async()=>{
+      const n = document.getElementById('dm-name').value.trim();
+      if (!n) { alert2('dm-alert','Name required.','error'); return; }
+      if (id) await db.patch('departments','id=eq.'+id,{name:n});
+      else    await db.post('departments',{name:n,created_by:ME.id});
+      closeModal(); toast(id?'Updated!':'Created!'); PAGES.departments();
+    }}]
+  );
+};
+
+// ── REPORTS ────────────────────────────────
+PAGES.reports = async () => {
+  const el = document.getElementById('pg');
+  try {
+    const data = await db.get('training_assignments',
+      'select=id,status,due_date,created_at,submitted_at,approved_at,approver_remarks,' +
+      'trainings(title),workflows(title),' +
+      'employee:app_users!training_assignments_assigned_to_fkey(name,email,departments(name)),' +
+      'approver:app_users!training_assignments_approved_by_fkey(name)' +
+      '&order=created_at.desc');
+    el.innerHTML = `
+      <div class="page-hd"><div class="page-title">Reports</div></div>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr><th>Employee</th><th>Dept</th><th>Training</th><th>Workflow</th><th>Status</th><th>Assigned</th><th>Submitted</th><th>Approved</th><th>Approver</th><th>Remarks</th></tr></thead>
+        <tbody>${data.map(a=>`<tr>
+          <td>${esc(a.employee?.name||'—')}<br><span style="font-size:11px;color:var(--txt-m)">${esc(a.employee?.email||'')}</span></td>
+          <td>${esc(a.employee?.departments?.name||'—')}</td>
+          <td>${esc(a.trainings?.title||'—')}</td>
+          <td>${esc(a.workflows?.title||'—')}</td>
+          <td>${bdg(a.status)}</td>
+          <td>${fd(a.created_at)}</td>
+          <td>${a.submitted_at?fd(a.submitted_at):'—'}</td>
+          <td>${a.approved_at?fd(a.approved_at):'—'}</td>
+          <td>${esc(a.approver?.name||'—')}</td>
+          <td style="max-width:160px;font-size:12px">${esc(a.approver_remarks||'—')}</td>
+        </tr>`).join('')}</tbody>
+      </table></div></div>`;
+  } catch(e) { el.innerHTML = err(e); }
+};
+
+// ── AUDIT LOG ──────────────────────────────
+PAGES.audit = async () => {
+  const el = document.getElementById('pg');
+  try {
+    const data = await db.get('audit_log',
+      'select=id,action,target_type,details,created_at,actor:app_users!audit_log_actor_id_fkey(name)&order=created_at.desc&limit=200');
+    el.innerHTML = `
+      <div class="page-hd"><div class="page-title">Audit Log</div></div>
       <div class="card"><div class="table-wrap"><table>
         <thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Target</th><th>Details</th></tr></thead>
-        <tbody>${data.map(l => `<tr>
-          <td style="white-space:nowrap;font-size:12px">${fmtDateTime(l.created_at)}</td>
-          <td>${l.actor?.name||'System'}</td>
-          <td><code style="font-size:12px">${l.action}</code></td>
-          <td style="font-size:12px">${l.target_type||'—'}</td>
-          <td style="font-size:11px;color:var(--text-muted);max-width:200px">${l.details ? JSON.stringify(l.details) : '—'}</td>
+        <tbody>${data.map(l=>`<tr>
+          <td style="white-space:nowrap;font-size:12px">${fdt(l.created_at)}</td>
+          <td>${esc(l.actor?.name||'System')}</td>
+          <td><code style="font-size:12px">${esc(l.action)}</code></td>
+          <td style="font-size:12px">${esc(l.target_type||'—')}</td>
+          <td style="font-size:11px;color:var(--txt-m);max-width:200px">${l.details?esc(JSON.stringify(l.details)):'—'}</td>
         </tr>`).join('')}</tbody>
       </table></div></div>`;
-  } catch(e) { el.innerHTML = `<div class="alert alert-error">${e.message}</div>`; }
+  } catch(e) { el.innerHTML = err(e); }
 };
 
-// =========================================================
-// MODAL HELPERS
-// =========================================================
-function showModal(title, body, actions = []) {
-  const actHtml = actions.map(a => `<button class="btn ${a.cls}" id="modal-action-${a.label.replace(/\s/g,'')}">${a.label}</button>`).join('');
-  document.getElementById('modal-container').innerHTML = `
-    <div class="modal-overlay" id="modal-overlay">
+// ─────────────────────────────────────────────
+// MODAL
+// ─────────────────────────────────────────────
+function modal(title, body, actions = []) {
+  const btns = actions.map(a=>`<button class="btn ${a.cls}" id="ma-${a.label.replace(/\s+/g,'_')}">${a.label}</button>`).join('');
+  document.getElementById('modal-wrap').innerHTML = `
+    <div class="modal-ov">
       <div class="modal">
-        <div class="modal-header">
+        <div class="modal-hd">
           <span class="modal-title">${title}</span>
           <button class="modal-close" onclick="closeModal()">×</button>
         </div>
         <div class="modal-body">${body}</div>
-        ${actions.length ? `<div class="modal-footer">${actHtml}<button class="btn btn-secondary" onclick="closeModal()">Cancel</button></div>` : ''}
+        ${actions.length?`<div class="modal-foot">${btns}<button class="btn btn-secondary" onclick="closeModal()">Cancel</button></div>`:''}
       </div>
     </div>`;
   actions.forEach(a => {
-    document.getElementById(`modal-action-${a.label.replace(/\s/g,'')}`).addEventListener('click', a.fn);
+    const btn = document.getElementById('ma-' + a.label.replace(/\s+/g,'_'));
+    if (btn) btn.addEventListener('click', a.fn);
   });
 }
-function closeModal() { document.getElementById('modal-container').innerHTML = ''; }
+function closeModal() { document.getElementById('modal-wrap').innerHTML = ''; }
 
-// =========================================================
+// ─────────────────────────────────────────────
 // TOAST
-// =========================================================
-function showToast(msg, type = 'success') {
+// ─────────────────────────────────────────────
+function toast(msg, type = 'success') {
   const t = document.createElement('div');
-  t.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;border-radius:8px;font-size:14px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.15);transition:opacity .3s;
-    background:${type==='success'?'#1A7F4B':type==='error'?'#C8102E':'#1D4ED8'};color:white;`;
+  t.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;border-radius:8px;font-size:14px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.15);transition:opacity .3s;background:${type==='success'?'#1A7F4B':type==='error'?'#C8102E':'#1D4ED8'};color:#fff`;
   t.textContent = msg;
   document.body.appendChild(t);
   setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
 }
 
-// =========================================================
-// ALERT IN-PAGE
-// =========================================================
-function showAlert(id, msg, type) {
+// ─────────────────────────────────────────────
+// IN-PAGE ALERT
+// ─────────────────────────────────────────────
+function alert2(id, msg, type) {
   const el = document.getElementById(id);
-  if (!el) return;
-  el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+  if (el) el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
 }
 
-// =========================================================
+// ─────────────────────────────────────────────
 // HELPERS
-// =========================================================
-function badge(status) {
-  const map = { pending:'badge-pending', submitted:'badge-submitted', approved:'badge-approved', rejected:'badge-rejected', active:'badge-active', inactive:'badge-inactive', password_reset_required:'badge-reset' };
-  const label = { password_reset_required: 'Temp Password' };
-  return `<span class="badge ${map[status]||''}">${label[status]||status}</span>`;
+// ─────────────────────────────────────────────
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+function fd(d)  { return d ? new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—'; }
+function fdt(d) { return d ? new Date(d).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—'; }
+function err(e) { return `<div class="alert alert-error">Error: ${esc(e.message)}</div>`; }
+function bdg(s) {
+  const m = { pending:'bp', submitted:'bs', approved:'ba', rejected:'br', active:'bact', inactive:'binact', password_reset_required:'bpwr' };
+  const l = { password_reset_required:'Temp PW' };
+  return `<span class="badge ${m[s]||''}">${l[s]||s}</span>`;
 }
-function fmtDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }); }
-function fmtDateTime(d) { if (!d) return '—'; return new Date(d).toLocaleString('en-IN', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
 
-// Allow Enter key on login
+// Enter key on login
 document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && document.getElementById('login-page').style.display !== 'none') handleLogin();
+  if (e.key === 'Enter' && document.getElementById('login-page').style.display !== 'none') doLogin();
 });
 </script>
 </body>
