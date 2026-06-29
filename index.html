@@ -506,8 +506,7 @@ async function runSetup() {
   msg.innerHTML='<div class="alert alert-info"><i class="fa fa-spinner fa-spin"></i> Setting up…</div>';
   SB_URL = url; SB_KEY = key;
   try {
-    --
-    // FIX: Properly structured Admin user generation endpoint configuration payload
+    // Correctly structured Admin user generation endpoint configuration payload
     const authRes = await sbAuth('admin/users', { 
       email: email, 
       password: pass, 
@@ -546,6 +545,7 @@ async function runSetup() {
     msg.innerHTML=`<div class="alert alert-danger"><i class="fa fa-times"></i> ${e.message}</div>`;
   }
 }
+  
 // ── LOGIN ────────────────────────────────────────────────────
 function showLogin() {
   document.getElementById('login-screen').classList.remove('d-none');
