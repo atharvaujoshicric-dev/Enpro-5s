@@ -2,1139 +2,1358 @@
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8"/>
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Enpro Training Management</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
+<title>Enpro — Training Management</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js" crossorigin="anonymous"></script>
 <style>
-:root{
-  --red:#C8102E;--red-dark:#9B0C22;--red-light:#FDEAED;
-  --white:#FFFFFF;--black:#111111;
-  --g50:#F9F9F9;--g100:#F2F2F2;--g200:#E5E5E5;--g400:#9E9E9E;--g600:#5C5C5C;
-  --ok:#1A7F4B;--ok-bg:#E6F4ED;--warn:#B45309;--warn-bg:#FEF3C7;
-  --err:#C8102E;--err-bg:#FDEAED;--info:#1D4ED8;--info-bg:#EFF6FF;
-  --bg:var(--white);--bg-surf:var(--g50);--bg-card:var(--white);
-  --border:var(--g200);--txt:var(--black);--txt-m:var(--g600);
-  --shadow:0 1px 4px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.06);
-  --shadow-sm:0 1px 3px rgba(0,0,0,.08);
-  --r:10px;--r-sm:6px;--font:'Segoe UI',system-ui,-apple-system,sans-serif;
+/* ── DESIGN TOKENS ──────────────────────────────────────── */
+:root {
+  --red:       #C8102E;
+  --red-dark:  #a00d24;
+  --red-light: #fde8ec;
+  --black:     #111111;
+  --white:     #ffffff;
+
+  --bg:        #f5f5f5;
+  --surface:   #ffffff;
+  --surface2:  #f0f0f0;
+  --border:    #e0e0e0;
+  --text:      #111111;
+  --text-muted:#666666;
+  --shadow:    0 2px 12px rgba(0,0,0,.08);
+  --radius:    10px;
+  --sidebar-w: 240px;
+  --header-h:  56px;
 }
-[data-theme=dark]{
-  --bg:#0F0F0F;--bg-surf:#1A1A1A;--bg-card:#1F1F1F;--border:#2E2E2E;
-  --txt:#F0F0F0;--txt-m:#888;--red-light:#2A0A10;
-  --shadow:0 1px 4px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.2);
+[data-theme="dark"] {
+  --bg:        #121212;
+  --surface:   #1e1e1e;
+  --surface2:  #2a2a2a;
+  --border:    #333333;
+  --text:      #f0f0f0;
+  --text-muted:#999999;
+  --shadow:    0 2px 12px rgba(0,0,0,.4);
 }
+
+/* ── RESET ──────────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{font-size:16px}
-body{font-family:var(--font);background:var(--bg);color:var(--txt);min-height:100vh;transition:background .2s,color .2s}
-button{font-family:var(--font);cursor:pointer;border:none;outline:none}
-input,textarea,select{font-family:var(--font)}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;font-family:inherit}
+input,select,textarea{font-family:inherit}
+img{max-width:100%}
 
-/* LAYOUT */
-#sidebar{width:240px;min-height:100vh;background:var(--bg-card);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:200;transition:transform .25s}
-#sb-logo{padding:20px 20px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
-.logo-mark{width:36px;height:36px;border-radius:8px;background:var(--red);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px;flex-shrink:0}
-.logo-text{font-size:13px;font-weight:700;line-height:1.3}
-.logo-text span{display:block;color:var(--txt-m);font-weight:400;font-size:11px}
-#sb-nav{flex:1;overflow-y:auto;padding:12px 0}
-.nav-sec{padding:4px 12px 2px;font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--txt-m);text-transform:uppercase;margin-top:8px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:13.5px;color:var(--txt);border-radius:var(--r-sm);margin:1px 8px;cursor:pointer;transition:background .15s,color .15s}
-.nav-item:hover{background:var(--g100)}
-[data-theme=dark] .nav-item:hover{background:#2a2a2a}
+/* ── LAYOUT ─────────────────────────────────────────────── */
+#app{display:flex;flex-direction:column;min-height:100vh}
+#header{position:fixed;top:0;left:0;right:0;height:var(--header-h);background:var(--red);color:#fff;display:flex;align-items:center;padding:0 16px;gap:12px;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+#header .logo{font-weight:700;font-size:1.1rem;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
+#header .logo span{background:#fff;color:var(--red);border-radius:4px;padding:1px 6px;font-size:.75rem;font-weight:800;letter-spacing:1px}
+#header .spacer{flex:1}
+#header .user-chip{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px 4px 6px;font-size:.85rem}
+#header .user-chip .avatar{width:28px;height:28px;border-radius:50%;background:#fff;color:var(--red);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem}
+#theme-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;transition:background .2s}
+#theme-btn:hover{background:rgba(255,255,255,.3)}
+#menu-btn{background:none;border:none;color:#fff;font-size:1.2rem;display:none}
+
+#body{display:flex;flex:1;padding-top:var(--header-h)}
+#sidebar{width:var(--sidebar-w);min-height:calc(100vh - var(--header-h));background:var(--surface);border-right:1px solid var(--border);position:fixed;top:var(--header-h);left:0;bottom:0;overflow-y:auto;transition:transform .3s;z-index:100}
+#sidebar.hidden{transform:translateX(-100%)}
+.nav-section{padding:12px 0 4px}
+.nav-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);padding:0 16px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:.875rem;color:var(--text);transition:background .15s,color .15s;cursor:pointer;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--surface2)}
 .nav-item.active{background:var(--red-light);color:var(--red);font-weight:600}
-[data-theme=dark] .nav-item.active{background:#2A0A10}
-.nav-icon{width:18px;text-align:center;flex-shrink:0}
-#sb-foot{padding:12px;border-top:1px solid var(--border)}
-.user-chip{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r-sm);background:var(--bg-surf)}
-.u-av{width:32px;height:32px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
-.u-info{flex:1;min-width:0}
-.u-name{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.u-role{font-size:11px;color:var(--txt-m)}
-#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:150}
-#overlay.show{display:block}
-#main{flex:1;margin-left:240px;min-height:100vh;display:flex;flex-direction:column}
-@media(max-width:768px){#main{margin-left:0}#sidebar{transform:translateX(-100%)}#sidebar.open{transform:translateX(0)}#menu-toggle{display:block!important}}
-#topbar{height:56px;background:var(--bg-card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;position:sticky;top:0;z-index:100}
-#menu-toggle{display:none;background:none;padding:6px;color:var(--txt);font-size:20px}
-#topbar-title{font-size:15px;font-weight:700;flex:1}
-#theme-btn{width:34px;height:34px;border-radius:var(--r-sm);background:var(--bg-surf);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px}
-#logout-btn{padding:6px 14px;border-radius:var(--r-sm);background:var(--red-light);color:var(--red);font-size:13px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:background .15s}
-#logout-btn:hover{background:var(--red);color:#fff}
-#pg{flex:1;padding:24px;max-width:1100px;width:100%}
-@media(max-width:480px){#pg{padding:16px}}
+[data-theme="dark"] .nav-item.active{background:rgba(200,16,46,.15)}
+.nav-item i{width:18px;text-align:center;font-size:.9rem}
 
-/* LOGIN */
-#login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:16px}
-#pw-page{min-height:100vh;display:none;align-items:center;justify-content:center;background:var(--bg);padding:16px}
-#app-shell{display:none;min-height:100vh}
-.login-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:40px 36px;width:100%;max-width:400px;box-shadow:var(--shadow)}
-.login-logo{text-align:center;margin-bottom:28px}
-.login-lm{width:56px;height:56px;border-radius:14px;background:var(--red);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:22px;margin-bottom:10px}
-.login-logo h1{font-size:20px;font-weight:800}
-.login-logo p{font-size:12.5px;color:var(--txt-m)}
+#main{margin-left:var(--sidebar-w);flex:1;padding:24px;max-width:100%;min-height:calc(100vh - var(--header-h));transition:margin-left .3s}
+#main.full{margin-left:0}
 
-/* COMPONENTS */
-.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-sm);overflow:hidden}
-.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.card-title{font-size:14px;font-weight:700}
+/* ── PAGE HEADER ────────────────────────────────────────── */
+.page-header{display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+.page-title{font-size:1.4rem;font-weight:700}
+.page-header .spacer{flex:1}
+.badge{display:inline-block;background:var(--red-light);color:var(--red);border-radius:20px;padding:2px 10px;font-size:.75rem;font-weight:600}
+[data-theme="dark"] .badge{background:rgba(200,16,46,.2)}
+
+/* ── CARDS ──────────────────────────────────────────────── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
 .card-body{padding:20px}
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-bottom:24px}
-.stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow-sm)}
-.stat-lbl{font-size:11.5px;color:var(--txt-m);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
-.stat-val{font-size:28px;font-weight:800;color:var(--red);line-height:1}
-.stat-sub{font-size:12px;color:var(--txt-m);margin-top:4px}
-.form-group{margin-bottom:16px}
-.form-label{display:block;font-size:12.5px;font-weight:600;margin-bottom:6px}
-.form-ctrl{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--bg);color:var(--txt);font-size:14px;transition:border-color .15s}
-.form-ctrl:focus{outline:none;border-color:var(--red)}
-.form-ctrl::placeholder{color:var(--g400)}
-.form-hint{font-size:11.5px;color:var(--txt-m);margin-top:4px}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-@media(max-width:480px){.form-row{grid-template-columns:1fr}}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--r-sm);font-size:13.5px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .15s;white-space:nowrap}
-.btn-sm{padding:6px 12px;font-size:12.5px}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.card-header h3{font-size:1rem;font-weight:600}
+
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--shadow)}
+.stat-card .stat-val{font-size:2rem;font-weight:800;color:var(--red)}
+.stat-card .stat-label{font-size:.8rem;color:var(--text-muted)}
+
+/* ── TABLES ─────────────────────────────────────────────── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.875rem}
+thead tr{background:var(--surface2)}
+th{text-align:left;padding:10px 14px;font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);white-space:nowrap}
+td{padding:12px 14px;border-top:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:var(--surface2)}
+
+/* ── BUTTONS ────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:6px;border:none;font-size:.875rem;font-weight:500;transition:background .15s,opacity .15s;cursor:pointer}
+.btn-sm{padding:5px 11px;font-size:.8rem}
 .btn-primary{background:var(--red);color:#fff}
 .btn-primary:hover{background:var(--red-dark)}
-.btn-secondary{background:var(--bg-surf);color:var(--txt);border-color:var(--border)}
-.btn-secondary:hover{background:var(--g200)}
-.btn-danger{background:var(--err-bg);color:var(--err)}
-.btn-danger:hover{background:var(--err);color:#fff}
-.btn-success{background:var(--ok-bg);color:var(--ok)}
-.btn-success:hover{background:var(--ok);color:#fff}
-.btn-full{width:100%;justify-content:center}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:100px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
-.bp{background:var(--warn-bg);color:var(--warn)}
-.bs{background:var(--info-bg);color:var(--info)}
-.ba{background:var(--ok-bg);color:var(--ok)}
-.br{background:var(--err-bg);color:var(--err)}
-.bact{background:var(--ok-bg);color:var(--ok)}
-.binact{background:var(--g100);color:var(--g600)}
-.bpwr{background:var(--warn-bg);color:var(--warn)}
-.table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:13.5px}
-th{padding:10px 14px;text-align:left;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--txt-m);border-bottom:1px solid var(--border);white-space:nowrap}
-td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:var(--bg-surf)}
-.alert{padding:11px 14px;border-radius:var(--r-sm);font-size:13px;margin-bottom:14px}
-.alert-error{background:var(--err-bg);color:var(--err);border:1px solid #f5c6cb}
-.alert-success{background:var(--ok-bg);color:var(--ok);border:1px solid #b7dfc9}
-.alert-info{background:var(--info-bg);color:var(--info);border:1px solid #bfdbfe}
-.alert-warn{background:var(--warn-bg);color:var(--warn);border:1px solid #fde68a}
-.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px}
-.modal{background:var(--bg-card);border-radius:var(--r);box-shadow:var(--shadow);width:100%;max-width:560px;max-height:90vh;overflow-y:auto}
-.modal-hd{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.modal-title{font-size:15px;font-weight:700}
-.modal-close{background:none;font-size:20px;color:var(--txt-m);padding:2px 6px;border-radius:4px}
-.modal-close:hover{background:var(--bg-surf)}
-.modal-body{padding:20px}
-.modal-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
-.ci-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
-.ci-row:last-child{border-bottom:none}
-.ci-row input[type=checkbox]{width:18px;height:18px;margin-top:2px;accent-color:var(--red);flex-shrink:0}
-.ci-label{flex:1;font-size:14px}
-.ph-prev{width:80px;height:80px;object-fit:cover;border-radius:var(--r-sm);border:1px solid var(--border)}
-.page-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap}
-.page-title{font-size:20px;font-weight:800}
-.page-sub{font-size:13px;color:var(--txt-m);margin-top:2px}
-.empty{text-align:center;padding:48px 24px;color:var(--txt-m)}
-.empty-icon{font-size:40px;margin-bottom:12px}
-.empty-title{font-size:15px;font-weight:600;color:var(--txt);margin-bottom:6px}
-.empty-txt{font-size:13px}
-.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:20px}
-.tab-btn{padding:9px 16px;font-size:13.5px;font-weight:600;background:none;color:var(--txt-m);border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;transition:color .15s,border-color .15s}
-.tab-btn.active{color:var(--red);border-bottom-color:var(--red)}
-.perm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
-.perm-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--r-sm)}
-.perm-item input[type=checkbox]{accent-color:var(--red);width:16px;height:16px;flex-shrink:0}
-.perm-item label{font-size:13px;cursor:pointer}
-.spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--red);border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
-@keyframes spin{to{transform:rotate(360deg)}}
-#cfg-banner{background:var(--warn-bg);border-bottom:1px solid #fde68a;padding:10px 20px;font-size:13px;color:var(--warn);text-align:center;display:none}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--border)}
+.btn-danger{background:#dc2626;color:#fff}
+.btn-danger:hover{background:#b91c1c}
+.btn-success{background:#16a34a;color:#fff}
+.btn-success:hover{background:#15803d}
+.btn-icon{background:none;border:none;padding:6px;border-radius:6px;color:var(--text-muted);transition:background .15s,color .15s}
+.btn-icon:hover{background:var(--surface2);color:var(--text)}
+
+/* ── FORMS ──────────────────────────────────────────────── */
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:.85rem;font-weight:600;margin-bottom:6px;color:var(--text)}
+.form-control{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:.875rem;transition:border-color .15s,box-shadow .15s}
+.form-control:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px rgba(200,16,46,.1)}
+.form-control::placeholder{color:var(--text-muted)}
+textarea.form-control{resize:vertical;min-height:80px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-hint{font-size:.75rem;color:var(--text-muted);margin-top:4px}
+.form-check{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.875rem}
+.form-check input[type="checkbox"]{width:16px;height:16px;cursor:pointer;accent-color:var(--red)}
+
+/* ── MODAL ──────────────────────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:var(--radius);width:100%;max-width:560px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);transform:translateY(20px);transition:transform .2s}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-lg{max-width:760px}
+.modal-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-header h3{font-size:1rem;font-weight:600}
+.modal-body{padding:20px;overflow-y:auto;flex:1}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+
+/* ── STATUS PILLS ───────────────────────────────────────── */
+.pill{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.75rem;font-weight:600}
+.pill-pending{background:#fef3c7;color:#92400e}
+.pill-progress{background:#dbeafe;color:#1e40af}
+.pill-submitted{background:#e0e7ff;color:#3730a3}
+.pill-approved{background:#dcfce7;color:#166534}
+.pill-rejected{background:#fee2e2;color:#991b1b}
+[data-theme="dark"] .pill-pending{background:#451a03;color:#fbbf24}
+[data-theme="dark"] .pill-progress{background:#1e3a5f;color:#93c5fd}
+[data-theme="dark"] .pill-submitted{background:#2e1065;color:#a5b4fc}
+[data-theme="dark"] .pill-approved{background:#14532d;color:#86efac}
+[data-theme="dark"] .pill-rejected{background:#450a0a;color:#fca5a5}
+
+/* ── CHECKLIST ──────────────────────────────────────────── */
+.checklist-item{display:flex;align-items:flex-start;gap:12px;padding:14px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;background:var(--surface)}
+.checklist-item.done{opacity:.7;background:var(--surface2)}
+.checklist-item .ci-check{margin-top:2px;width:18px;height:18px;accent-color:var(--red);cursor:pointer;flex-shrink:0}
+.checklist-item .ci-body{flex:1}
+.checklist-item .ci-title{font-weight:600;font-size:.9rem}
+.checklist-item .ci-desc{font-size:.8rem;color:var(--text-muted);margin-top:2px}
+.checklist-item .ci-photo{margin-top:8px}
+.photo-preview{max-width:140px;border-radius:6px;border:1px solid var(--border);margin-top:6px}
+
+/* ── SORTABLE ITEMS ─────────────────────────────────────── */
+.sortable-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;background:var(--surface);cursor:grab}
+.sortable-item:active{cursor:grabbing}
+.sortable-item .drag-handle{color:var(--text-muted);font-size:1rem}
+.sortable-item .item-label{flex:1;font-size:.875rem}
+
+/* ── BREADCRUMB ─────────────────────────────────────────── */
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--text-muted);margin-bottom:16px}
+.breadcrumb span{color:var(--text-muted)}
+.breadcrumb a{color:var(--red);cursor:pointer}
+.breadcrumb a:hover{text-decoration:underline}
+
+/* ── ALERT ──────────────────────────────────────────────── */
+.alert{padding:12px 16px;border-radius:8px;font-size:.875rem;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.alert-info{background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe}
+.alert-success{background:#dcfce7;color:#166534;border:1px solid #bbf7d0}
+.alert-warn{background:#fef9c3;color:#854d0e;border:1px solid #fef08a}
+.alert-danger{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+[data-theme="dark"] .alert-info{background:#1e3a5f;color:#93c5fd;border-color:#2563eb}
+[data-theme="dark"] .alert-success{background:#14532d;color:#86efac;border-color:#16a34a}
+[data-theme="dark"] .alert-danger{background:#450a0a;color:#fca5a5;border-color:#dc2626}
+
+/* ── TOAST ──────────────────────────────────────────────── */
+#toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 16px;box-shadow:0 4px 20px rgba(0,0,0,.15);font-size:.875rem;display:flex;align-items:center;gap:10px;min-width:240px;animation:slideIn .2s ease}
+.toast.success{border-left:4px solid #16a34a}
+.toast.error{border-left:4px solid #dc2626}
+.toast.info{border-left:4px solid var(--red)}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* ── SETUP SCREEN ───────────────────────────────────────── */
+#setup-screen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px}
+.setup-card{background:var(--surface);border-radius:16px;padding:40px;max-width:460px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.15)}
+.setup-logo{text-align:center;margin-bottom:28px}
+.setup-logo .logo-mark{display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;background:var(--red);border-radius:16px;font-size:1.8rem;color:#fff;font-weight:800;margin-bottom:12px}
+.setup-logo h2{font-size:1.3rem;font-weight:700}
+.setup-logo p{font-size:.85rem;color:var(--text-muted);margin-top:4px}
+
+/* ── LOGIN SCREEN ───────────────────────────────────────── */
+#login-screen{position:fixed;inset:0;background:var(--bg);z-index:9998;display:flex;align-items:center;justify-content:center;padding:24px}
+.login-card{background:var(--surface);border-radius:16px;padding:40px;max-width:420px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.15)}
+
+/* ── PERMISSION GRID ────────────────────────────────────── */
+.perm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.perm-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:.825rem;cursor:pointer;transition:background .15s}
+.perm-item:hover{background:var(--surface2)}
+.perm-item input{accent-color:var(--red)}
+
+/* ── PROGRESS BAR ───────────────────────────────────────── */
+.progress-bar{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-top:4px}
+.progress-fill{height:100%;background:var(--red);border-radius:3px;transition:width .3s}
+
+/* ── EMPTY STATE ────────────────────────────────────────── */
+.empty{text-align:center;padding:48px 24px;color:var(--text-muted)}
+.empty i{font-size:2.5rem;margin-bottom:12px;opacity:.4}
+.empty p{font-size:.9rem}
+
+/* ── TABS ───────────────────────────────────────────────── */
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:20px}
+.tab-btn{padding:10px 20px;border:none;background:none;color:var(--text-muted);font-size:.875rem;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:color .15s,border-color .15s}
+.tab-btn.active{color:var(--red);border-bottom-color:var(--red);font-weight:600}
+
+/* ── SEARCH ─────────────────────────────────────────────── */
+.search-bar{position:relative;max-width:320px}
+.search-bar input{padding-left:36px}
+.search-bar i{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:.85rem}
+
+/* ── RESPONSIVE ─────────────────────────────────────────── */
+@media(max-width:768px){
+  #menu-btn{display:flex;align-items:center;justify-content:center}
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0)}
+  #main{margin-left:0}
+  .form-row{grid-template-columns:1fr}
+  .perm-grid{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:480px){
+  #header .user-chip .name{display:none}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .modal{max-width:100%;max-height:100%;border-radius:16px 16px 0 0;position:fixed;bottom:0;left:0;right:0}
+  .modal-overlay{align-items:flex-end}
+}
+
+/* ── UTILITY ────────────────────────────────────────────── */
+.d-none{display:none!important}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}.mt-24{margin-top:24px}
+.mb-8{margin-bottom:8px}.mb-16{margin-bottom:16px}
+.text-muted{color:var(--text-muted)}
+.text-red{color:var(--red)}
+.text-sm{font-size:.825rem}
+.fw-600{font-weight:600}
+.flex{display:flex}.items-center{align-items:center}.gap-8{gap:8px}.gap-12{gap:12px}
+.justify-between{justify-content:space-between}
+.w-full{width:100%}
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0}
 </style>
 </head>
 <body>
 
-<div id="cfg-banner">⚠️ Set <strong>SUPABASE_URL</strong> and <strong>SUPABASE_ANON_KEY</strong> in the script config below before deploying.</div>
-
-<!-- LOGIN -->
-<div id="login-page">
-  <div class="login-card">
-    <div class="login-logo">
-      <div class="login-lm">E</div>
-      <h1>Enpro Industries</h1>
-      <p>Training Management System</p>
+<!-- SETUP SCREEN -->
+<div id="setup-screen" class="d-none">
+  <div class="setup-card">
+    <div class="setup-logo">
+      <div class="logo-mark">E</div>
+      <h2>Enpro Training Management</h2>
+      <p>First-time setup — connect your Supabase project</p>
     </div>
-    <div id="login-alert"></div>
+    <div class="form-group">
+      <label class="form-label">Supabase Project URL</label>
+      <input id="setup-url" class="form-control" placeholder="https://xxxx.supabase.co" type="url"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Service Role Key <span class="text-muted text-sm">(from Settings → API)</span></label>
+      <input id="setup-key" class="form-control" placeholder="eyJhbGciOiJIUzI1NiIs..." type="password"/>
+      <div class="form-hint">This key is stored only in your browser's localStorage.</div>
+    </div>
+    <div class="form-group mt-16">
+      <label class="form-label">Admin Email</label>
+      <input id="setup-admin-email" class="form-control" placeholder="admin@enpro.com" type="email"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Admin Password</label>
+      <input id="setup-admin-pass" class="form-control" placeholder="Choose a strong password" type="password"/>
+    </div>
+    <button class="btn btn-primary w-full mt-16" id="setup-btn" onclick="runSetup()"><i class="fa fa-bolt"></i> Initialize System</button>
+    <div id="setup-msg" class="mt-12"></div>
+  </div>
+</div>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" class="d-none">
+  <div class="login-card">
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;background:var(--red);border-radius:14px;font-size:1.5rem;color:#fff;font-weight:800;margin-bottom:12px">E</div>
+      <h2 style="font-size:1.2rem;font-weight:700">Enpro Training Management</h2>
+      <p style="font-size:.85rem;color:var(--text-muted);margin-top:4px">Sign in to continue</p>
+    </div>
     <div class="form-group">
       <label class="form-label">Email</label>
-      <input class="form-ctrl" type="email" id="li-email" placeholder="admin@enpro.com" autocomplete="username"/>
+      <input id="login-email" class="form-control" placeholder="your@email.com" type="email"/>
     </div>
     <div class="form-group">
       <label class="form-label">Password</label>
-      <input class="form-ctrl" type="password" id="li-pass" placeholder="••••••••" autocomplete="current-password"/>
+      <input id="login-password" class="form-control" placeholder="••••••••" type="password" onkeydown="if(event.key==='Enter')doLogin()"/>
     </div>
-    <button class="btn btn-primary btn-full" id="li-btn" onclick="doLogin()">Sign In</button>
-    <div style="margin-top:14px;text-align:center">
-      <button class="btn btn-secondary btn-sm" onclick="toggleTheme()">🌓 Toggle theme</button>
+    <button class="btn btn-primary w-full mt-16" onclick="doLogin()"><i class="fa fa-sign-in-alt"></i> Sign In</button>
+    <div id="login-msg" class="mt-12"></div>
+    <div style="text-align:center;margin-top:20px">
+      <button onclick="showThemeToggleLogin()" id="theme-btn-login" style="background:none;border:none;color:var(--text-muted);font-size:.8rem;cursor:pointer"><i class="fa fa-moon"></i> Toggle dark mode</button>
     </div>
   </div>
 </div>
 
-<!-- FORCE PASSWORD CHANGE -->
-<div id="pw-page" style="display:none">
-  <div class="login-card">
-    <div class="login-logo">
-      <div class="login-lm">E</div>
-      <h1>Set New Password</h1>
-      <p>Change your temporary password to continue.</p>
+<!-- CHANGE PASSWORD MODAL (forced on first login) -->
+<div class="modal-overlay" id="change-pass-modal">
+  <div class="modal">
+    <div class="modal-header"><h3><i class="fa fa-lock text-red"></i>&nbsp; Set Your Password</h3></div>
+    <div class="modal-body">
+      <div class="alert alert-warn"><i class="fa fa-exclamation-triangle"></i> You must set a new password before continuing.</div>
+      <div class="form-group">
+        <label class="form-label">New Password</label>
+        <input id="cp-new" class="form-control" type="password" placeholder="Min 8 characters"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirm Password</label>
+        <input id="cp-confirm" class="form-control" type="password"/>
+      </div>
+      <div id="cp-msg"></div>
     </div>
-    <div id="pw-alert"></div>
-    <div class="form-group">
-      <label class="form-label">New Password</label>
-      <input class="form-ctrl" type="password" id="pw-new" placeholder="Min 8 characters"/>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="doChangePassword()"><i class="fa fa-check"></i> Set Password</button>
     </div>
-    <div class="form-group">
-      <label class="form-label">Confirm Password</label>
-      <input class="form-ctrl" type="password" id="pw-confirm" placeholder="Repeat password"/>
-    </div>
-    <button class="btn btn-primary btn-full" onclick="doPasswordChange()">Save &amp; Continue</button>
   </div>
 </div>
 
 <!-- MAIN APP -->
-<div id="app-shell" style="display:none">
-  <div id="overlay" onclick="closeSB()"></div>
-  <div id="sidebar">
-    <div id="sb-logo">
-      <div class="logo-mark">E</div>
-      <div class="logo-text">Enpro Industries<span>Training System</span></div>
+<div id="app" class="d-none">
+  <!-- Header -->
+  <header id="header">
+    <button id="menu-btn" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+    <div class="logo"><span>ENPRO</span> Training</div>
+    <div class="spacer"></div>
+    <button id="theme-btn" onclick="toggleTheme()" title="Toggle dark/light mode"><i class="fa fa-moon"></i></button>
+    <div class="user-chip">
+      <div class="avatar" id="header-avatar">A</div>
+      <span class="name" id="header-name">Admin</span>
     </div>
-    <nav id="sb-nav"></nav>
-    <div id="sb-foot">
-      <div class="user-chip">
-        <div class="u-av" id="u-av">?</div>
-        <div class="u-info">
-          <div class="u-name" id="u-name">—</div>
-          <div class="u-role" id="u-role">—</div>
-        </div>
+    <button class="btn btn-icon" style="color:#fff;margin-left:4px" onclick="doLogout()" title="Sign out"><i class="fa fa-sign-out-alt"></i></button>
+  </header>
+
+  <div id="body">
+    <!-- Sidebar -->
+    <nav id="sidebar">
+      <div class="nav-section">
+        <div class="nav-label">Main</div>
+        <button class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')"><i class="fa fa-home"></i> Dashboard</button>
+        <button class="nav-item" data-page="my-trainings" onclick="navigate('my-trainings')"><i class="fa fa-tasks"></i> My Trainings</button>
       </div>
-    </div>
-  </div>
-  <div id="main">
-    <div id="topbar">
-      <button id="menu-toggle" onclick="toggleSB()">☰</button>
-      <div id="topbar-title">Dashboard</div>
-      <button id="theme-btn" onclick="toggleTheme()">🌓</button>
-      <button id="logout-btn" onclick="doLogout()">Sign out</button>
-    </div>
-    <div id="pg"></div>
+      <div class="nav-section" id="nav-manage" style="display:none">
+        <div class="nav-label">Manage</div>
+        <button class="nav-item" data-page="trainings" onclick="navigate('trainings')" id="nav-trainings"><i class="fa fa-book"></i> Trainings</button>
+        <button class="nav-item" data-page="workflows" onclick="navigate('workflows')" id="nav-workflows"><i class="fa fa-project-diagram"></i> Workflows</button>
+        <button class="nav-item" data-page="assignments" onclick="navigate('assignments')" id="nav-assignments"><i class="fa fa-clipboard-list"></i> Assignments</button>
+      </div>
+      <div class="nav-section" id="nav-admin" style="display:none">
+        <div class="nav-label">Admin</div>
+        <button class="nav-item" data-page="users" onclick="navigate('users')"><i class="fa fa-users"></i> Users</button>
+        <button class="nav-item" data-page="departments" onclick="navigate('departments')"><i class="fa fa-building"></i> Departments</button>
+        <button class="nav-item" data-page="reports" onclick="navigate('reports')"><i class="fa fa-chart-bar"></i> Reports</button>
+        <button class="nav-item" data-page="settings" onclick="navigate('settings')"><i class="fa fa-cog"></i> Settings</button>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main id="main">
+      <div id="page-dashboard"></div>
+      <div id="page-my-trainings" class="d-none"></div>
+      <div id="page-trainings" class="d-none"></div>
+      <div id="page-workflows" class="d-none"></div>
+      <div id="page-assignments" class="d-none"></div>
+      <div id="page-users" class="d-none"></div>
+      <div id="page-departments" class="d-none"></div>
+      <div id="page-reports" class="d-none"></div>
+      <div id="page-settings" class="d-none"></div>
+    </main>
   </div>
 </div>
 
-<div id="modal-wrap"></div>
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<!-- GENERIC MODAL (reused for all forms) -->
+<div class="modal-overlay" id="modal">
+  <div class="modal" id="modal-inner">
+    <div class="modal-header">
+      <h3 id="modal-title">Modal</h3>
+      <button class="btn-icon" onclick="closeModal()"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
 
 <script>
-// ─────────────────────────────────────────────
-// CONFIG — fill these in before deploying
-// ─────────────────────────────────────────────
-const CFG = {
-  url: 'https://xnppjwzikoouscqlzlxc.supabase.co',       // e.g. https://xxxx.supabase.co
-  key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhucHBqd3ppa29vdXNjcWx6bHhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjI0MDMsImV4cCI6MjA5ODI5ODQwM30.fgmTrSy9GhEYzXTzUc18PbpNMtT-huxPdTN6YYxTa78'   // anon/public key from Project Settings → API
-};
+// ── GLOBALS ─────────────────────────────────────────────────
+let SB_URL = '', SB_KEY = '';
+let currentUser = null;
+let currentUserPerm = null;
+let currentPage = 'dashboard';
+let _cache = {};
 
-// ─────────────────────────────────────────────
-// BCRYPT — cdnjs build exposes dcodeIO.bcrypt
-// ─────────────────────────────────────────────
-const BC = window.dcodeIO ? window.dcodeIO.bcrypt : window.bcrypt;
-
-// ─────────────────────────────────────────────
-// STATE
-// ─────────────────────────────────────────────
-let ME = null;   // current app_user row
-let PERMS = {};  // current user_permissions row
-
-// ─────────────────────────────────────────────
-// RAW REST HELPER  — no Supabase JS client used
-// All queries go through this function.
-// ─────────────────────────────────────────────
-async function q(path, opts = {}) {
-  if (!CFG.url || CFG.url === 'YOUR_SUPABASE_URL') throw new Error('Supabase not configured.');
-  const base = CFG.url.replace(/\/$/, '') + '/rest/v1/';
-  const res = await fetch(base + path, {
+// ── SUPABASE HELPERS ────────────────────────────────────────
+async function sb(path, opts={}) {
+  const res = await fetch(SB_URL + '/rest/v1/' + path, {
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY,
+      'Content-Type': 'application/json', 'Prefer': opts.prefer || 'return=representation', ...opts.headers },
     method: opts.method || 'GET',
-    headers: {
-      'apikey': CFG.key,
-      'Authorization': 'Bearer ' + CFG.key,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Prefer': opts.prefer || (opts.method === 'POST' ? 'return=representation' : 'return=representation'),
-      ...(opts.headers || {})
-    },
     body: opts.body ? JSON.stringify(opts.body) : undefined
   });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.message || res.statusText); }
   const text = await res.text();
-  let data;
-  try { data = text ? JSON.parse(text) : null; } catch { data = { message: text }; }
-  if (!res.ok) {
-    const msg = (data && (data.message || data.error || data.hint)) || ('HTTP ' + res.status);
-    throw new Error(msg);
-  }
+  return text ? JSON.parse(text) : [];
+}
+async function sbAuth(path, body, method='POST') {
+  const res = await fetch(SB_URL + '/auth/v1/' + path, {
+    method, headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || data.error_description || 'Auth error');
   return data;
 }
-
-// Convenience wrappers
-const db = {
-  get:    (table, qs)     => q(table + (qs ? '?' + qs : '')),
-  post:   (table, body)   => q(table, { method:'POST',  body }),
-  patch:  (table, qs, body) => q(table + '?' + qs, { method:'PATCH', prefer:'return=minimal', body }),
-  del:    (table, qs)     => q(table + '?' + qs, { method:'DELETE', prefer:'return=minimal' }),
-  count:  (table, qs)     => fetch(
-    CFG.url.replace(/\/$/, '') + '/rest/v1/' + table + (qs ? '?' + qs : ''),
-    { headers:{ apikey:CFG.key, Authorization:'Bearer '+CFG.key, Accept:'application/json', Prefer:'count=exact', 'Range-Unit':'items', Range:'0-0' } }
-  ).then(r => parseInt(r.headers.get('Content-Range')?.split('/')[1] || '0'))
-};
-
-// ─────────────────────────────────────────────
-// INIT
-// ─────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', () => {
-  // Check config
-  if (CFG.url === 'YOUR_SUPABASE_URL' || CFG.key === 'YOUR_SUPABASE_ANON_KEY') {
-    document.getElementById('cfg-banner').style.display = 'block';
-  }
-  // Theme
-  document.documentElement.setAttribute('data-theme', localStorage.getItem('enpro_theme') || 'light');
-  // Restore session
-  try {
-    const s = sessionStorage.getItem('enpro_session');
-    if (s) { const d = JSON.parse(s); ME = d.me; PERMS = d.perms; showApp(); return; }
-  } catch {}
-  showPage('login-page');
-});
-
-// ─────────────────────────────────────────────
-// PAGE SHOW/HIDE
-// ─────────────────────────────────────────────
-function showPage(id) {
-  ['login-page','pw-page','app-shell'].forEach(p => {
-    const el = document.getElementById(p);
-    el.style.display = 'none';
-    el.style.flexDirection = '';
+async function sbStorage(bucket, path, file) {
+  const res = await fetch(`${SB_URL}/storage/v1/object/${bucket}/${path}`, {
+    method: 'POST',
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': file.type },
+    body: file
   });
-  const target = document.getElementById(id);
-  target.style.display = 'flex';
-  if (id !== 'app-shell') target.style.flexDirection = 'column';
+  if (!res.ok) throw new Error('Upload failed');
+  return `${SB_URL}/storage/v1/object/public/${bucket}/${path}`;
 }
 
-// ─────────────────────────────────────────────
-// THEME
-// ─────────────────────────────────────────────
+// ── AUDIT LOG ─────────────────────────────────────────────
+async function audit(action, entity_type, entity_id, details={}) {
+  try {
+    await sb('audit_log', { method:'POST', body:{ actor_id: currentUser?.id, action, entity_type, entity_id, details } });
+  } catch(e) {}
+}
+
+// ── TOAST ──────────────────────────────────────────────────
+function toast(msg, type='info') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  const icon = type==='success'?'check-circle':type==='error'?'times-circle':'info-circle';
+  el.innerHTML = `<i class="fa fa-${icon}"></i> ${msg}`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+// ── THEME ──────────────────────────────────────────────────
 function toggleTheme() {
   const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', t);
-  localStorage.setItem('enpro_theme', t);
+  localStorage.setItem('enpro-theme', t);
+  document.getElementById('theme-btn').innerHTML = t==='dark' ? '<i class="fa fa-sun"></i>' : '<i class="fa fa-moon"></i>';
+}
+function showThemeToggleLogin() { toggleTheme(); }
+function applyTheme() {
+  const t = localStorage.getItem('enpro-theme') || 'light';
+  document.documentElement.setAttribute('data-theme', t);
+  const btn = document.getElementById('theme-btn');
+  if (btn) btn.innerHTML = t==='dark'?'<i class="fa fa-sun"></i>':'<i class="fa fa-moon"></i>';
 }
 
-// ─────────────────────────────────────────────
-// AUTH — LOGIN
-// ─────────────────────────────────────────────
+// ── SIDEBAR TOGGLE ─────────────────────────────────────────
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ── MODAL HELPERS ──────────────────────────────────────────
+function openModal(title, bodyHtml, footerHtml, large=false) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').innerHTML = bodyHtml;
+  document.getElementById('modal-footer').innerHTML = footerHtml || '';
+  document.getElementById('modal-inner').className = 'modal' + (large?' modal-lg':'');
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+document.getElementById('modal').addEventListener('click', e => { if(e.target===document.getElementById('modal')) closeModal(); });
+
+// ── SETUP ───────────────────────────────────────────────────
+function showSetup() {
+  document.getElementById('setup-screen').classList.remove('d-none');
+}
+async function runSetup() {
+  const url = document.getElementById('setup-url').value.trim().replace(/\/$/,'');
+  const key = document.getElementById('setup-key').value.trim();
+  const email = document.getElementById('setup-admin-email').value.trim();
+  const pass = document.getElementById('setup-admin-pass').value;
+  const msg = document.getElementById('setup-msg');
+  if (!url||!key||!email||!pass) { msg.innerHTML='<div class="alert alert-danger">All fields required.</div>'; return; }
+  msg.innerHTML='<div class="alert alert-info"><i class="fa fa-spinner fa-spin"></i> Setting up…</div>';
+  SB_URL = url; SB_KEY = key;
+  try {
+    // Create auth user
+    const authRes = await sbAuth('admin/users', { email, password: pass, email_confirm: true });
+    const authId = authRes.id;
+    // Create user record
+    const users = await sb('users', { method:'POST', body:{ auth_user_id: authId, employee_id:'EMP001', full_name:'Admin', email, role:'admin', must_change_password:false, is_active:true }});
+    const userId = users[0].id;
+    // Create permissions
+    await sb('permissions', { method:'POST', body:{ user_id: userId, can_create_training:true, can_edit_training:true, can_delete_training:true, can_assign_training:true, can_approve_training:true, can_create_workflow:true, can_edit_workflow:true, can_delete_workflow:true, can_assign_workflow:true, can_manage_users:true, can_view_reports:true, granted_by: userId }});
+    // Mark initialized
+    await sb('system_settings?key=eq.system_initialized', { method:'PATCH', body:{ value:'true', updated_by: userId }});
+    localStorage.setItem('enpro-url', url);
+    localStorage.setItem('enpro-key', key);
+    msg.innerHTML='<div class="alert alert-success"><i class="fa fa-check"></i> Setup complete! Redirecting…</div>';
+    setTimeout(() => { document.getElementById('setup-screen').classList.add('d-none'); showLogin(); }, 1500);
+  } catch(e) {
+    msg.innerHTML=`<div class="alert alert-danger"><i class="fa fa-times"></i> ${e.message}</div>`;
+  }
+}
+
+// ── LOGIN ────────────────────────────────────────────────────
+function showLogin() {
+  document.getElementById('login-screen').classList.remove('d-none');
+}
 async function doLogin() {
-  const email    = document.getElementById('li-email').value.trim().toLowerCase();
-  const password = document.getElementById('li-pass').value;
-  if (!email || !password) { alert2('login-alert', 'Enter email and password.', 'error'); return; }
-
-  const btn = document.getElementById('li-btn');
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
-
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-password').value;
+  const msg = document.getElementById('login-msg');
+  if (!email||!pass) { msg.innerHTML='<div class="alert alert-danger">Enter email and password.</div>'; return; }
+  msg.innerHTML='<div class="alert alert-info"><i class="fa fa-spinner fa-spin"></i> Signing in…</div>';
   try {
-    // Fetch user row + permissions in one call using PostgREST embedding
-    const rows = await db.get('app_users', 'email=eq.' + encodeURIComponent(email) + '&select=*,user_permissions(*)&limit=1');
-
-    if (!rows || rows.length === 0) {
-      alert2('login-alert', 'Incorrect email or password.', 'error'); return;
+    const data = await fetch(SB_URL+'/auth/v1/token?grant_type=password', {
+      method:'POST', headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+      body: JSON.stringify({email, password:pass})
+    }).then(r=>r.json());
+    if (data.error) throw new Error(data.error_description||data.error);
+    const users = await sb(`users?email=eq.${encodeURIComponent(email)}&is_active=eq.true`);
+    if (!users.length) throw new Error('User not found or inactive.');
+    currentUser = users[0];
+    const perms = await sb(`permissions?user_id=eq.${currentUser.id}`);
+    currentUserPerm = perms[0] || {};
+    document.getElementById('login-screen').classList.add('d-none');
+    if (currentUser.must_change_password) {
+      document.getElementById('change-pass-modal').classList.add('open');
+    } else {
+      launchApp();
     }
-    const user = rows[0];
-
-    if (user.status === 'inactive') {
-      alert2('login-alert', 'This account is inactive. Contact your admin.', 'error'); return;
-    }
-
-    // Verify password with bcrypt
-    const ok = await BC.compare(password, user.password_hash);
-    if (!ok) { alert2('login-alert', 'Incorrect email or password.', 'error'); return; }
-
-    // Log login (best-effort)
-    db.post('audit_log', { actor_id: user.id, action: 'login', target_type: 'user', target_id: user.id }).catch(() => {});
-
-    ME    = user;
-    PERMS = (user.user_permissions && user.user_permissions[0]) || {};
-
-    if (user.status === 'password_reset_required') {
-      sessionStorage.setItem('enpro_pending', JSON.stringify({ me: ME, perms: PERMS }));
-      showPage('pw-page');
-      return;
-    }
-
-    sessionStorage.setItem('enpro_session', JSON.stringify({ me: ME, perms: PERMS }));
-    showApp();
-
-  } catch (e) {
-    alert2('login-alert', 'Login failed: ' + e.message, 'error');
-  } finally {
-    btn.disabled = false; btn.textContent = 'Sign In';
+  } catch(e) {
+    msg.innerHTML=`<div class="alert alert-danger"><i class="fa fa-times"></i> ${e.message}</div>`;
   }
 }
-
-// ─────────────────────────────────────────────
-// AUTH — FORCED PASSWORD CHANGE
-// ─────────────────────────────────────────────
-async function doPasswordChange() {
-  const np = document.getElementById('pw-new').value;
-  const cp = document.getElementById('pw-confirm').value;
-  if (np.length < 8) { alert2('pw-alert', 'Password must be at least 8 characters.', 'error'); return; }
-  if (np !== cp)      { alert2('pw-alert', 'Passwords do not match.', 'error'); return; }
-
+async function doChangePassword() {
+  const np = document.getElementById('cp-new').value;
+  const cp = document.getElementById('cp-confirm').value;
+  const msg = document.getElementById('cp-msg');
+  if (np.length < 8) { msg.innerHTML='<div class="alert alert-danger">Min 8 characters.</div>'; return; }
+  if (np !== cp) { msg.innerHTML='<div class="alert alert-danger">Passwords do not match.</div>'; return; }
   try {
-    const pending = JSON.parse(sessionStorage.getItem('enpro_pending'));
-    const hash = await BC.hash(np, 10);
-    await db.patch('app_users', 'id=eq.' + pending.me.id, { password_hash: hash, status: 'active' });
-    db.post('audit_log', { actor_id: pending.me.id, action: 'password_changed', target_type: 'user', target_id: pending.me.id }).catch(() => {});
-
-    pending.me.status = 'active';
-    sessionStorage.removeItem('enpro_pending');
-    sessionStorage.setItem('enpro_session', JSON.stringify(pending));
-    ME = pending.me; PERMS = pending.perms;
-    showApp();
-  } catch (e) {
-    alert2('pw-alert', 'Failed to save password: ' + e.message, 'error');
+    // Update password via admin API
+    await sbAuth(`admin/users/${currentUser.auth_user_id}`, {password: np}, 'PUT');
+    await sb(`users?id=eq.${currentUser.id}`, { method:'PATCH', body:{ must_change_password: false }});
+    currentUser.must_change_password = false;
+    document.getElementById('change-pass-modal').classList.remove('open');
+    launchApp();
+  } catch(e) {
+    msg.innerHTML=`<div class="alert alert-danger">${e.message}</div>`;
   }
 }
-
-// ─────────────────────────────────────────────
-// AUTH — LOGOUT
-// ─────────────────────────────────────────────
 function doLogout() {
-  sessionStorage.removeItem('enpro_session');
-  ME = null; PERMS = {};
-  showPage('login-page');
+  currentUser = null; currentUserPerm = null;
+  document.getElementById('app').classList.add('d-none');
+  document.getElementById('login-screen').classList.remove('d-none');
+  document.getElementById('login-email').value='';
+  document.getElementById('login-password').value='';
+  document.getElementById('login-msg').innerHTML='';
 }
 
-// ─────────────────────────────────────────────
-// APP SHELL
-// ─────────────────────────────────────────────
-function showApp() {
-  showPage('app-shell');
-  document.getElementById('u-av').textContent   = ME.name.charAt(0).toUpperCase();
-  document.getElementById('u-name').textContent = ME.name;
-  document.getElementById('u-role').textContent = (PERMS.can_create_users && PERMS.can_manage_departments) ? 'Admin' : 'User';
-  buildNav();
-  goto('dashboard');
-}
+// ── LAUNCH APP ───────────────────────────────────────────────
+function launchApp() {
+  applyTheme();
+  document.getElementById('app').classList.remove('d-none');
+  document.getElementById('header-name').textContent = currentUser.full_name;
+  document.getElementById('header-avatar').textContent = currentUser.full_name[0].toUpperCase();
 
-function buildNav() {
-  const p = PERMS;
-  let h = `<div class="nav-sec">Overview</div>
-    <div class="nav-item" onclick="goto('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
-    <div class="nav-item" onclick="goto('my-trainings')"><span class="nav-icon">📋</span> My Trainings</div>`;
-  if (p.can_assign_trainings || p.can_approve_completions) {
-    h += `<div class="nav-sec">Management</div>`;
-    if (p.can_assign_trainings)    h += `<div class="nav-item" onclick="goto('assignments')"><span class="nav-icon">📌</span> Assignments</div>`;
-    if (p.can_approve_completions) h += `<div class="nav-item" onclick="goto('approvals')"><span class="nav-icon">✅</span> Approvals</div>`;
-    if (p.can_view_reports)        h += `<div class="nav-item" onclick="goto('reports')"><span class="nav-icon">📈</span> Reports</div>`;
+  // Show nav sections based on permissions
+  const p = currentUserPerm;
+  if (currentUser.role==='admin') {
+    document.getElementById('nav-admin').style.display='';
   }
-  if (p.can_create_trainings || p.can_create_workflows) {
-    h += `<div class="nav-sec">Content</div>`;
-    if (p.can_create_trainings)  h += `<div class="nav-item" onclick="goto('trainings')"><span class="nav-icon">📚</span> Trainings</div>`;
-    if (p.can_create_workflows)  h += `<div class="nav-item" onclick="goto('workflows')"><span class="nav-icon">🔄</span> Workflows</div>`;
+  const anyManage = p.can_create_training||p.can_assign_training||p.can_create_workflow||p.can_assign_workflow||p.can_approve_training;
+  if (anyManage || currentUser.role==='admin') {
+    document.getElementById('nav-manage').style.display='';
   }
-  if (p.can_create_users || p.can_manage_departments) {
-    h += `<div class="nav-sec">Admin</div>`;
-    if (p.can_create_users)          h += `<div class="nav-item" onclick="goto('users')"><span class="nav-icon">👥</span> Users</div>`;
-    if (p.can_manage_departments)    h += `<div class="nav-item" onclick="goto('departments')"><span class="nav-icon">🏢</span> Departments</div>`;
-    h += `<div class="nav-item" onclick="goto('audit')"><span class="nav-icon">🔎</span> Audit Log</div>`;
-  }
-  document.getElementById('sb-nav').innerHTML = h;
+  navigate('dashboard');
 }
 
-const PAGE_TITLES = { dashboard:'Dashboard','my-trainings':'My Trainings',assignments:'Assignments',approvals:'Pending Approvals',reports:'Reports',trainings:'Trainings Library',workflows:'Workflows',users:'User Management',departments:'Departments',audit:'Audit Log' };
-
-function goto(page) {
-  document.querySelectorAll('.nav-item').forEach(el => {
-    el.classList.toggle('active', (el.getAttribute('onclick') || '').includes(`'${page}'`));
-  });
-  document.getElementById('topbar-title').textContent = PAGE_TITLES[page] || page;
-  closeSB();
-  const el = document.getElementById('pg');
-  el.innerHTML = '<div style="padding:40px;text-align:center"><span class="spinner"></span></div>';
-  (PAGES[page] || (() => el.innerHTML = '<p>Page not found.</p>'))();
+// ── NAVIGATION ───────────────────────────────────────────────
+function navigate(page) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
+  document.querySelectorAll('[id^="page-"]').forEach(el => el.classList.add('d-none'));
+  document.getElementById(`page-${page}`).classList.remove('d-none');
+  currentPage = page;
+  // Close sidebar on mobile
+  if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+  pages[page]?.();
 }
 
-function toggleSB() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('show'); }
-function closeSB()  { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); }
+// ── PAGES ────────────────────────────────────────────────────
+const pages = {
+  dashboard: renderDashboard,
+  'my-trainings': renderMyTrainings,
+  trainings: renderTrainings,
+  workflows: renderWorkflows,
+  assignments: renderAssignments,
+  users: renderUsers,
+  departments: renderDepartments,
+  reports: renderReports,
+  settings: renderSettings
+};
 
-// ─────────────────────────────────────────────
-// PAGES
-// ─────────────────────────────────────────────
-const PAGES = {};
-
-// ── DASHBOARD ──────────────────────────────
-PAGES.dashboard = async () => {
-  const el = document.getElementById('pg');
+// ──────────────────────────────────────────────────────────────
+// DASHBOARD
+// ──────────────────────────────────────────────────────────────
+async function renderDashboard() {
+  const el = document.getElementById('page-dashboard');
+  el.innerHTML = `<div class="page-header"><div class="page-title">Dashboard</div></div><div class="stats-grid" id="dash-stats"><div class="stat-card"><div class="stat-val"><i class="fa fa-spinner fa-spin text-muted" style="font-size:1.2rem"></i></div><div class="stat-label">Loading…</div></div></div><div id="dash-recent"></div>`;
   try {
-    const [nUsers, nTrainings, nPending, nSubmitted, nApproved, myOpen] = await Promise.all([
-      db.count('app_users'),
-      db.count('trainings'),
-      db.count('training_assignments', 'status=eq.pending'),
-      db.count('training_assignments', 'status=eq.submitted'),
-      db.count('training_assignments', 'status=eq.approved'),
-      db.get('training_assignments', 'assigned_to=eq.' + ME.id + '&status=in.(pending,submitted)&select=id,status,created_at,trainings(title)&order=created_at.desc&limit=5')
+    const [allAssign, myAssign, users, trainings] = await Promise.all([
+      currentUser.role==='admin' ? sb('training_assignments') : Promise.resolve([]),
+      sb(`training_assignments?assigned_to=eq.${currentUser.id}`),
+      currentUser.role==='admin' ? sb('users?is_active=eq.true') : Promise.resolve([]),
+      currentUser.role==='admin' ? sb('trainings?is_active=eq.true') : Promise.resolve([])
     ]);
-    el.innerHTML = `
-      <div class="page-hd"><div><div class="page-title">Welcome, ${esc(ME.name)} 👋</div><div class="page-sub">Here's your training overview.</div></div></div>
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-lbl">Total Users</div><div class="stat-val">${nUsers}</div></div>
-        <div class="stat-card"><div class="stat-lbl">Trainings</div><div class="stat-val">${nTrainings}</div></div>
-        <div class="stat-card"><div class="stat-lbl">Pending</div><div class="stat-val">${nPending}</div><div class="stat-sub">Awaiting action</div></div>
-        <div class="stat-card"><div class="stat-lbl">Submitted</div><div class="stat-val">${nSubmitted}</div><div class="stat-sub">Awaiting approval</div></div>
-        <div class="stat-card"><div class="stat-lbl">Approved</div><div class="stat-val">${nApproved}</div></div>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="card-title">My Open Trainings</span><button class="btn btn-sm btn-secondary" onclick="goto('my-trainings')">View all</button></div>
-        <div class="card-body" style="padding:0">
-          ${myOpen.length ? `<div class="table-wrap"><table><thead><tr><th>Training</th><th>Status</th><th>Assigned</th></tr></thead><tbody>
-            ${myOpen.map(a=>`<tr><td>${esc(a.trainings?.title||'—')}</td><td>${bdg(a.status)}</td><td>${fd(a.created_at)}</td></tr>`).join('')}
-          </tbody></table></div>` : `<div class="empty"><div class="empty-icon">🎉</div><div class="empty-title">All caught up!</div><div class="empty-txt">No open trainings right now.</div></div>`}
+    const myPending = myAssign.filter(a=>a.status==='pending'||a.status==='in_progress').length;
+    const myDone = myAssign.filter(a=>a.status==='approved').length;
+    let statsHtml = `
+      <div class="stat-card"><div class="stat-val">${myAssign.length}</div><div class="stat-label">My Total Assigned</div></div>
+      <div class="stat-card"><div class="stat-val">${myPending}</div><div class="stat-label">Pending / In Progress</div></div>
+      <div class="stat-card"><div class="stat-val">${myDone}</div><div class="stat-label">Completed</div></div>`;
+    if (currentUser.role==='admin') {
+      statsHtml += `
+        <div class="stat-card"><div class="stat-val">${users.length}</div><div class="stat-label">Active Users</div></div>
+        <div class="stat-card"><div class="stat-val">${trainings.length}</div><div class="stat-label">Trainings</div></div>
+        <div class="stat-card"><div class="stat-val">${allAssign.filter(a=>a.status==='submitted').length}</div><div class="stat-label">Pending Approval</div></div>`;
+    }
+    document.getElementById('dash-stats').innerHTML = statsHtml;
+    // Recent assignments for me
+    const recent = myAssign.slice(-5).reverse();
+    if (recent.length) {
+      const trainingIds = [...new Set(recent.map(a=>a.training_id))];
+      const tList = await sb(`trainings?id=in.(${trainingIds.join(',')})`);
+      const tMap = Object.fromEntries(tList.map(t=>[t.id,t]));
+      let rows = recent.map(a=>`<tr><td>${tMap[a.training_id]?.title||'—'}</td><td><span class="pill pill-${a.status}">${a.status}</span></td><td class="text-sm text-muted">${new Date(a.created_at).toLocaleDateString()}</td><td><button class="btn btn-sm btn-secondary" onclick="openTrainingAssignment('${a.id}')"><i class="fa fa-eye"></i> View</button></td></tr>`).join('');
+      document.getElementById('dash-recent').innerHTML = `<div class="card"><div class="card-header"><h3><i class="fa fa-clock text-red"></i> My Recent Trainings</h3></div><div class="card-body table-wrap"><table><thead><tr><th>Training</th><th>Status</th><th>Assigned</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+    }
+  } catch(e) { el.innerHTML += `<div class="alert alert-danger">${e.message}</div>`; }
+}
+
+// ──────────────────────────────────────────────────────────────
+// MY TRAININGS
+// ──────────────────────────────────────────────────────────────
+async function renderMyTrainings() {
+  const el = document.getElementById('page-my-trainings');
+  el.innerHTML = `<div class="page-header"><div class="page-title">My Trainings</div></div><div id="mt-list"><div class="empty"><i class="fa fa-spinner fa-spin"></i><p>Loading…</p></div></div>`;
+  try {
+    const assignments = await sb(`training_assignments?assigned_to=eq.${currentUser.id}&order=created_at.desc`);
+    if (!assignments.length) { document.getElementById('mt-list').innerHTML='<div class="empty"><i class="fa fa-tasks"></i><p>No trainings assigned to you yet.</p></div>'; return; }
+    const trainingIds = [...new Set(assignments.map(a=>a.training_id))];
+    const tList = await sb(`trainings?id=in.(${trainingIds.join(',')})`);
+    const tMap = Object.fromEntries(tList.map(t=>[t.id,t]));
+    let html = '<div style="display:grid;gap:12px">';
+    for (const a of assignments) {
+      const t = tMap[a.training_id]||{};
+      html += `<div class="card card-body" style="cursor:pointer" onclick="openTrainingAssignment('${a.id}')">
+        <div class="flex items-center justify-between">
+          <div><div class="fw-600">${t.title||'—'}</div><div class="text-sm text-muted mt-8">${t.description||''}</div></div>
+          <div style="text-align:right"><span class="pill pill-${a.status}">${a.status}</span><div class="text-sm text-muted mt-8">${a.due_date?'Due: '+a.due_date:''}</div></div>
         </div>
+        ${a.approval_remarks?`<div class="alert alert-warn mt-12"><i class="fa fa-comment"></i> Remark: ${a.approval_remarks}</div>`:''}
       </div>`;
-  } catch(e) { el.innerHTML = err(e); }
-};
+    }
+    html += '</div>';
+    document.getElementById('mt-list').innerHTML = html;
+  } catch(e) { el.innerHTML += `<div class="alert alert-danger">${e.message}</div>`; }
+}
 
-// ── MY TRAININGS ───────────────────────────
-PAGES['my-trainings'] = async () => {
-  const el = document.getElementById('pg');
+async function openTrainingAssignment(assignId) {
   try {
-    const data = await db.get('training_assignments', 'assigned_to=eq.' + ME.id + '&select=id,status,due_date,created_at,trainings(title),workflows(title)&order=created_at.desc');
-    let tab = 'all';
-    const render = (t) => {
-      tab = t;
-      const rows = (t === 'all' ? data : data.filter(a => a.status === t));
-      document.getElementById('mt-body').innerHTML = rows.length
-        ? rows.map(a=>`<tr>
-            <td><strong>${esc(a.trainings?.title||'—')}</strong>${a.workflows?`<br><span style="font-size:12px;color:var(--txt-m)">Workflow: ${esc(a.workflows.title)}</span>`:''}</td>
-            <td>${bdg(a.status)}</td><td>${a.due_date||'—'}</td><td>${fd(a.created_at)}</td>
-            <td><button class="btn btn-sm btn-secondary" onclick="openAssign('${a.id}')">Open</button></td>
-          </tr>`).join('')
-        : `<tr><td colspan="5"><div class="empty"><div class="empty-icon">📋</div><div class="empty-title">No trainings here.</div></div></td></tr>`;
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === t));
-    };
-    el.innerHTML = `
-      <div class="page-hd"><div class="page-title">My Trainings</div></div>
-      <div class="tabs">${['all','pending','submitted','approved','rejected'].map(t=>`<button class="tab-btn${t==='all'?' active':''}" data-tab="${t}" onclick="window._mtTab('${t}')">${cap(t)}</button>`).join('')}</div>
-      <div class="card"><div class="table-wrap"><table>
-        <thead><tr><th>Training</th><th>Status</th><th>Due</th><th>Assigned</th><th></th></tr></thead>
-        <tbody id="mt-body"></tbody>
-      </table></div></div>`;
-    window._mtTab = render; render('all');
-  } catch(e) { document.getElementById('pg').innerHTML = err(e); }
-};
+    const [assign] = await sb(`training_assignments?id=eq.${assignId}`);
+    const [training] = await sb(`trainings?id=eq.${assign.training_id}`);
+    const items = await sb(`training_checklist_items?training_id=eq.${assign.training_id}&order=item_order.asc`);
+    const completions = await sb(`checklist_completions?training_assignment_id=eq.${assignId}`);
+    const compMap = Object.fromEntries(completions.map(c=>[c.checklist_item_id,c]));
+    const isOwner = assign.assigned_to === currentUser.id;
+    const canApprove = currentUserPerm.can_approve_training || currentUser.role==='admin';
+    const editable = isOwner && (assign.status==='pending'||assign.status==='in_progress');
 
-// ── OPEN ASSIGNMENT ────────────────────────
-async function openAssign(id) {
-  try {
-    const asgn = (await db.get('training_assignments', 'id=eq.' + id + '&select=*,trainings(title,description,training_checklist_items(*))&limit=1'))[0];
-    if (!asgn) { toast('Assignment not found.', 'error'); return; }
-    const items = (asgn.trainings?.training_checklist_items || []).sort((a,b)=>a.order_index-b.order_index);
-    const resps = await db.get('assignment_checklist_responses', 'assignment_id=eq.' + id + '&select=*');
-    const rmap  = {}; resps.forEach(r => rmap[r.checklist_item_id] = r);
-
-    const canEdit    = asgn.assigned_to === ME.id && ['pending','rejected'].includes(asgn.status);
-    const canApprove = PERMS.can_approve_completions && asgn.status === 'submitted';
-
-    const ciHtml = items.map(item => {
-      const r = rmap[item.id] || {};
-      return `<div class="ci-row">
-        <input type="checkbox" id="chk-${item.id}" ${r.is_checked?'checked':''} ${canEdit?'':'disabled'} onchange="saveCi('${id}','${item.id}')"/>
-        <div class="ci-label">
-          <div>${esc(item.description)}${item.requires_photo?'<span style="color:var(--red);margin-left:4px">*photo</span>':''}</div>
-          ${r.photo_url?`<img src="${r.photo_url}" class="ph-prev" style="margin-top:6px"/>`:''}
-          ${canEdit && item.requires_photo ? `<div style="margin-top:6px">
-            <input type="file" accept="image/*" capture="environment" id="ph-${item.id}" style="display:none" onchange="uploadPh('${id}','${item.id}')"/>
-            <button class="btn btn-sm btn-secondary" onclick="document.getElementById('ph-${item.id}').click()">📷 ${r.photo_url?'Change photo':'Attach photo'}</button>
-          </div>` : ''}
-          ${canEdit?`<textarea class="form-ctrl" style="margin-top:6px;font-size:12px" rows="1" placeholder="Notes (optional)" id="note-${item.id}" onblur="saveCi('${id}','${item.id}')">${r.notes||''}</textarea>`:(r.notes?`<div style="font-size:12px;color:var(--txt-m);margin-top:4px">${esc(r.notes)}</div>`:'')}
+    let itemsHtml = items.map(item => {
+      const comp = compMap[item.id];
+      const done = comp?.is_completed;
+      return `<div class="checklist-item ${done?'done':''}" id="ci-${item.id}">
+        <input type="checkbox" class="ci-check" ${done?'checked':''} ${!editable?'disabled':''} onchange="toggleCheckItem('${assignId}','${item.id}',this.checked,'${assign.training_id}')"/>
+        <div class="ci-body">
+          <div class="ci-title">${item.title}</div>
+          ${item.description?`<div class="ci-desc">${item.description}</div>`:''}
+          ${item.requires_photo?`<div class="ci-photo">
+            ${comp?.photo_url?`<img src="${comp.photo_url}" class="photo-preview"/>`:''}
+            ${editable?`<input type="file" accept="image/*" capture="environment" style="font-size:.8rem;margin-top:4px" onchange="uploadCheckPhoto('${assignId}','${item.id}',this)"/>`:(!comp?.photo_url?'<span class="text-sm text-muted">No photo</span>':'')}
+          </div>`:''}
+          ${comp?.remarks?`<div class="text-sm text-muted mt-8"><i class="fa fa-comment"></i> ${comp.remarks}</div>`:''}
         </div>
       </div>`;
     }).join('');
 
-    modal(
-      'Training: ' + esc(asgn.trainings?.title),
-      `<div style="margin-bottom:12px">${bdg(asgn.status)}</div>
-       ${asgn.trainings?.description?`<p style="font-size:13px;color:var(--txt-m);margin-bottom:16px">${esc(asgn.trainings.description)}</p>`:''}
-       ${items.length ? ciHtml : '<p style="color:var(--txt-m)">No checklist items.</p>'}
-       ${canEdit?`<div style="margin-top:20px"><button class="btn btn-primary" onclick="submitAsgn('${id}')">Submit for Approval</button></div>`:''}
-       ${canApprove?`<div style="margin-top:16px">
-         <div class="form-group"><label class="form-label">Remarks (optional)</label>
-           <textarea class="form-ctrl" id="apr-remarks" rows="2" placeholder="Add remarks..."></textarea></div>
-         <div style="display:flex;gap:10px">
-           <button class="btn btn-success" onclick="approveAsgn('${id}')">✅ Approve</button>
-           <button class="btn btn-danger" onclick="rejectAsgn('${id}')">❌ Reject</button>
-         </div></div>`:''}
-       ${asgn.approver_remarks?`<div class="alert alert-info" style="margin-top:12px"><strong>Approver remarks:</strong> ${esc(asgn.approver_remarks)}</div>`:''}`
-    );
-  } catch(e) { toast('Error: ' + e.message, 'error'); }
+    const doneCount = completions.filter(c=>c.is_completed).length;
+    const pct = items.length ? Math.round(doneCount/items.length*100) : 0;
+
+    let footerHtml = `<button class="btn btn-secondary" onclick="closeModal()">Close</button>`;
+    if (editable && assign.status !== 'submitted') {
+      footerHtml = `<button class="btn btn-secondary" onclick="closeModal()">Close</button><button class="btn btn-primary" onclick="submitTrainingForApproval('${assignId}')"><i class="fa fa-paper-plane"></i> Submit for Approval</button>`;
+    }
+    if (canApprove && assign.status==='submitted') {
+      footerHtml = `<button class="btn btn-secondary" onclick="closeModal()">Close</button>
+        <button class="btn btn-danger" onclick="approveRejectTraining('${assignId}','rejected')"><i class="fa fa-times"></i> Reject</button>
+        <button class="btn btn-success" onclick="approveRejectTraining('${assignId}','approved')"><i class="fa fa-check"></i> Approve</button>`;
+    }
+
+    openModal(`${training.title} — Checklist`,
+      `<div class="flex items-center justify-between mb-16">
+        <span class="pill pill-${assign.status}">${assign.status}</span>
+        <span class="text-sm text-muted">${doneCount}/${items.length} items done</span>
+      </div>
+      <div class="progress-bar mb-16"><div class="progress-fill" style="width:${pct}%"></div></div>
+      ${assign.approval_remarks?`<div class="alert alert-warn mb-16"><i class="fa fa-comment"></i> <b>Remark:</b> ${assign.approval_remarks}</div>`:''}
+      <div id="checklist-items">${itemsHtml||'<div class="empty"><i class="fa fa-list"></i><p>No checklist items.</p></div>'}</div>`,
+      footerHtml, true);
+  } catch(e) { toast(e.message,'error'); }
 }
 
-async function saveCi(asgnId, itemId) {
-  const isChecked = document.getElementById('chk-' + itemId)?.checked || false;
-  const notes     = document.getElementById('note-' + itemId)?.value || null;
-  // upsert via POST with Prefer: resolution=merge-duplicates
-  await fetch(CFG.url.replace(/\/$/,'') + '/rest/v1/assignment_checklist_responses', {
-    method: 'POST',
-    headers: { apikey: CFG.key, Authorization: 'Bearer ' + CFG.key, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' },
-    body: JSON.stringify({ assignment_id: asgnId, checklist_item_id: itemId, is_checked: isChecked, notes, updated_at: new Date().toISOString() })
-  });
-}
-
-async function uploadPh(asgnId, itemId) {
-  const file = document.getElementById('ph-' + itemId).files[0];
-  if (!file) return;
-  const path = asgnId + '/' + itemId + '.' + file.name.split('.').pop();
-  const upRes = await fetch(CFG.url.replace(/\/$/,'') + '/storage/v1/object/training-photos/' + path, {
-    method: 'POST', headers: { apikey: CFG.key, Authorization: 'Bearer ' + CFG.key, 'x-upsert': 'true' }, body: file
-  });
-  if (!upRes.ok) { toast('Photo upload failed.', 'error'); return; }
-  const photoUrl = CFG.url.replace(/\/$/,'') + '/storage/v1/object/public/training-photos/' + path;
-  await fetch(CFG.url.replace(/\/$/,'') + '/rest/v1/assignment_checklist_responses', {
-    method: 'POST',
-    headers: { apikey: CFG.key, Authorization: 'Bearer ' + CFG.key, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' },
-    body: JSON.stringify({ assignment_id: asgnId, checklist_item_id: itemId, photo_url: photoUrl, updated_at: new Date().toISOString() })
-  });
-  toast('Photo uploaded!');
-}
-
-async function submitAsgn(id) {
-  await db.patch('training_assignments', 'id=eq.' + id, { status: 'submitted', submitted_at: new Date().toISOString() });
-  db.post('audit_log', { actor_id: ME.id, action: 'assignment_submitted', target_type: 'assignment', target_id: id }).catch(()=>{});
-  closeModal(); toast('Submitted for approval!'); PAGES['my-trainings']();
-}
-
-async function approveAsgn(id) {
-  const remarks = document.getElementById('apr-remarks')?.value || '';
-  await db.patch('training_assignments', 'id=eq.' + id, { status: 'approved', approved_at: new Date().toISOString(), approved_by: ME.id, approver_remarks: remarks });
-  db.post('audit_log', { actor_id: ME.id, action: 'assignment_approved', target_type: 'assignment', target_id: id }).catch(()=>{});
-  closeModal(); toast('Training approved!'); PAGES.approvals();
-}
-
-async function rejectAsgn(id) {
-  const remarks = document.getElementById('apr-remarks')?.value || '';
-  if (!remarks) { toast('Add a remark before rejecting.', 'error'); return; }
-  await db.patch('training_assignments', 'id=eq.' + id, { status: 'rejected', approver_remarks: remarks });
-  db.post('audit_log', { actor_id: ME.id, action: 'assignment_rejected', target_type: 'assignment', target_id: id }).catch(()=>{});
-  closeModal(); toast('Rejected.'); PAGES.approvals();
-}
-
-// ── APPROVALS ──────────────────────────────
-PAGES.approvals = async () => {
-  const el = document.getElementById('pg');
+async function toggleCheckItem(assignId, itemId, checked, trainingId) {
   try {
-    const data = await db.get('training_assignments',
-      'status=eq.submitted&select=id,submitted_at,trainings(title),employee:app_users!training_assignments_assigned_to_fkey(name,email)&order=submitted_at.asc');
-    el.innerHTML = `
-      <div class="page-hd"><div class="page-title">Pending Approvals</div></div>
-      <div class="card"><div class="table-wrap"><table>
-        <thead><tr><th>Employee</th><th>Training</th><th>Submitted</th><th></th></tr></thead>
-        <tbody>${data.length
-          ? data.map(a=>`<tr>
-              <td>${esc(a.employee?.name||'—')}<br><span style="font-size:11px;color:var(--txt-m)">${esc(a.employee?.email||'')}</span></td>
-              <td>${esc(a.trainings?.title||'—')}</td>
-              <td>${fd(a.submitted_at)}</td>
-              <td><button class="btn btn-sm btn-primary" onclick="openAssign('${a.id}')">Review</button></td>
-            </tr>`).join('')
-          : `<tr><td colspan="4"><div class="empty"><div class="empty-icon">✅</div><div class="empty-title">No pending approvals.</div></div></td></tr>`
-        }</tbody>
-      </table></div></div>`;
-  } catch(e) { el.innerHTML = err(e); }
-};
+    const existing = await sb(`checklist_completions?training_assignment_id=eq.${assignId}&checklist_item_id=eq.${itemId}`);
+    if (existing.length) {
+      await sb(`checklist_completions?id=eq.${existing[0].id}`, { method:'PATCH', body:{ is_completed: checked, completed_by: currentUser.id, completed_at: checked?new Date().toISOString():null }});
+    } else {
+      await sb('checklist_completions', { method:'POST', body:{ training_assignment_id: assignId, checklist_item_id: itemId, is_completed: checked, completed_by: currentUser.id, completed_at: new Date().toISOString() }});
+    }
+    // Update assignment status to in_progress
+    await sb(`training_assignments?id=eq.${assignId}`, { method:'PATCH', body:{ status:'in_progress' }});
+  } catch(e) { toast(e.message,'error'); }
+}
 
-// ── ASSIGNMENTS ────────────────────────────
-PAGES.assignments = async () => {
-  const el = document.getElementById('pg');
+async function uploadCheckPhoto(assignId, itemId, input) {
+  const file = input.files[0]; if (!file) return;
   try {
-    const [trainings, users, workflows, asgns] = await Promise.all([
-      db.get('trainings', 'select=id,title&order=title'),
-      db.get('app_users', 'status=eq.active&select=id,name,email&order=name'),
-      db.get('workflows', 'select=id,title&order=title'),
-      db.get('training_assignments', 'select=id,status,due_date,created_at,trainings(title),employee:app_users!training_assignments_assigned_to_fkey(name)&order=created_at.desc&limit=50')
+    const path = `${assignId}/${itemId}_${Date.now()}.jpg`;
+    const url = await sbStorage('training-photos', path, file);
+    const existing = await sb(`checklist_completions?training_assignment_id=eq.${assignId}&checklist_item_id=eq.${itemId}`);
+    if (existing.length) {
+      await sb(`checklist_completions?id=eq.${existing[0].id}`, { method:'PATCH', body:{ photo_url: url }});
+    } else {
+      await sb('checklist_completions', { method:'POST', body:{ training_assignment_id: assignId, checklist_item_id: itemId, photo_url: url, completed_by: currentUser.id }});
+    }
+    toast('Photo uploaded','success');
+    openTrainingAssignment(assignId);
+  } catch(e) { toast(e.message,'error'); }
+}
+
+async function submitTrainingForApproval(assignId) {
+  try {
+    await sb(`training_assignments?id=eq.${assignId}`, { method:'PATCH', body:{ status:'submitted', submitted_at: new Date().toISOString() }});
+    await audit('SUBMITTED_TRAINING','training_assignment',assignId);
+    toast('Submitted for approval','success');
+    closeModal();
+    renderMyTrainings();
+  } catch(e) { toast(e.message,'error'); }
+}
+
+async function approveRejectTraining(assignId, status) {
+  const remarks = status==='rejected' ? prompt('Enter rejection remarks (optional):') : '';
+  try {
+    await sb(`training_assignments?id=eq.${assignId}`, { method:'PATCH', body:{ status, approved_by: currentUser.id, approved_at: new Date().toISOString(), approval_remarks: remarks||null }});
+    await audit(status==='approved'?'APPROVED_TRAINING':'REJECTED_TRAINING','training_assignment',assignId,{remarks});
+    toast(status==='approved'?'Training approved':'Training rejected', status==='approved'?'success':'info');
+    closeModal();
+    renderAssignments();
+  } catch(e) { toast(e.message,'error'); }
+}
+
+// ──────────────────────────────────────────────────────────────
+// TRAININGS
+// ──────────────────────────────────────────────────────────────
+async function renderTrainings() {
+  const el = document.getElementById('page-trainings');
+  const canCreate = currentUserPerm.can_create_training || currentUser.role==='admin';
+  el.innerHTML = `<div class="page-header"><div class="page-title">Trainings</div><div class="spacer"></div>${canCreate?'<button class="btn btn-primary" onclick="openTrainingForm()"><i class="fa fa-plus"></i> New Training</button>':''}</div><div id="trainings-list"><div class="empty"><i class="fa fa-spinner fa-spin"></i></div></div>`;
+  try {
+    const trainings = await sb('trainings?order=created_at.desc');
+    if (!trainings.length) { document.getElementById('trainings-list').innerHTML='<div class="empty"><i class="fa fa-book"></i><p>No trainings created yet.</p></div>'; return; }
+    let rows = trainings.map(t=>`<tr>
+      <td class="fw-600">${t.title}</td>
+      <td class="text-sm text-muted">${t.description||'—'}</td>
+      <td><span class="pill ${t.is_active?'pill-approved':'pill-rejected'}">${t.is_active?'Active':'Inactive'}</span></td>
+      <td>${new Date(t.created_at).toLocaleDateString()}</td>
+      <td class="flex gap-8">
+        <button class="btn-icon" onclick="openTrainingForm('${t.id}')" title="Edit"><i class="fa fa-edit"></i></button>
+        <button class="btn-icon" onclick="manageChecklist('${t.id}','${t.title.replace(/'/g,"\\'")}')"><i class="fa fa-list"></i></button>
+        ${currentUser.role==='admin'?`<button class="btn-icon" style="color:#dc2626" onclick="deleteTraining('${t.id}')"><i class="fa fa-trash"></i></button>`:''}
+      </td>
+    </tr>`).join('');
+    document.getElementById('trainings-list').innerHTML=`<div class="card"><div class="card-body table-wrap"><table><thead><tr><th>Title</th><th>Description</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  } catch(e) { el.innerHTML+=`<div class="alert alert-danger">${e.message}</div>`; }
+}
+
+async function openTrainingForm(id=null) {
+  let training = {};
+  if (id) { const res = await sb(`trainings?id=eq.${id}`); training = res[0]||{}; }
+  openModal(id?'Edit Training':'New Training',
+    `<div class="form-group"><label class="form-label">Title *</label><input id="tf-title" class="form-control" value="${training.title||''}"/></div>
+     <div class="form-group"><label class="form-label">Description</label><textarea id="tf-desc" class="form-control">${training.description||''}</textarea></div>
+     <div class="form-group"><label class="form-label">Estimated Duration (minutes)</label><input id="tf-dur" class="form-control" type="number" value="${training.estimated_duration_minutes||''}"/></div>
+     <div class="form-check"><input type="checkbox" id="tf-active" ${training.is_active!==false?'checked':''}/><label for="tf-active">Active</label></div>`,
+    `<button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveTraining('${id||''}')"><i class="fa fa-save"></i> Save</button>`
+  );
+}
+
+async function saveTraining(id) {
+  const title = document.getElementById('tf-title').value.trim();
+  if (!title) { toast('Title required','error'); return; }
+  const body = { title, description: document.getElementById('tf-desc').value, estimated_duration_minutes: parseInt(document.getElementById('tf-dur').value)||null, is_active: document.getElementById('tf-active').checked };
+  try {
+    if (id) {
+      await sb(`trainings?id=eq.${id}`, { method:'PATCH', body });
+      await audit('UPDATED_TRAINING','training',id);
+    } else {
+      const res = await sb('trainings', { method:'POST', body:{ ...body, created_by: currentUser.id }});
+      await audit('CREATED_TRAINING','training',res[0].id);
+    }
+    toast('Training saved','success'); closeModal(); renderTrainings();
+  } catch(e) { toast(e.message,'error'); }
+}
+
+async function deleteTraining(id) {
+  if (!confirm('Delete this training?')) return;
+  try { await sb(`trainings?id=eq.${id}`,{method:'DELETE'}); await audit('DELETED_TRAINING','training',id); toast('Deleted','info'); renderTrainings(); }
+  catch(e) { toast(e.message,'error'); }
+}
+
+async function manageChecklist(trainingId, trainingTitle) {
+  const items = await sb(`training_checklist_items?training_id=eq.${trainingId}&order=item_order.asc`);
+  const renderItems = () => items.map((item,i)=>`
+    <div class="sortable-item" id="ci-row-${item.id}">
+      <span class="drag-handle"><i class="fa fa-grip-vertical"></i></span>
+      <span class="item-label"><b>${item.title}</b>${item.requires_photo?' <i class="fa fa-camera text-red" title="Photo required"></i>':''}<br/><span class="text-sm text-muted">${item.description||''}</span></span>
+      <button class="btn-icon" onclick="editChecklistItem('${trainingId}','${item.id}')"><i class="fa fa-edit"></i></button>
+      <button class="btn-icon" style="color:#dc2626" onclick="deleteChecklistItem('${item.id}','${trainingId}','${trainingTitle.replace(/'/g,"\\'")}')"><i class="fa fa-trash"></i></button>
+    </div>`).join('');
+
+  openModal(`Checklist — ${trainingTitle}`,
+    `<button class="btn btn-primary btn-sm mb-16" onclick="editChecklistItem('${trainingId}')"><i class="fa fa-plus"></i> Add Item</button>
+     <div id="cl-items">${renderItems()||'<div class="empty"><i class="fa fa-list"></i><p>No items yet.</p></div>'}</div>`,
+    `<button class="btn btn-secondary" onclick="closeModal()">Done</button>`, true
+  );
+}
+
+async function editChecklistItem(trainingId, itemId=null) {
+  let item = {};
+  if (itemId) { const res = await sb(`training_checklist_items?id=eq.${itemId}`); item = res[0]||{}; }
+  const body = `<div class="form-group"><label class="form-label">Title *</label><input id="ci-title" class="form-control" value="${item.title||''}"/></div>
+    <div class="form-group"><label class="form-label">Description</label><textarea id="ci-desc" class="form-control">${item.description||''}</textarea></div>
+    <div class="form-check"><input type="checkbox" id="ci-photo" ${item.requires_photo?'checked':''}/><label for="ci-photo">Photo upload required</label></div>`;
+  openModal(itemId?'Edit Checklist Item':'New Checklist Item', body,
+    `<button class="btn btn-secondary" onclick="manageChecklist('${trainingId}','')">Back</button><button class="btn btn-primary" onclick="saveChecklistItem('${trainingId}','${itemId||''}')">Save</button>`);
+}
+
+async function saveChecklistItem(trainingId, itemId) {
+  const title = document.getElementById('ci-title').value.trim();
+  if (!title) { toast('Title required','error'); return; }
+  const body = { title, description: document.getElementById('ci-desc').value, requires_photo: document.getElementById('ci-photo').checked, training_id: trainingId };
+  try {
+    if (itemId) { await sb(`training_checklist_items?id=eq.${itemId}`,{method:'PATCH',body}); }
+    else { const items = await sb(`training_checklist_items?training_id=eq.${trainingId}`); await sb('training_checklist_items',{method:'POST',body:{...body,item_order:items.length}}); }
+    toast('Item saved','success');
+    const tRes = await sb(`trainings?id=eq.${trainingId}`);
+    manageChecklist(trainingId, tRes[0]?.title||'');
+  } catch(e) { toast(e.message,'error'); }
+}
+
+async function deleteChecklistItem(itemId, trainingId, trainingTitle) {
+  if (!confirm('Delete this item?')) return;
+  try { await sb(`training_checklist_items?id=eq.${itemId}`,{method:'DELETE'}); toast('Deleted','info'); manageChecklist(trainingId, trainingTitle); }
+  catch(e) { toast(e.message,'error'); }
+}
+
+// ──────────────────────────────────────────────────────────────
+// WORKFLOWS
+// ──────────────────────────────────────────────────────────────
+async function renderWorkflows() {
+  const el = document.getElementById('page-workflows');
+  const canCreate = currentUserPerm.can_create_workflow || currentUser.role==='admin';
+  el.innerHTML = `<div class="page-header"><div class="page-title">Workflows</div><div class="spacer"></div>${canCreate?'<button class="btn btn-primary" onclick="openWorkflowForm()"><i class="fa fa-plus"></i> New Workflow</button>':''}</div><div id="workflows-list"><div class="empty"><i class="fa fa-spinner fa-spin"></i></div></div>`;
+  try {
+    const workflows = await sb('workflows?order=created_at.desc');
+    if (!workflows.length) { document.getElementById('workflows-list').innerHTML='<div class="empty"><i class="fa fa-project-diagram"></i><p>No workflows yet.</p></div>'; return; }
+    const rows = workflows.map(w=>`<tr>
+      <td class="fw-600">${w.title}</td>
+      <td>${w.is_sequential?'<span class="pill pill-submitted">Sequential</span>':'<span class="pill pill-progress">Flexible</span>'}</td>
+      <td><span class="pill ${w.is_active?'pill-approved':'pill-rejected'}">${w.is_active?'Active':'Inactive'}</span></td>
+      <td>${new Date(w.created_at).toLocaleDateString()}</td>
+      <td class="flex gap-8">
+        <button class="btn-icon" onclick="openWorkflowForm('${w.id}')"><i class="fa fa-edit"></i></button>
+        <button class="btn-icon" onclick="manageWorkflowTrainings('${w.id}','${w.title.replace(/'/g,"\\'")}')"><i class="fa fa-list"></i></button>
+        <button class="btn-icon" onclick="manageWorkflowManagers('${w.id}','${w.title.replace(/'/g,"\\'")}')"><i class="fa fa-user-shield"></i></button>
+        ${currentUser.role==='admin'?`<button class="btn-icon" style="color:#dc2626" onclick="deleteWorkflow('${w.id}')"><i class="fa fa-trash"></i></button>`:''}
+      </td>
+    </tr>`).join('');
+    document.getElementById('workflows-list').innerHTML=`<div class="card"><div class="card-body table-wrap"><table><thead><tr><th>Title</th><th>Type</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  } catch(e) { el.innerHTML+=`<div class="alert alert-danger">${e.message}</div>`; }
+}
+
+async function openWorkflowForm(id=null) {
+  let wf = {};
+  if (id) { const res = await sb(`workflows?id=eq.${id}`); wf = res[0]||{}; }
+  openModal(id?'Edit Workflow':'New Workflow',
+    `<div class="form-group"><label class="form-label">Title *</label><input id="wf-title" class="form-control" value="${wf.title||''}"/></div>
+     <div class="form-group"><label class="form-label">Description</label><textarea id="wf-desc" class="form-control">${wf.description||''}</textarea></div>
+     <div class="form-group"><label class="form-label">Type</label><select id="wf-seq" class="form-control"><option value="true" ${wf.is_sequential!==false?'selected':''}>Sequential (must complete in order)</option><option value="false" ${wf.is_sequential===false?'selected':''}>Flexible (any order)</option></select></div>
+     <div class="form-check"><input type="checkbox" id="wf-active" ${wf.is_active!==false?'checked':''}/><label for="wf-active">Active</label></div>`,
+    `<button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveWorkflow('${id||''}')"><i class="fa fa-save"></i> Save</button>`
+  );
+}
+
+async function saveWorkflow(id) {
+  const title = document.getElementById('wf-title').value.trim();
+  if (!title) { toast('Title required','error'); return; }
+  const body = { title, description: document.getElementById('wf-desc').value, is_sequential: document.getElementById('wf-seq').value==='true', is_active: document.getElementById('wf-active').checked };
+  try {
+    if (id) { await sb(`workflows?id=eq.${id}`,{method:'PATCH',body}); }
+    else { await sb('workflows',{method:'POST',body:{...body,created_by:currentUser.id}}); }
+    toast('Workflow saved','success'); closeModal(); renderWorkflows();
+  } catch(e) { toast(e.message,'error'); }
+}
+
+async function deleteWorkflow(id) {
+  if (!confirm('Delete this workflow?')) return;
+  try { await sb(`workflows?id=eq.${id}`,{method:'DELETE'}); toast('Deleted','info'); renderWorkflows(); }
+  catch(e) { toast(e.message,'error'); }
+}
+
+async function manageWorkflowTrainings(wfId, wfTitle) {
+  const [wfTrainings, allTrainings] = await Promise.all([
+    sb(`workflow_trainings?workflow_id=eq.${wfId}&order=sequence_order.asc`),
+    sb('trainings?is_active=eq.true')
+  ]);
+  const addedIds = new Set(wfTrainings.map(w=>w.training_id));
+  const tMap = Object.fromEntries(allTrainings.map(t=>[t.id,t]));
+  const addedHtml = wfTrainings.length
+    ? wfTrainings.map(wt=>`<div class="sortable-item"><span class="drag-handle"><i class="fa fa-grip-vertical"></i></span><span class="item-label">${tMap[wt.training_id]?.title||wt.training_id}</span><button class="btn-icon" style="color:#dc2626" onclick="removeWfTraining('${wt.id}','${wfId}','${wfTitle.replace(/'/g,"\\'")}')"><i class="fa fa-minus-circle"></i></button></div>`).join('')
+    : '<div class="text-muted text-sm">No trainings added.</div>';
+  const availableOpts = allTrainings.filter(t=>!addedIds.has(t.id)).map(t=>`<option value="${t.id}">${t.title}</option>`).join('');
+  openModal(`Trainings in — ${wfTitle}`,
+    `<div class="mb-16"><div class="fw-600 mb-8">Trainings in workflow</div><div id="wft-list">${addedHtml}</div></div>
+     <hr class="divider"/><div class="fw-600 mb-8">Add training</div>
+     <div class="flex gap-8"><select id="wft-add-sel" class="form-control">${availableOpts||'<option disabled>All trainings added</option>'}</select><button class="btn btn-primary" onclick="addWfTraining('${wfId}','${wfTitle.replace(/'/g,"\\'")}')"><i class="fa fa-plus"></i> Add</button></div>`,
+    `<button class="btn btn-secondary" onclick="closeModal()">Done</button>`,true);
+}
+
+async function addWfTraining(wfId, wfTitle) {
+  const sel = document.getElementById('wft-add-sel'); if (!sel) return;
+  const trainingId = sel.value; if (!trainingId) return;
+  try {
+    const existing = await sb(`workflow_trainings?workflow_id=eq.${wfId}`);
+    await sb('workflow_trainings',{method:'POST',body:{workflow_id:wfId,training_id:trainingId,sequence_order:existing.length}});
+    toast('Training added','success'); manageWorkflowTrainings(wfId,wfTitle);
+  } catch(e) { toast(e.message,'error'); }
+}
+
+async function removeWfTraining(id, wfId, wfTitle) {
+  try { await sb(`workflow_trainings?id=eq.${id}`,{method:'DELETE'}); toast('Removed','info'); manageWorkflowTrainings(wfId,wfTitle); }
+  catch(e) { toast(e.message,'error'); }
+}
+
+async function manageWorkflowManagers(wfId, wfTitle) {
+  const [managers, allUsers] = await Promise.all([
+    sb(`workflow_managers?workflow_id=eq.${wfId}`),
+    sb('users?is_active=eq.true')
+  ]);
+  const addedIds = new Set(managers.map(m=>m.user_id));
+  const uMap = Object.fromEntries(allUsers.map(u=>[u.id,u]));
+  const mHtml = managers.length
+    ? managers.map(m=>`<div class="flex items-center justify-between" style="padding:8px 12px;border:1px solid var(--border);border-radius:6px;margin-bottom:6px"><span>${uMap[m.user_id]?.full_name||m.user_id}</span><button class="btn-icon" style="color:#dc2626" onclick="removeWfManager('${m.id}','${wfId}','${wfTitle.replace(/'/g,"\\'")}')"><i class="fa fa-times"></i></button></div>`).join('')
+    : '<div class="text-muted text-sm">No managers assigned.</div>';
+  const opts = allUsers.filter(u=>!addedIds.has(u.id)).map(u=>`<option value="${u.id}">${u.full_name} (${u.email})</option>`).join('');
+  openModal(`Managers — ${wfTitle}`,
+    `<div class="mb-16"><div class="fw-600 mb-8">Current managers</div>${mHtml}</div>
+     <hr class="divider"/><div class="fw-600 mb-8">Add manager</div>
+     <div class="flex gap-8"><select id="wfm-sel" class="form-control">${opts||'<option disabled>No users available</option>'}</select><button class="btn btn-primary" onclick="addWfManager('${wfId}','${wfTitle.replace(/'/g,"\\'")}')"><i class="fa fa-plus"></i> Add</button></div>`,
+    `<button class="btn btn-secondary" onclick="closeModal()">Done</button>`);
+}
+
+async function addWfManager(wfId, wfTitle) {
+  const userId = document.getElementById('wfm-sel').value;
+  try { await sb('workflow_managers',{method:'POST',body:{workflow_id:wfId,user_id:userId}}); toast('Manager added','success'); manageWorkflowManagers(wfId,wfTitle); }
+  catch(e) { toast(e.message,'error'); }
+}
+async function removeWfManager(id, wfId, wfTitle) {
+  try { await sb(`workflow_managers?id=eq.${id}`,{method:'DELETE'}); toast('Removed','info'); manageWorkflowManagers(wfId,wfTitle); }
+  catch(e) { toast(e.message,'error'); }
+}
+
+// ──────────────────────────────────────────────────────────────
+// ASSIGNMENTS
+// ──────────────────────────────────────────────────────────────
+async function renderAssignments() {
+  const el = document.getElementById('page-assignments');
+  const canAssign = currentUserPerm.can_assign_training || currentUserPerm.can_assign_workflow || currentUser.role==='admin';
+  el.innerHTML=`<div class="page-header"><div class="page-title">Assignments</div><div class="spacer"></div>${canAssign?'<button class="btn btn-primary" onclick="openAssignModal()"><i class="fa fa-plus"></i> Assign Training</button>':''}</div>
+  <div class="tabs"><button class="tab-btn active" onclick="switchAssignTab('pending',this)">Pending Approval</button><button class="tab-btn" onclick="switchAssignTab('all',this)">All</button></div>
+  <div id="assign-list"><div class="empty"><i class="fa fa-spinner fa-spin"></i></div></div>`;
+  loadAssignments('pending');
+}
+
+async function switchAssignTab(type, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  loadAssignments(type);
+}
+
+async function loadAssignments(type) {
+  try {
+    let query = 'training_assignments?order=created_at.desc';
+    if (type==='pending') query += '&status=eq.submitted';
+    // If not admin, filter by reporter chain — for simplicity show where they can approve
+    if (currentUser.role!=='admin' && !currentUserPerm.can_approve_training) {
+      query += `&assigned_by=eq.${currentUser.id}`;
+    }
+    const assigns = await sb(query);
+    if (!assigns.length) { document.getElementById('assign-list').innerHTML='<div class="empty"><i class="fa fa-clipboard-check"></i><p>No assignments found.</p></div>'; return; }
+    const userIds = [...new Set([...assigns.map(a=>a.assigned_to),...assigns.map(a=>a.assigned_by).filter(Boolean)])];
+    const trainingIds = [...new Set(assigns.map(a=>a.training_id))];
+    const [users, trainings] = await Promise.all([
+      sb(`users?id=in.(${userIds.join(',')})`),
+      sb(`trainings?id=in.(${trainingIds.join(',')})`)
     ]);
-    el.innerHTML = `
-      <div class="page-hd"><div class="page-title">Assignments</div><button class="btn btn-primary" onclick="_showAssignModal()">+ Assign Training</button></div>
-      <div class="card"><div class="table-wrap"><table>
-        <thead><tr><th>Employee</th><th>Training</th><th>Status</th><th>Due</th><th>Assigned</th></tr></thead>
-        <tbody>${asgns.map(a=>`<tr>
-          <td>${esc(a.employee?.name||'—')}</td>
-          <td>${esc(a.trainings?.title||'—')}</td>
-          <td>${bdg(a.status)}</td>
-          <td>${a.due_date||'—'}</td>
-          <td>${fd(a.created_at)}</td>
-        </tr>`).join('')}</tbody>
-      </table></div></div>`;
+    const uMap = Object.fromEntries(users.map(u=>[u.id,u]));
+    const tMap = Object.fromEntries(trainings.map(t=>[t.id,t]));
+    const rows = assigns.map(a=>`<tr>
+      <td class="fw-600">${tMap[a.training_id]?.title||'—'}</td>
+      <td>${uMap[a.assigned_to]?.full_name||'—'}</td>
+      <td>${uMap[a.assigned_by]?.full_name||'—'}</td>
+      <td><span class="pill pill-${a.status}">${a.status}</span></td>
+      <td>${a.due_date||'—'}</td>
+      <td><button class="btn btn-sm btn-secondary" onclick="openTrainingAssignment('${a.id}')"><i class="fa fa-eye"></i> View</button></td>
+    </tr>`).join('');
+    document.getElementById('assign-list').innerHTML=`<div class="card"><div class="card-body table-wrap"><table><thead><tr><th>Training</th><th>Assigned To</th><th>Assigned By</th><th>Status</th><th>Due</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  } catch(e) { document.getElementById('assign-list').innerHTML=`<div class="alert alert-danger">${e.message}</div>`; }
+}
 
-    window._showAssignModal = () => {
-      modal('Assign Training', `
-        <div class="form-group"><label class="form-label">Employee *</label>
-          <select class="form-ctrl" id="as-user"><option value="">Select…</option>${users.map(u=>`<option value="${u.id}">${esc(u.name)} (${esc(u.email)})</option>`).join('')}</select></div>
-        <div class="form-group"><label class="form-label">Training *</label>
-          <select class="form-ctrl" id="as-trn"><option value="">Select…</option>${trainings.map(t=>`<option value="${t.id}">${esc(t.title)}</option>`).join('')}</select></div>
-        <div class="form-group"><label class="form-label">Workflow (optional)</label>
-          <select class="form-ctrl" id="as-wf"><option value="">Standalone</option>${workflows.map(w=>`<option value="${w.id}">${esc(w.title)}</option>`).join('')}</select></div>
-        <div class="form-group"><label class="form-label">Due Date (optional)</label>
-          <input type="date" class="form-ctrl" id="as-due"/></div>
-        <div id="as-alert"></div>`,
-        [{ label:'Assign', cls:'btn-primary', fn: async () => {
-          const uid = document.getElementById('as-user').value;
-          const tid = document.getElementById('as-trn').value;
-          const wid = document.getElementById('as-wf').value || null;
-          const due = document.getElementById('as-due').value || null;
-          if (!uid || !tid) { alert2('as-alert','Select employee and training.','error'); return; }
-          await db.post('training_assignments', { assigned_to:uid, training_id:tid, workflow_id:wid, assigned_by:ME.id, due_date:due, status:'pending' });
-          db.post('audit_log',{ actor_id:ME.id, action:'assignment_created', target_type:'assignment', details:{to:uid,training:tid} }).catch(()=>{});
-          closeModal(); toast('Training assigned!'); PAGES.assignments();
-        }}]
-      );
-    };
-  } catch(e) { el.innerHTML = err(e); }
-};
+async function openAssignModal() {
+  const [users, trainings, workflows] = await Promise.all([
+    sb('users?is_active=eq.true'),
+    sb('trainings?is_active=eq.true'),
+    sb('workflows?is_active=eq.true')
+  ]);
+  const userOpts = users.filter(u=>u.id!==currentUser.id).map(u=>`<option value="${u.id}">${u.full_name} (${u.email})</option>`).join('');
+  const tOpts = trainings.map(t=>`<option value="${t.id}">${t.title}</option>`).join('');
+  const wOpts = workflows.map(w=>`<option value="${w.id}">${w.title}</option>`).join('');
+  openModal('Assign Training / Workflow',
+    `<div class="form-group"><label class="form-label">Type</label><select id="as-type" class="form-control" onchange="toggleAssignType()"><option value="training">Single Training</option><option value="workflow">Workflow</option></select></div>
+     <div id="as-training-row" class="form-group"><label class="form-label">Training *</label><select id="as-training" class="form-control">${tOpts}</select></div>
+     <div id="as-workflow-row" class="form-group d-none"><label class="form-label">Workflow *</label><select id="as-workflow" class="form-control">${wOpts}</select></div>
+     <div class="form-group"><label class="form-label">Assign To *</label><select id="as-user" class="form-control">${userOpts}</select></div>
+     <div class="form-group"><label class="form-label">Due Date</label><input type="date" id="as-due" class="form-control"/></div>`,
+    `<button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="doAssign()"><i class="fa fa-paper-plane"></i> Assign</button>`);
+}
 
-// ── TRAININGS ──────────────────────────────
-PAGES.trainings = async () => {
-  const el = document.getElementById('pg');
+function toggleAssignType() {
+  const type = document.getElementById('as-type').value;
+  document.getElementById('as-training-row').classList.toggle('d-none', type==='workflow');
+  document.getElementById('as-workflow-row').classList.toggle('d-none', type==='training');
+}
+
+async function doAssign() {
+  const type = document.getElementById('as-type').value;
+  const userId = document.getElementById('as-user').value;
+  const due = document.getElementById('as-due').value || null;
   try {
-    const data = await db.get('trainings', 'select=id,title,description,created_at,training_checklist_items(id)&order=title');
-    el.innerHTML = `
-      <div class="page-hd"><div class="page-title">Trainings Library</div><button class="btn btn-primary" onclick="_openTrnModal(null)">+ New Training</button></div>
-      <div class="card"><div class="table-wrap"><table>
-        <thead><tr><th>Title</th><th>Items</th><th>Created</th><th></th></tr></thead>
-        <tbody>${data.length
-          ? data.map(t=>`<tr>
-              <td><strong>${esc(t.title)}</strong>${t.description?`<br><span style="font-size:12px;color:var(--txt-m)">${esc(t.description)}</span>`:''}</td>
-              <td>${t.training_checklist_items?.length||0}</td>
-              <td>${fd(t.created_at)}</td>
-              <td style="display:flex;gap:6px">
-                <button class="btn btn-sm btn-secondary" onclick="_editTrn('${t.id}')">Edit</button>
-                <button class="btn btn-sm btn-danger" onclick="_delTrn('${t.id}','${esc(t.title)}')">Delete</button>
-              </td>
-            </tr>`).join('')
-          : `<tr><td colspan="4"><div class="empty"><div class="empty-icon">📚</div><div class="empty-title">No trainings yet.</div></div></td></tr>`
-        }</tbody>
-      </table></div></div>`;
+    if (type==='training') {
+      const trainingId = document.getElementById('as-training').value;
+      await sb('training_assignments',{method:'POST',body:{training_id:trainingId,assigned_to:userId,assigned_by:currentUser.id,status:'pending',due_date:due}});
+      await audit('ASSIGNED_TRAINING','training_assignment',null,{training_id:trainingId,assigned_to:userId});
+    } else {
+      const wfId = document.getElementById('as-workflow').value;
+      const wfAssign = await sb('workflow_assignments',{method:'POST',body:{workflow_id:wfId,assigned_to:userId,assigned_by:currentUser.id,status:'pending',due_date:due}});
+      const wfTrainings = await sb(`workflow_trainings?workflow_id=eq.${wfId}&order=sequence_order.asc`);
+      for (const wt of wfTrainings) {
+        await sb('training_assignments',{method:'POST',body:{training_id:wt.training_id,assigned_to:userId,assigned_by:currentUser.id,status:'pending',due_date:due,workflow_assignment_id:wfAssign[0].id}});
+      }
+      await audit('ASSIGNED_WORKFLOW','workflow_assignment',wfAssign[0].id,{assigned_to:userId});
+    }
+    toast('Assigned successfully','success'); closeModal(); renderAssignments();
+  } catch(e) { toast(e.message,'error'); }
+}
 
-    window._editTrn = async (id) => {
-      const rows = await db.get('trainings', 'id=eq.' + id + '&select=*,training_checklist_items(*)&limit=1');
-      _openTrnModal(rows[0]);
-    };
-    window._delTrn = (id, title) => {
-      modal('Delete Training', `<p>Delete "<strong>${title}</strong>"? All assignments will also be deleted.</p>`,
-        [{ label:'Delete', cls:'btn-danger', fn: async () => {
-          await db.del('trainings', 'id=eq.' + id);
-          db.post('audit_log',{actor_id:ME.id,action:'training_deleted',target_type:'training',target_id:id}).catch(()=>{});
-          closeModal(); toast('Deleted.'); PAGES.trainings();
-        }}]);
-    };
-  } catch(e) { el.innerHTML = err(e); }
-};
+// ──────────────────────────────────────────────────────────────
+// USERS
+// ──────────────────────────────────────────────────────────────
+async function renderUsers() {
+  const el = document.getElementById('page-users');
+  el.innerHTML=`<div class="page-header"><div class="page-title">Users</div><div class="spacer"></div><button class="btn btn-primary" onclick="openUserForm()"><i class="fa fa-plus"></i> New User</button></div><div id="users-list"><div class="empty"><i class="fa fa-spinner fa-spin"></i></div></div>`;
+  try {
+    const [users, depts] = await Promise.all([sb('users?order=created_at.asc'), sb('departments')]);
+    const dMap = Object.fromEntries(depts.map(d=>[d.id,d]));
+    const uMap = Object.fromEntries(users.map(u=>[u.id,u]));
+    const rows = users.map(u=>`<tr>
+      <td><div class="fw-600">${u.full_name}</div><div class="text-sm text-muted">${u.employee_id}</div></td>
+      <td>${u.email}</td>
+      <td>${dMap[u.department_id]?.name||'—'}</td>
+      <td>${uMap[u.reports_to]?.full_name||'—'}</td>
+      <td><span class="pill ${u.is_active?'pill-approved':'pill-rejected'}">${u.is_active?'Active':'Inactive'}</span></td>
+      <td class="flex gap-8">
+        <button class="btn-icon" onclick="openUserForm('${u.id}')"><i class="fa fa-edit"></i></button>
+        <button class="btn-icon" onclick="managePermissions('${u.id}','${u.full_name.replace(/'/g,"\\'")}')"><i class="fa fa-key"></i></button>
+        ${u.id!==currentUser.id?`<button class="btn-icon" style="color:#dc2626" onclick="toggleUserActive('${u.id}',${u.is_active},'${u.full_name.replace(/'/g,"\\'")}')"><i class="fa fa-${u.is_active?'ban':'check'}"></i></button>`:''}
+      </td>
+    </tr>`).join('');
+    document.getElementById('users-list').innerHTML=`<div class="card"><div class="card-body table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Reports To</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  } catch(e) { el.innerHTML+=`<div class="alert alert-danger">${e.message}</div>`; }
+}
 
-let _cic = 1000;
-function _ciRow(id, desc, reqPhoto) {
-  const uid = id || 'n' + (_cic++);
-  return `<div class="ci-row" id="cir-${uid}" style="align-items:center">
-    <input class="form-ctrl" style="flex:1;margin-right:8px" value="${esc(desc||'')}" id="cd-${uid}" placeholder="Item description"/>
-    <label style="font-size:12px;white-space:nowrap;display:flex;align-items:center;gap:4px;margin-right:8px">
-      <input type="checkbox" ${reqPhoto?'checked':''} id="cp-${uid}"/> Photo
-    </label>
-    <button class="btn btn-sm btn-danger" onclick="document.getElementById('cir-${uid}').remove()">✕</button>
+async function openUserForm(id=null) {
+  const [depts, users] = await Promise.all([sb('departments'), sb('users?is_active=eq.true')]);
+  let user = {};
+  if (id) { const res = await sb(`users?id=eq.${id}`); user = res[0]||{}; }
+  const dOpts = depts.map(d=>`<option value="${d.id}" ${user.department_id===d.id?'selected':''}>${d.name}</option>`).join('');
+  const uOpts = users.filter(u=>u.id!==id).map(u=>`<option value="${u.id}" ${user.reports_to===u.id?'selected':''}>${u.full_name}</option>`).join('');
+  const genPass = !id ? Math.random().toString(36).slice(-8)+'A1!' : '';
+
+  openModal(id?'Edit User':'New User',
+    `<div class="form-row">
+       <div class="form-group"><label class="form-label">Full Name *</label><input id="uf-name" class="form-control" value="${user.full_name||''}"/></div>
+       <div class="form-group"><label class="form-label">Employee ID *</label><input id="uf-empid" class="form-control" value="${user.employee_id||''}"/></div>
+     </div>
+     <div class="form-group"><label class="form-label">Email *</label><input id="uf-email" class="form-control" type="email" value="${user.email||''}" ${id?'readonly':''}/></div>
+     ${!id?`<div class="form-group"><label class="form-label">Temporary Password</label><input id="uf-pass" class="form-control" value="${genPass}" readonly/><div class="form-hint">Share this with the user. They'll be prompted to change it on first login.</div></div>`:''}
+     <div class="form-row">
+       <div class="form-group"><label class="form-label">Department</label><select id="uf-dept" class="form-control"><option value="">— None —</option>${dOpts}</select></div>
+       <div class="form-group"><label class="form-label">Reports To</label><select id="uf-reports" class="form-control"><option value="">— None —</option>${uOpts}</select></div>
+     </div>
+     <div class="form-group"><label class="form-label">Phone</label><input id="uf-phone" class="form-control" value="${user.phone||''}"/></div>
+     <div class="form-check"><input type="checkbox" id="uf-active" ${user.is_active!==false?'checked':''}/><label for="uf-active">Active</label></div>`,
+    `<button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveUser('${id||''}')"><i class="fa fa-save"></i> Save</button>`);
+}
+
+async function saveUser(id) {
+  const name = document.getElementById('uf-name').value.trim();
+  const empId = document.getElementById('uf-empid').value.trim();
+  const email = document.getElementById('uf-email').value.trim();
+  if (!name||!empId||!email) { toast('Name, Employee ID, and Email required','error'); return; }
+  const body = { full_name:name, employee_id:empId, email, department_id:document.getElementById('uf-dept').value||null, reports_to:document.getElementById('uf-reports').value||null, phone:document.getElementById('uf-phone').value||null, is_active:document.getElementById('uf-active').checked };
+  try {
+    if (id) {
+      await sb(`users?id=eq.${id}`,{method:'PATCH',body});
+    } else {
+      const pass = document.getElementById('uf-pass').value;
+      const authRes = await sbAuth('admin/users',{email, password:pass, email_confirm:true});
+      const newUser = await sb('users',{method:'POST',body:{...body, auth_user_id:authRes.id, role:'employee', must_change_password:true, created_by:currentUser.id}});
+      // Create empty permissions row
+      await sb('permissions',{method:'POST',body:{user_id:newUser[0].id, granted_by:currentUser.id}});
+      await audit('CREATED_USER','user',newUser[0].id,{name, email});
+    }
+    toast('User saved','success'); closeModal(); renderUsers();
+  } catch(e) { toast(e.message,'error'); }
+}
+
+async function toggleUserActive(id, current, name) {
+  if (!confirm(`${current?'Deactivate':'Activate'} user ${name}?`)) return;
+  try { await sb(`users?id=eq.${id}`,{method:'PATCH',body:{is_active:!current}}); toast('Updated','success'); renderUsers(); }
+  catch(e) { toast(e.message,'error'); }
+}
+
+async function managePermissions(userId, userName) {
+  const perms = await sb(`permissions?user_id=eq.${userId}`);
+  const p = perms[0] || {};
+  const checks = [
+    ['can_create_training','Create Trainings'],['can_edit_training','Edit Trainings'],['can_delete_training','Delete Trainings'],
+    ['can_assign_training','Assign Trainings'],['can_approve_training','Approve Trainings'],
+    ['can_create_workflow','Create Workflows'],['can_edit_workflow','Edit Workflows'],['can_delete_workflow','Delete Workflows'],
+    ['can_assign_workflow','Assign Workflows'],['can_manage_users','Manage Users'],['can_view_reports','View Reports']
+  ];
+  const html = `<div class="perm-grid">${checks.map(([key,label])=>`<label class="perm-item"><input type="checkbox" id="pm-${key}" ${p[key]?'checked':''}/> ${label}</label>`).join('')}</div>`;
+  openModal(`Permissions — ${userName}`, html,
+    `<button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="savePermissions('${userId}','${p.id||''}')"><i class="fa fa-save"></i> Save</button>`);
+}
+
+async function savePermissions(userId, permId) {
+  const keys = ['can_create_training','can_edit_training','can_delete_training','can_assign_training','can_approve_training','can_create_workflow','can_edit_workflow','can_delete_workflow','can_assign_workflow','can_manage_users','can_view_reports'];
+  const body = Object.fromEntries(keys.map(k=>[k,!!document.getElementById(`pm-${k}`)?.checked]));
+  try {
+    if (permId) { await sb(`permissions?id=eq.${permId}`,{method:'PATCH',body}); }
+    else { await sb('permissions',{method:'POST',body:{...body,user_id:userId,granted_by:currentUser.id}}); }
+    await audit('UPDATED_PERMISSIONS','user',userId,body);
+    toast('Permissions saved','success'); closeModal();
+  } catch(e) { toast(e.message,'error'); }
+}
+
+// ──────────────────────────────────────────────────────────────
+// DEPARTMENTS
+// ──────────────────────────────────────────────────────────────
+async function renderDepartments() {
+  const el = document.getElementById('page-departments');
+  el.innerHTML=`<div class="page-header"><div class="page-title">Departments</div><div class="spacer"></div><button class="btn btn-primary" onclick="openDeptForm()"><i class="fa fa-plus"></i> New Department</button></div><div id="dept-list"><div class="empty"><i class="fa fa-spinner fa-spin"></i></div></div>`;
+  try {
+    const depts = await sb('departments?order=name.asc');
+    if (!depts.length) { document.getElementById('dept-list').innerHTML='<div class="empty"><i class="fa fa-building"></i><p>No departments yet.</p></div>'; return; }
+    const rows = depts.map(d=>`<tr><td class="fw-600">${d.name}</td><td class="text-muted">${d.description||'—'}</td><td>${new Date(d.created_at).toLocaleDateString()}</td><td class="flex gap-8"><button class="btn-icon" onclick="openDeptForm('${d.id}')"><i class="fa fa-edit"></i></button><button class="btn-icon" style="color:#dc2626" onclick="deleteDept('${d.id}')"><i class="fa fa-trash"></i></button></td></tr>`).join('');
+    document.getElementById('dept-list').innerHTML=`<div class="card"><div class="card-body table-wrap"><table><thead><tr><th>Name</th><th>Description</th><th>Created</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  } catch(e) { el.innerHTML+=`<div class="alert alert-danger">${e.message}</div>`; }
+}
+
+async function openDeptForm(id=null) {
+  let dept = {};
+  if (id) { const res = await sb(`departments?id=eq.${id}`); dept = res[0]||{}; }
+  openModal(id?'Edit Department':'New Department',
+    `<div class="form-group"><label class="form-label">Name *</label><input id="df-name" class="form-control" value="${dept.name||''}"/></div>
+     <div class="form-group"><label class="form-label">Description</label><textarea id="df-desc" class="form-control">${dept.description||''}</textarea></div>`,
+    `<button class="btn btn-secondary" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveDept('${id||''}')"><i class="fa fa-save"></i> Save</button>`);
+}
+
+async function saveDept(id) {
+  const name = document.getElementById('df-name').value.trim();
+  if (!name) { toast('Name required','error'); return; }
+  const body = { name, description: document.getElementById('df-desc').value };
+  try {
+    if (id) { await sb(`departments?id=eq.${id}`,{method:'PATCH',body}); }
+    else { await sb('departments',{method:'POST',body:{...body,created_by:currentUser.id}}); }
+    toast('Department saved','success'); closeModal(); renderDepartments();
+  } catch(e) { toast(e.message,'error'); }
+}
+
+async function deleteDept(id) {
+  if (!confirm('Delete this department?')) return;
+  try { await sb(`departments?id=eq.${id}`,{method:'DELETE'}); toast('Deleted','info'); renderDepartments(); }
+  catch(e) { toast(e.message,'error'); }
+}
+
+// ──────────────────────────────────────────────────────────────
+// REPORTS
+// ──────────────────────────────────────────────────────────────
+async function renderReports() {
+  const el = document.getElementById('page-reports');
+  el.innerHTML=`<div class="page-header"><div class="page-title">Reports</div></div><div id="reports-content"><div class="empty"><i class="fa fa-spinner fa-spin"></i></div></div>`;
+  try {
+    const [assigns, users, trainings, audit_rows] = await Promise.all([
+      sb('training_assignments?order=created_at.desc'),
+      sb('users?is_active=eq.true'),
+      sb('trainings?is_active=eq.true'),
+      sb('audit_log?order=performed_at.desc&limit=50')
+    ]);
+    const uMap = Object.fromEntries(users.map(u=>[u.id,u]));
+    const tMap = Object.fromEntries(trainings.map(t=>[t.id,t]));
+    const statusCounts = {};
+    assigns.forEach(a=>{ statusCounts[a.status]=(statusCounts[a.status]||0)+1; });
+
+    // Per-user completion stats
+    const userStats = {};
+    users.forEach(u=>{ userStats[u.id]={name:u.full_name,total:0,approved:0}; });
+    assigns.forEach(a=>{ if(userStats[a.assigned_to]){userStats[a.assigned_to].total++;if(a.status==='approved')userStats[a.assigned_to].approved++;} });
+
+    const userRows = Object.values(userStats).filter(s=>s.total>0).sort((a,b)=>b.total-a.total)
+      .map(s=>`<tr><td>${s.name}</td><td>${s.total}</td><td>${s.approved}</td><td><div class="progress-bar"><div class="progress-fill" style="width:${s.total?Math.round(s.approved/s.total*100):0}%"></div></div><span class="text-sm text-muted">${s.total?Math.round(s.approved/s.total*100):0}%</span></td></tr>`).join('');
+
+    const auditRows = audit_rows.map(a=>`<tr><td class="text-sm">${uMap[a.actor_id]?.full_name||'System'}</td><td class="fw-600 text-sm">${a.action}</td><td class="text-sm text-muted">${a.entity_type}</td><td class="text-sm text-muted">${new Date(a.performed_at).toLocaleString()}</td></tr>`).join('');
+
+    document.getElementById('reports-content').innerHTML=`
+      <div class="stats-grid">
+        ${Object.entries(statusCounts).map(([s,c])=>`<div class="stat-card"><div class="stat-val">${c}</div><div class="stat-label">${s.charAt(0).toUpperCase()+s.slice(1)}</div></div>`).join('')}
+      </div>
+      <div class="card mb-16"><div class="card-header"><h3><i class="fa fa-user-check text-red"></i> Completion by User</h3></div><div class="card-body table-wrap"><table><thead><tr><th>User</th><th>Assigned</th><th>Approved</th><th>Progress</th></tr></thead><tbody>${userRows||'<tr><td colspan="4" class="text-muted">No data</td></tr>'}</tbody></table></div></div>
+      <div class="card"><div class="card-header"><h3><i class="fa fa-history text-red"></i> Audit Log (last 50)</h3></div><div class="card-body table-wrap"><table><thead><tr><th>User</th><th>Action</th><th>Entity</th><th>Time</th></tr></thead><tbody>${auditRows||'<tr><td colspan="4" class="text-muted">No activity</td></tr>'}</tbody></table></div></div>`;
+  } catch(e) { el.innerHTML+=`<div class="alert alert-danger">${e.message}</div>`; }
+}
+
+// ──────────────────────────────────────────────────────────────
+// SETTINGS
+// ──────────────────────────────────────────────────────────────
+async function renderSettings() {
+  const el = document.getElementById('page-settings');
+  el.innerHTML=`<div class="page-header"><div class="page-title">Settings</div></div>
+  <div class="card card-body" style="max-width:520px">
+    <div class="fw-600 mb-16">System</div>
+    <div class="form-group"><label class="form-label">Supabase URL</label><input class="form-control" value="${SB_URL}" readonly/></div>
+    <div class="form-group"><label class="form-label">Service Role Key</label><input class="form-control" type="password" value="${SB_KEY}" readonly/></div>
+    <button class="btn btn-danger btn-sm" onclick="resetSetup()"><i class="fa fa-undo"></i> Reconfigure Connection</button>
+    <hr class="divider"/>
+    <div class="fw-600 mb-16">My Profile</div>
+    <div class="form-group"><label class="form-label">Full Name</label><input id="sp-name" class="form-control" value="${currentUser.full_name}"/></div>
+    <div class="form-group"><label class="form-label">Phone</label><input id="sp-phone" class="form-control" value="${currentUser.phone||''}"/></div>
+    <button class="btn btn-primary" onclick="saveProfile()"><i class="fa fa-save"></i> Save Profile</button>
+    <hr class="divider"/>
+    <div class="fw-600 mb-16">Change Password</div>
+    <div class="form-group"><label class="form-label">New Password</label><input id="sp-pass" class="form-control" type="password"/></div>
+    <button class="btn btn-secondary" onclick="changeMyPassword()"><i class="fa fa-lock"></i> Update Password</button>
   </div>`;
 }
-window.addCiRow = () => document.getElementById('ci-editor').insertAdjacentHTML('beforeend', _ciRow(null,'',false));
 
-function _openTrnModal(t) {
-  const items = (t?.training_checklist_items||[]).sort((a,b)=>a.order_index-b.order_index);
-  modal(t ? 'Edit Training' : 'New Training', `
-    <div class="form-group"><label class="form-label">Title *</label><input class="form-ctrl" id="t-title" value="${esc(t?.title||'')}"/></div>
-    <div class="form-group"><label class="form-label">Description</label><textarea class="form-ctrl" id="t-desc" rows="2">${esc(t?.description||'')}</textarea></div>
-    <div style="font-weight:700;font-size:13px;margin-bottom:10px">Checklist Items</div>
-    <div id="ci-editor">${items.map(i=>_ciRow(i.id,i.description,i.requires_photo)).join('')}</div>
-    <button class="btn btn-secondary btn-sm" style="margin-top:8px" onclick="addCiRow()">+ Add Item</button>
-    <div id="t-alert" style="margin-top:12px"></div>`,
-    [{ label: t ? 'Save Changes':'Create Training', cls:'btn-primary', fn: async () => {
-      const title = document.getElementById('t-title').value.trim();
-      if (!title) { alert2('t-alert','Title required.','error'); return; }
-      const desc = document.getElementById('t-desc').value.trim() || null;
-      let tid = t?.id;
-      if (tid) {
-        await db.patch('trainings','id=eq.'+tid,{title,description:desc});
-        await db.del('training_checklist_items','training_id=eq.'+tid);
-      } else {
-        const rows = await db.post('trainings',{title,description:desc,created_by:ME.id});
-        tid = rows[0].id;
-      }
-      const ciRows = [...document.querySelectorAll('#ci-editor .ci-row')];
-      const ciData = ciRows.map((row,i)=>{
-        const uid = row.id.replace('cir-','');
-        const d   = document.getElementById('cd-'+uid)?.value?.trim();
-        const ph  = document.getElementById('cp-'+uid)?.checked;
-        return d ? {training_id:tid,description:d,requires_photo:ph||false,order_index:i} : null;
-      }).filter(Boolean);
-      if (ciData.length) await db.post('training_checklist_items', ciData);
-      db.post('audit_log',{actor_id:ME.id,action:t?'training_updated':'training_created',target_type:'training',target_id:tid}).catch(()=>{});
-      closeModal(); toast(t?'Training updated!':'Training created!'); PAGES.trainings();
-    }}]
-  );
-}
-
-// ── WORKFLOWS ──────────────────────────────
-PAGES.workflows = async () => {
-  const el = document.getElementById('pg');
+async function saveProfile() {
+  const name = document.getElementById('sp-name').value.trim();
+  const phone = document.getElementById('sp-phone').value.trim();
   try {
-    const data = await db.get('workflows', 'select=id,title,description,type,created_at,workflow_trainings(id)&order=title');
-    el.innerHTML = `
-      <div class="page-hd"><div class="page-title">Workflows</div><button class="btn btn-primary" onclick="_openWfModal(null)">+ New Workflow</button></div>
-      <div class="card"><div class="table-wrap"><table>
-        <thead><tr><th>Title</th><th>Type</th><th>Trainings</th><th>Created</th><th></th></tr></thead>
-        <tbody>${data.length
-          ? data.map(w=>`<tr>
-              <td><strong>${esc(w.title)}</strong>${w.description?`<br><span style="font-size:12px;color:var(--txt-m)">${esc(w.description)}</span>`:''}</td>
-              <td><span class="badge ${w.type==='sequential'?'bs':'ba'}">${w.type}</span></td>
-              <td>${w.workflow_trainings?.length||0}</td>
-              <td>${fd(w.created_at)}</td>
-              <td style="display:flex;gap:6px">
-                <button class="btn btn-sm btn-secondary" onclick="_editWf('${w.id}')">Edit</button>
-                <button class="btn btn-sm btn-danger" onclick="_delWf('${w.id}','${esc(w.title)}')">Delete</button>
-              </td>
-            </tr>`).join('')
-          : `<tr><td colspan="5"><div class="empty"><div class="empty-icon">🔄</div><div class="empty-title">No workflows yet.</div></div></td></tr>`
-        }</tbody>
-      </table></div></div>`;
-
-    window._editWf = async (id) => {
-      const rows = await db.get('workflows', 'id=eq.'+id+'&select=*,workflow_trainings(*),workflow_managers(*)&limit=1');
-      _openWfModal(rows[0]);
-    };
-    window._delWf = (id, title) => {
-      modal('Delete Workflow',`<p>Delete "<strong>${title}</strong>"?</p>`,
-        [{ label:'Delete',cls:'btn-danger',fn:async()=>{ await db.del('workflows','id=eq.'+id); closeModal(); toast('Deleted.'); PAGES.workflows(); }}]);
-    };
-  } catch(e) { el.innerHTML = err(e); }
-};
-
-async function _openWfModal(w) {
-  const [allTrn, allUsr] = await Promise.all([
-    db.get('trainings','select=id,title&order=title'),
-    db.get('app_users','status=eq.active&select=id,name&order=name')
-  ]);
-  const selTrn = (w?.workflow_trainings||[]).map(x=>x.training_id);
-  const selUsr = (w?.workflow_managers||[]).map(x=>x.user_id);
-  modal(w?'Edit Workflow':'New Workflow', `
-    <div class="form-group"><label class="form-label">Title *</label><input class="form-ctrl" id="w-title" value="${esc(w?.title||'')}"/></div>
-    <div class="form-group"><label class="form-label">Description</label><textarea class="form-ctrl" id="w-desc" rows="2">${esc(w?.description||'')}</textarea></div>
-    <div class="form-group"><label class="form-label">Type</label>
-      <select class="form-ctrl" id="w-type">
-        <option value="sequential" ${w?.type==='sequential'?'selected':''}>Sequential (must complete in order)</option>
-        <option value="flexible"   ${w?.type==='flexible'  ?'selected':''}>Flexible (any order)</option>
-      </select></div>
-    <div class="form-group"><label class="form-label">Trainings (Ctrl/Cmd to multi-select)</label>
-      <select class="form-ctrl" id="w-trns" multiple style="height:100px">
-        ${allTrn.map(t=>`<option value="${t.id}" ${selTrn.includes(t.id)?'selected':''}>${esc(t.title)}</option>`).join('')}
-      </select></div>
-    <div class="form-group"><label class="form-label">Managers (can manage this workflow)</label>
-      <select class="form-ctrl" id="w-mgrs" multiple style="height:80px">
-        ${allUsr.map(u=>`<option value="${u.id}" ${selUsr.includes(u.id)?'selected':''}>${esc(u.name)}</option>`).join('')}
-      </select></div>
-    <div id="w-alert"></div>`,
-    [{ label:w?'Save Changes':'Create Workflow', cls:'btn-primary', fn:async()=>{
-      const title = document.getElementById('w-title').value.trim();
-      if (!title) { alert2('w-alert','Title required.','error'); return; }
-      const desc  = document.getElementById('w-desc').value.trim() || null;
-      const type  = document.getElementById('w-type').value;
-      const trnIds = [...document.getElementById('w-trns').selectedOptions].map(o=>o.value);
-      const mgrIds = [...document.getElementById('w-mgrs').selectedOptions].map(o=>o.value);
-      let wid = w?.id;
-      if (wid) {
-        await db.patch('workflows','id=eq.'+wid,{title,description:desc,type});
-        await db.del('workflow_trainings','workflow_id=eq.'+wid);
-        await db.del('workflow_managers','workflow_id=eq.'+wid);
-      } else {
-        const rows = await db.post('workflows',{title,description:desc,type,created_by:ME.id});
-        wid = rows[0].id;
-      }
-      if (trnIds.length) await db.post('workflow_trainings', trnIds.map((tid,i)=>({workflow_id:wid,training_id:tid,order_index:i})));
-      if (mgrIds.length) await db.post('workflow_managers',  mgrIds.map(uid=>({workflow_id:wid,user_id:uid})));
-      closeModal(); toast(w?'Workflow updated!':'Workflow created!'); PAGES.workflows();
-    }}]
-  );
+    await sb(`users?id=eq.${currentUser.id}`,{method:'PATCH',body:{full_name:name,phone}});
+    currentUser.full_name = name;
+    document.getElementById('header-name').textContent = name;
+    document.getElementById('header-avatar').textContent = name[0].toUpperCase();
+    toast('Profile updated','success');
+  } catch(e) { toast(e.message,'error'); }
 }
 
-// ── USERS ──────────────────────────────────
-PAGES.users = async () => {
-  const el = document.getElementById('pg');
+async function changeMyPassword() {
+  const p = document.getElementById('sp-pass').value;
+  if (p.length < 8) { toast('Min 8 characters','error'); return; }
   try {
-    const data = await db.get('app_users', 'select=id,name,email,status,department_id,reports_to,departments(name),user_permissions(*)&order=name');
-    el.innerHTML = `
-      <div class="page-hd"><div class="page-title">User Management</div><button class="btn btn-primary" onclick="_openUsrModal(null)">+ New User</button></div>
-      <div class="card"><div class="table-wrap"><table>
-        <thead><tr><th>Name</th><th>Email</th><th>Dept</th><th>Status</th><th></th></tr></thead>
-        <tbody>${data.map(u=>`<tr>
-          <td><strong>${esc(u.name)}</strong></td>
-          <td style="font-size:13px">${esc(u.email)}</td>
-          <td>${esc(u.departments?.name||'—')}</td>
-          <td>${bdg(u.status)}</td>
-          <td style="display:flex;gap:4px;flex-wrap:wrap">
-            <button class="btn btn-sm btn-secondary" onclick="_openUsrModal('${u.id}')">Edit</button>
-            <button class="btn btn-sm btn-secondary" onclick="_editPerms('${u.id}','${esc(u.name)}')">Perms</button>
-            ${u.id!==ME.id?`<button class="btn btn-sm btn-danger" onclick="_toggleActive('${u.id}','${u.status}')">${u.status==='inactive'?'Activate':'Deactivate'}</button>`:''}
-          </td>
-        </tr>`).join('')}</tbody>
-      </table></div></div>`;
-
-    window._toggleActive = async (id, status) => {
-      await db.patch('app_users','id=eq.'+id,{status: status==='inactive'?'active':'inactive'});
-      PAGES.users();
-    };
-    window._editPerms = async (userId, userName) => {
-      const u = data.find(x=>x.id===userId);
-      const p = u?.user_permissions?.[0] || {};
-      const fields = ['can_create_users','can_manage_departments','can_create_trainings','can_create_workflows','can_assign_trainings','can_approve_completions','can_view_reports','can_manage_notifications'];
-      const labels = { can_create_users:'Create Users', can_manage_departments:'Manage Departments', can_create_trainings:'Create Trainings', can_create_workflows:'Create Workflows', can_assign_trainings:'Assign Trainings', can_approve_completions:'Approve Completions', can_view_reports:'View Reports', can_manage_notifications:'Manage Notifications' };
-      modal('Permissions: ' + userName, `
-        <div class="perm-grid">${fields.map(f=>`
-          <div class="perm-item">
-            <input type="checkbox" id="pm-${f}" ${p[f]?'checked':''}/>
-            <label for="pm-${f}">${labels[f]}</label>
-          </div>`).join('')}</div>
-        <div id="pm-alert" style="margin-top:12px"></div>`,
-        [{ label:'Save Permissions', cls:'btn-primary', fn:async()=>{
-          const upd = {}; fields.forEach(f=>upd[f]=document.getElementById('pm-'+f).checked);
-          upd.granted_by = ME.id;
-          if (p.id) await db.patch('user_permissions','id=eq.'+p.id, upd);
-          else       await db.post('user_permissions', { user_id:userId, ...upd });
-          db.post('audit_log',{actor_id:ME.id,action:'permission_granted',target_type:'user',target_id:userId}).catch(()=>{});
-          closeModal(); toast('Permissions saved!');
-        }}]
-      );
-    };
-  } catch(e) { el.innerHTML = err(e); }
-};
-
-async function _openUsrModal(userId) {
-  const [allUsers, depts] = await Promise.all([
-    db.get('app_users','select=id,name&order=name'),
-    db.get('departments','select=id,name&order=name')
-  ]);
-  let u = null;
-  if (userId) { const rows = await db.get('app_users','id=eq.'+userId+'&select=*&limit=1'); u = rows[0]; }
-  modal(u?'Edit User':'New User', `
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Full Name *</label><input class="form-ctrl" id="u-name" value="${esc(u?.name||'')}"/></div>
-      <div class="form-group"><label class="form-label">Email *</label><input class="form-ctrl" type="email" id="u-email" value="${esc(u?.email||'')}" ${u?'readonly':''}/></div>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Department</label>
-        <select class="form-ctrl" id="u-dept">
-          <option value="">No department</option>
-          ${depts.map(d=>`<option value="${d.id}" ${u?.department_id===d.id?'selected':''}>${esc(d.name)}</option>`).join('')}
-        </select></div>
-      <div class="form-group"><label class="form-label">Reports To</label>
-        <select class="form-ctrl" id="u-rpt">
-          <option value="">Nobody</option>
-          ${allUsers.filter(x=>x.id!==userId).map(x=>`<option value="${x.id}" ${u?.reports_to===x.id?'selected':''}>${esc(x.name)}</option>`).join('')}
-        </select></div>
-    </div>
-    ${!u?`<div class="alert alert-info">A temporary password will be shown after creation. Share it with the user — they must change it on first login.</div>`:''}
-    <div id="u-alert"></div>`,
-    [{ label:u?'Save Changes':'Create User', cls:'btn-primary', fn:async()=>{
-      const name  = document.getElementById('u-name').value.trim();
-      const email = document.getElementById('u-email').value.trim().toLowerCase();
-      const dept  = document.getElementById('u-dept').value || null;
-      const rpt   = document.getElementById('u-rpt').value  || null;
-      if (!name||!email) { alert2('u-alert','Name and email required.','error'); return; }
-      if (u) {
-        await db.patch('app_users','id=eq.'+u.id,{name,department_id:dept,reports_to:rpt});
-        closeModal(); toast('User updated!'); PAGES.users();
-      } else {
-        const tmpPw = 'Enp' + Math.random().toString(36).slice(2,6).toUpperCase() + (10+Math.floor(Math.random()*90));
-        const hash  = await BC.hash(tmpPw, 10);
-        const rows  = await db.post('app_users',{name,email,password_hash:hash,status:'password_reset_required',department_id:dept,reports_to:rpt,created_by:ME.id});
-        const newId = rows[0].id;
-        await db.post('user_permissions',{user_id:newId,granted_by:ME.id});
-        await db.post('notification_settings',{user_id:newId});
-        db.post('audit_log',{actor_id:ME.id,action:'user_created',target_type:'user',target_id:newId}).catch(()=>{});
-        closeModal();
-        modal('User Created — Temporary Password', `
-          <div class="alert alert-warn">Share this password with <strong>${esc(name)}</strong>. It will not be shown again.</div>
-          <div style="font-size:28px;font-weight:800;letter-spacing:.1em;text-align:center;padding:16px;background:var(--bg-surf);border-radius:var(--r-sm);margin:12px 0">${tmpPw}</div>
-          <p style="font-size:13px;color:var(--txt-m)">The user must change this on first login.</p>`,
-          [{ label:'Done', cls:'btn-primary', fn:()=>{ closeModal(); PAGES.users(); }}]
-        );
-      }
-    }}]
-  );
+    await sbAuth(`admin/users/${currentUser.auth_user_id}`,{password:p},'PUT');
+    toast('Password updated','success');
+    document.getElementById('sp-pass').value='';
+  } catch(e) { toast(e.message,'error'); }
 }
 
-// ── DEPARTMENTS ────────────────────────────
-PAGES.departments = async () => {
-  const el = document.getElementById('pg');
+function resetSetup() {
+  if (!confirm('This will clear your saved connection. You will need to re-enter your Supabase credentials.')) return;
+  localStorage.removeItem('enpro-url'); localStorage.removeItem('enpro-key');
+  location.reload();
+}
+
+// ──────────────────────────────────────────────────────────────
+// BOOT
+// ──────────────────────────────────────────────────────────────
+async function boot() {
+  applyTheme();
+  SB_URL = localStorage.getItem('enpro-url')||'';
+  SB_KEY = localStorage.getItem('enpro-key')||'';
+  if (!SB_URL || !SB_KEY) { showSetup(); return; }
+  // Check if initialized
   try {
-    const data = await db.get('departments','select=id,name,created_at&order=name');
-    el.innerHTML = `
-      <div class="page-hd"><div class="page-title">Departments</div><button class="btn btn-primary" onclick="_deptModal(null,'')">+ New Department</button></div>
-      <div class="card"><div class="table-wrap"><table>
-        <thead><tr><th>Name</th><th>Created</th><th></th></tr></thead>
-        <tbody>${data.length
-          ? data.map(d=>`<tr>
-              <td><strong>${esc(d.name)}</strong></td>
-              <td>${fd(d.created_at)}</td>
-              <td style="display:flex;gap:6px">
-                <button class="btn btn-sm btn-secondary" onclick="_deptModal('${d.id}','${esc(d.name)}')">Edit</button>
-                <button class="btn btn-sm btn-danger" onclick="_delDept('${d.id}','${esc(d.name)}')">Delete</button>
-              </td>
-            </tr>`).join('')
-          : `<tr><td colspan="3"><div class="empty"><div class="empty-icon">🏢</div><div class="empty-title">No departments yet.</div></div></td></tr>`
-        }</tbody>
-      </table></div></div>`;
-
-    window._delDept = (id, name) => {
-      modal('Delete Department',`<p>Delete "<strong>${name}</strong>"? Users in it will lose their department.</p>`,
-        [{ label:'Delete',cls:'btn-danger',fn:async()=>{ await db.del('departments','id=eq.'+id); closeModal(); toast('Deleted.'); PAGES.departments(); }}]);
-    };
-  } catch(e) { el.innerHTML = err(e); }
-};
-
-window._deptModal = (id, name) => {
-  modal(id?'Edit Department':'New Department', `
-    <div class="form-group"><label class="form-label">Name *</label><input class="form-ctrl" id="dm-name" value="${esc(name)}"/></div>
-    <div id="dm-alert"></div>`,
-    [{ label:id?'Save':'Create', cls:'btn-primary', fn:async()=>{
-      const n = document.getElementById('dm-name').value.trim();
-      if (!n) { alert2('dm-alert','Name required.','error'); return; }
-      if (id) await db.patch('departments','id=eq.'+id,{name:n});
-      else    await db.post('departments',{name:n,created_by:ME.id});
-      closeModal(); toast(id?'Updated!':'Created!'); PAGES.departments();
-    }}]
-  );
-};
-
-// ── REPORTS ────────────────────────────────
-PAGES.reports = async () => {
-  const el = document.getElementById('pg');
-  try {
-    const data = await db.get('training_assignments',
-      'select=id,status,due_date,created_at,submitted_at,approved_at,approver_remarks,' +
-      'trainings(title),workflows(title),' +
-      'employee:app_users!training_assignments_assigned_to_fkey(name,email,departments(name)),' +
-      'approver:app_users!training_assignments_approved_by_fkey(name)' +
-      '&order=created_at.desc');
-    el.innerHTML = `
-      <div class="page-hd"><div class="page-title">Reports</div></div>
-      <div class="card"><div class="table-wrap"><table>
-        <thead><tr><th>Employee</th><th>Dept</th><th>Training</th><th>Workflow</th><th>Status</th><th>Assigned</th><th>Submitted</th><th>Approved</th><th>Approver</th><th>Remarks</th></tr></thead>
-        <tbody>${data.map(a=>`<tr>
-          <td>${esc(a.employee?.name||'—')}<br><span style="font-size:11px;color:var(--txt-m)">${esc(a.employee?.email||'')}</span></td>
-          <td>${esc(a.employee?.departments?.name||'—')}</td>
-          <td>${esc(a.trainings?.title||'—')}</td>
-          <td>${esc(a.workflows?.title||'—')}</td>
-          <td>${bdg(a.status)}</td>
-          <td>${fd(a.created_at)}</td>
-          <td>${a.submitted_at?fd(a.submitted_at):'—'}</td>
-          <td>${a.approved_at?fd(a.approved_at):'—'}</td>
-          <td>${esc(a.approver?.name||'—')}</td>
-          <td style="max-width:160px;font-size:12px">${esc(a.approver_remarks||'—')}</td>
-        </tr>`).join('')}</tbody>
-      </table></div></div>`;
-  } catch(e) { el.innerHTML = err(e); }
-};
-
-// ── AUDIT LOG ──────────────────────────────
-PAGES.audit = async () => {
-  const el = document.getElementById('pg');
-  try {
-    const data = await db.get('audit_log',
-      'select=id,action,target_type,details,created_at,actor:app_users!audit_log_actor_id_fkey(name)&order=created_at.desc&limit=200');
-    el.innerHTML = `
-      <div class="page-hd"><div class="page-title">Audit Log</div></div>
-      <div class="card"><div class="table-wrap"><table>
-        <thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Target</th><th>Details</th></tr></thead>
-        <tbody>${data.map(l=>`<tr>
-          <td style="white-space:nowrap;font-size:12px">${fdt(l.created_at)}</td>
-          <td>${esc(l.actor?.name||'System')}</td>
-          <td><code style="font-size:12px">${esc(l.action)}</code></td>
-          <td style="font-size:12px">${esc(l.target_type||'—')}</td>
-          <td style="font-size:11px;color:var(--txt-m);max-width:200px">${l.details?esc(JSON.stringify(l.details)):'—'}</td>
-        </tr>`).join('')}</tbody>
-      </table></div></div>`;
-  } catch(e) { el.innerHTML = err(e); }
-};
-
-// ─────────────────────────────────────────────
-// MODAL
-// ─────────────────────────────────────────────
-function modal(title, body, actions = []) {
-  const btns = actions.map(a=>`<button class="btn ${a.cls}" id="ma-${a.label.replace(/\s+/g,'_')}">${a.label}</button>`).join('');
-  document.getElementById('modal-wrap').innerHTML = `
-    <div class="modal-ov">
-      <div class="modal">
-        <div class="modal-hd">
-          <span class="modal-title">${title}</span>
-          <button class="modal-close" onclick="closeModal()">×</button>
-        </div>
-        <div class="modal-body">${body}</div>
-        ${actions.length?`<div class="modal-foot">${btns}<button class="btn btn-secondary" onclick="closeModal()">Cancel</button></div>`:''}
-      </div>
-    </div>`;
-  actions.forEach(a => {
-    const btn = document.getElementById('ma-' + a.label.replace(/\s+/g,'_'));
-    if (btn) btn.addEventListener('click', a.fn);
-  });
-}
-function closeModal() { document.getElementById('modal-wrap').innerHTML = ''; }
-
-// ─────────────────────────────────────────────
-// TOAST
-// ─────────────────────────────────────────────
-function toast(msg, type = 'success') {
-  const t = document.createElement('div');
-  t.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;border-radius:8px;font-size:14px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.15);transition:opacity .3s;background:${type==='success'?'#1A7F4B':type==='error'?'#C8102E':'#1D4ED8'};color:#fff`;
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
+    const settings = await sb('system_settings?key=eq.system_initialized');
+    if (!settings.length || settings[0].value !== 'true') { showSetup(); return; }
+    showLogin();
+  } catch(e) {
+    // If tables don't exist yet, show setup
+    showSetup();
+  }
 }
 
-// ─────────────────────────────────────────────
-// IN-PAGE ALERT
-// ─────────────────────────────────────────────
-function alert2(id, msg, type) {
-  const el = document.getElementById(id);
-  if (el) el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
-}
-
-// ─────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
-function fd(d)  { return d ? new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—'; }
-function fdt(d) { return d ? new Date(d).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—'; }
-function err(e) { return `<div class="alert alert-error">Error: ${esc(e.message)}</div>`; }
-function bdg(s) {
-  const m = { pending:'bp', submitted:'bs', approved:'ba', rejected:'br', active:'bact', inactive:'binact', password_reset_required:'bpwr' };
-  const l = { password_reset_required:'Temp PW' };
-  return `<span class="badge ${m[s]||''}">${l[s]||s}</span>`;
-}
-
-// Enter key on login
-document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && document.getElementById('login-page').style.display !== 'none') doLogin();
-});
+window.addEventListener('load', boot);
 </script>
 </body>
 </html>
