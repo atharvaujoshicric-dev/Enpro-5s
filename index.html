@@ -530,11 +530,9 @@ async function doLogin() {
   if (!email||!pass) { msg.innerHTML='<div class="alert alert-danger">Enter email and password.</div>'; return; }
   msg.innerHTML='<div class="alert alert-info"><i class="fa fa-spinner fa-spin"></i> Signing in…</div>';
   try {
-    const data = await fetch(SB_URL+'/auth/v1/token?grant_type=password', {
-      method:'POST', headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
-      body: JSON.stringify({email, password:pass})
-    }).then(r=>r.json());
-    if (data.error) throw new Error(data.error_description||data.error);
+    // Call the dedicated sbAuth helper already defined in your script
+    const data = await sbAuth('token?grant_type=password', { email, password: pass });
+    if (data.error) throw new Error(data.error_description || data.error);
     const users = await sb(`users?email=eq.${encodeURIComponent(email)}&is_active=eq.true`);
     if (!users.length) throw new Error('User not found or inactive.');
     currentUser = users[0];
