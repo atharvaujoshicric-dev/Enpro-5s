@@ -6,128 +6,82 @@
 <title>Enpro — Training Management</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-/* ── TOKENS ──────────────────────────────────────────────── */
-:root {
-  --red:       #C0202A;
-  --red-dark:  #96181F;
-  --red-light: #FDECEA;
-  --white:     #FFFFFF;
-  --black:     #111111;
-  --gray-50:   #F8F8F8;
-  --gray-100:  #EFEFEF;
-  --gray-200:  #DEDEDE;
-  --gray-400:  #999999;
-  --gray-600:  #555555;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,.10);
-  --shadow:    0 3px 12px rgba(0,0,0,.12);
-  --radius:    8px;
-  --transition: .18s ease;
-}
-[data-theme="dark"] {
-  --white:    #1A1A1A;
-  --black:    #F0F0F0;
-  --gray-50:  #222222;
-  --gray-100: #2A2A2A;
-  --gray-200: #363636;
-  --gray-400: #777777;
-  --gray-600: #AAAAAA;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,.40);
-  --shadow:    0 3px 12px rgba(0,0,0,.45);
-}
-
-/* ── RESET ───────────────────────────────────────────────── */
+:root{--red:#C0202A;--red-dark:#96181F;--red-light:#FDECEA;--white:#FFFFFF;--black:#111111;--gray-50:#F8F8F8;--gray-100:#EFEFEF;--gray-200:#DEDEDE;--gray-400:#999;--gray-600:#555;--shadow-sm:0 1px 3px rgba(0,0,0,.10);--shadow:0 3px 12px rgba(0,0,0,.12);--radius:8px;--tr:.18s ease}
+[data-theme="dark"]{--white:#1A1A1A;--black:#F0F0F0;--gray-50:#222;--gray-100:#2A2A2A;--gray-200:#363636;--gray-400:#777;--gray-600:#AAA;--shadow-sm:0 1px 3px rgba(0,0,0,.4);--shadow:0 3px 12px rgba(0,0,0,.45)}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;background:var(--gray-50);color:var(--black);font-size:15px;line-height:1.5}
 button{cursor:pointer;font-family:inherit;font-size:inherit}
 input,select,textarea{font-family:inherit;font-size:inherit}
 a{color:var(--red);text-decoration:none}
 
-/* ── SETUP SCREEN ────────────────────────────────────────── */
-#setup-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:var(--gray-50)}
-.setup-card{background:var(--white);border-radius:12px;padding:36px;max-width:460px;width:100%;box-shadow:var(--shadow)}
-.setup-card .logo{display:flex;align-items:center;gap:10px;margin-bottom:24px}
-.setup-card .logo .dot{width:14px;height:14px;background:var(--red);border-radius:50%}
-.setup-card h1{font-size:1.4rem;font-weight:700;margin-bottom:4px}
-.setup-card p{color:var(--gray-600);margin-bottom:24px;font-size:.9rem}
+/* SETUP / LOGIN */
+.center-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:var(--gray-50)}
+.auth-card{background:var(--white);border-radius:12px;padding:36px;max-width:420px;width:100%;box-shadow:var(--shadow)}
+.brand-row{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.brand-mark{width:40px;height:40px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1.2rem;flex-shrink:0}
+.brand-row h2{font-size:1.2rem;font-weight:700;line-height:1.2}
+.brand-row span{font-size:.78rem;color:var(--gray-400)}
 
-/* ── LOGIN SCREEN ────────────────────────────────────────── */
-#login-screen{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:var(--gray-50)}
-.login-card{background:var(--white);border-radius:12px;padding:36px;max-width:400px;width:100%;box-shadow:var(--shadow)}
-.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:32px}
-.login-logo .brand-mark{width:38px;height:38px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1.1rem}
-.login-logo h2{font-size:1.25rem;font-weight:700}
-.login-logo span{font-size:.8rem;color:var(--gray-400);display:block}
-
-/* ── APP SHELL ───────────────────────────────────────────── */
+/* APP SHELL */
 #app{display:none;height:100vh;overflow:hidden;flex-direction:column}
 .topbar{height:52px;background:var(--red);color:#fff;display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;z-index:100}
 .topbar .burger{background:none;border:none;color:#fff;font-size:1.4rem;padding:4px;display:none}
-.topbar .brand{font-weight:700;font-size:1rem;letter-spacing:.02em;flex:1}
+.topbar .brand{font-weight:700;font-size:1rem;flex:1}
+.topbar .theme-btn{background:none;border:none;color:#fff;font-size:1.1rem;padding:4px 8px;border-radius:4px}
 .topbar .user-chip{background:rgba(255,255,255,.18);border-radius:20px;padding:4px 12px;font-size:.8rem;display:flex;align-items:center;gap:8px}
-.topbar .theme-btn{background:none;border:none;color:#fff;font-size:1.1rem;padding:4px 8px;border-radius:4px;transition:background var(--transition)}
-.topbar .theme-btn:hover{background:rgba(255,255,255,.15)}
-
+.signout-btn{background:none;border:none;color:#fff;cursor:pointer;font-size:.8rem;padding:0}
 .app-body{display:flex;flex:1;overflow:hidden}
-.sidebar{width:220px;background:var(--white);border-right:1px solid var(--gray-200);overflow-y:auto;flex-shrink:0;transition:transform var(--transition)}
+.sidebar{width:220px;background:var(--white);border-right:1px solid var(--gray-200);overflow-y:auto;flex-shrink:0;transition:transform var(--tr)}
 .sidebar nav{padding:12px 0}
 .nav-section{padding:6px 16px 2px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gray-400);margin-top:6px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;color:var(--gray-600);cursor:pointer;transition:background var(--transition),color var(--transition);border-radius:0;font-size:.88rem}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;color:var(--gray-600);cursor:pointer;transition:background var(--tr),color var(--tr);font-size:.88rem}
 .nav-item:hover{background:var(--gray-50);color:var(--black)}
 .nav-item.active{background:var(--red-light);color:var(--red);font-weight:600}
 [data-theme="dark"] .nav-item.active{background:rgba(192,32,42,.15)}
-.nav-item .icon{width:18px;text-align:center;font-size:1rem}
-
+.nav-item .icon{width:18px;text-align:center}
 .main{flex:1;overflow-y:auto;padding:24px}
-@media(max-width:768px){
-  .topbar .burger{display:block}
-  .sidebar{position:fixed;top:52px;left:0;bottom:0;z-index:200;transform:translateX(-100%)}
-  .sidebar.open{transform:translateX(0)}
-  .main{padding:16px}
-}
+@media(max-width:768px){.topbar .burger{display:block}.sidebar{position:fixed;top:52px;left:0;bottom:0;z-index:200;transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{padding:16px}}
 
-/* ── FORMS & INPUTS ──────────────────────────────────────── */
+/* FORMS */
 .form-group{margin-bottom:16px}
-.form-group label{display:block;font-size:.82rem;font-weight:600;color:var(--gray-600);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
-.form-control{width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);background:var(--white);color:var(--black);outline:none;transition:border-color var(--transition)}
+.form-group label{display:block;font-size:.78rem;font-weight:700;color:var(--gray-600);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.form-control{width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);background:var(--white);color:var(--black);outline:none;transition:border-color var(--tr)}
 .form-control:focus{border-color:var(--red)}
 .form-control:disabled{background:var(--gray-100);color:var(--gray-400)}
 textarea.form-control{resize:vertical;min-height:80px}
 .checkbox-row{display:flex;align-items:center;gap:8px;font-size:.88rem}
 .checkbox-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--red)}
 
-/* ── BUTTONS ─────────────────────────────────────────────── */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 18px;border-radius:var(--radius);font-weight:600;font-size:.88rem;border:none;transition:all var(--transition);white-space:nowrap}
-.btn-primary{background:var(--red);color:#fff}
-.btn-primary:hover{background:var(--red-dark)}
-.btn-outline{background:transparent;border:1.5px solid var(--gray-200);color:var(--black)}
-.btn-outline:hover{border-color:var(--red);color:var(--red)}
-.btn-ghost{background:transparent;border:none;color:var(--gray-600);padding:6px 10px}
-.btn-ghost:hover{color:var(--red)}
-.btn-danger{background:#fee2e2;color:#b91c1c;border:none}
-.btn-danger:hover{background:#fca5a5}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 18px;border-radius:var(--radius);font-weight:600;font-size:.88rem;border:none;transition:all var(--tr);white-space:nowrap;cursor:pointer}
+.btn-primary{background:var(--red);color:#fff}.btn-primary:hover{background:var(--red-dark)}
+.btn-outline{background:transparent;border:1.5px solid var(--gray-200);color:var(--black)}.btn-outline:hover{border-color:var(--red);color:var(--red)}
+.btn-ghost{background:transparent;border:none;color:var(--gray-600);padding:6px 10px}.btn-ghost:hover{color:var(--red)}
+.btn-danger{background:#fee2e2;color:#b91c1c;border:none}.btn-danger:hover{background:#fca5a5}
+.btn-success{background:#dcfce7;color:#15803d;border:none}.btn-success:hover{background:#bbf7d0}
 .btn-sm{padding:5px 12px;font-size:.8rem}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 
-/* ── CARDS ───────────────────────────────────────────────── */
-.card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow-sm);border:1px solid var(--gray-100)}
+/* CARDS */
+.card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow-sm);border:1px solid var(--gray-100);margin-bottom:16px}
 .card-header{padding:16px 20px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 .card-header h2{font-size:1rem;font-weight:700}
 .card-body{padding:20px}
 
-/* ── PAGE HEADER ─────────────────────────────────────────── */
+/* PAGE HEADER */
 .page-header{margin-bottom:20px}
 .page-header h1{font-size:1.3rem;font-weight:700}
 .page-header p{font-size:.88rem;color:var(--gray-600);margin-top:2px}
 
-/* ── TABLE ───────────────────────────────────────────────── */
+/* TABLE */
 .table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:.85rem}
-th{padding:10px 14px;text-align:left;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-400);border-bottom:2px solid var(--gray-100);white-space:nowrap}
+th{padding:10px 14px;text-align:left;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-400);border-bottom:2px solid var(--gray-100);white-space:nowrap}
 td{padding:11px 14px;border-bottom:1px solid var(--gray-100);vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--gray-50)}
 
-/* ── BADGES ──────────────────────────────────────────────── */
+/* BADGES */
 .badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
 .badge-red{background:var(--red-light);color:var(--red)}
 .badge-green{background:#dcfce7;color:#15803d}
@@ -135,7 +89,7 @@ tr:hover td{background:var(--gray-50)}
 .badge-yellow{background:#fef9c3;color:#a16207}
 .badge-gray{background:var(--gray-100);color:var(--gray-600)}
 
-/* ── MODAL ───────────────────────────────────────────────── */
+/* MODAL */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center;padding:16px}
 .modal-overlay.open{display:flex}
 .modal{background:var(--white);border-radius:12px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow)}
@@ -145,124 +99,87 @@ tr:hover td{background:var(--gray-50)}
 .modal-body{padding:20px}
 .modal-footer{padding:14px 20px;border-top:1px solid var(--gray-100);display:flex;justify-content:flex-end;gap:8px}
 
-/* ── TOAST ───────────────────────────────────────────────── */
+/* TOAST */
 #toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-.toast{padding:12px 18px;border-radius:var(--radius);font-size:.85rem;font-weight:600;color:#fff;box-shadow:var(--shadow);pointer-events:all;animation:slideIn .2s ease;max-width:320px}
-.toast-success{background:#16a34a}
-.toast-error{background:var(--red)}
-.toast-info{background:#2563eb}
+.toast{padding:12px 18px;border-radius:var(--radius);font-size:.85rem;font-weight:600;color:#fff;box-shadow:var(--shadow);pointer-events:all;animation:slideIn .2s ease;max-width:340px}
+.toast-success{background:#16a34a}.toast-error{background:var(--red)}.toast-info{background:#2563eb}
 @keyframes slideIn{from{transform:translateX(60px);opacity:0}to{transform:translateX(0);opacity:1}}
 
-/* ── DASHBOARD STATS ─────────────────────────────────────── */
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:20px}
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-bottom:20px}
 .stat-card{background:var(--white);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow-sm);border:1px solid var(--gray-100)}
 .stat-card .val{font-size:1.8rem;font-weight:800;color:var(--red);line-height:1}
-.stat-card .lbl{font-size:.78rem;color:var(--gray-400);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.stat-card .lbl{font-size:.75rem;color:var(--gray-400);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
 
-/* ── CHECKLIST ───────────────────────────────────────────── */
+/* CHECKLIST */
 .checklist-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--gray-100)}
 .checklist-item:last-child{border-bottom:none}
-.checklist-item input[type=checkbox]{width:18px;height:18px;margin-top:1px;accent-color:var(--red);flex-shrink:0}
+.checklist-item input[type=checkbox]{width:18px;height:18px;margin-top:2px;accent-color:var(--red);flex-shrink:0}
 .checklist-item .item-desc{flex:1;font-size:.9rem}
-.checklist-item .photo-label{font-size:.75rem;color:var(--red);font-weight:600;margin-top:4px;display:block}
-.photo-preview{width:72px;height:72px;border-radius:6px;object-fit:cover;border:2px solid var(--gray-200);cursor:pointer}
+.photo-label{font-size:.75rem;color:var(--red);font-weight:600;margin-top:4px;display:block}
+.photo-preview{width:72px;height:72px;border-radius:6px;object-fit:cover;border:2px solid var(--gray-200);cursor:pointer;margin-top:6px;display:block}
 
-/* ── PERMISSION GRID ─────────────────────────────────────── */
+/* PERMISSIONS */
 .perm-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 @media(max-width:480px){.perm-grid{grid-template-columns:1fr}}
-.perm-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1.5px solid var(--gray-200);border-radius:6px;font-size:.82rem;cursor:pointer;transition:border-color var(--transition)}
+.perm-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1.5px solid var(--gray-200);border-radius:6px;font-size:.82rem;cursor:pointer;transition:border-color var(--tr)}
 .perm-item:hover{border-color:var(--red)}
 .perm-item input{accent-color:var(--red)}
 
-/* ── WORKFLOW BUILDER ────────────────────────────────────── */
-.wf-training-item{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--gray-50);border-radius:6px;margin-bottom:6px;font-size:.85rem}
-.wf-training-item .drag-handle{color:var(--gray-400);cursor:grab;font-size:1rem}
-.wf-training-item .remove-btn{margin-left:auto;color:var(--red);background:none;border:none;font-size:1rem;cursor:pointer}
-
-/* ── EMPTY STATE ─────────────────────────────────────────── */
-.empty-state{text-align:center;padding:48px 24px;color:var(--gray-400)}
-.empty-state .icon{font-size:2.5rem;margin-bottom:12px}
-.empty-state p{font-size:.9rem}
-
-/* ── PROGRESS BAR ────────────────────────────────────────── */
-.progress-bar-wrap{background:var(--gray-100);border-radius:20px;height:7px;overflow:hidden}
-.progress-bar-fill{height:100%;background:var(--red);border-radius:20px;transition:width .3s}
-
-/* ── TABS ────────────────────────────────────────────────── */
-.tabs{display:flex;gap:4px;border-bottom:2px solid var(--gray-100);margin-bottom:20px}
-.tab{padding:8px 16px;cursor:pointer;font-size:.88rem;font-weight:600;color:var(--gray-400);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all var(--transition)}
-.tab.active{color:var(--red);border-color:var(--red)}
-
-/* ── MISC ────────────────────────────────────────────────── */
+/* MISC */
 .divider{border:none;border-top:1px solid var(--gray-100);margin:16px 0}
 .text-red{color:var(--red)}
 .flex-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.search-input{padding:7px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);background:var(--white);color:var(--black);outline:none;font-size:.88rem;min-width:180px;transition:border-color var(--transition)}
+.search-input{padding:7px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius);background:var(--white);color:var(--black);outline:none;font-size:.88rem;min-width:160px;transition:border-color var(--tr)}
 .search-input:focus{border-color:var(--red)}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;background:var(--gray-100);border-radius:20px;font-size:.78rem;color:var(--gray-600)}
+.tabs{display:flex;gap:4px;border-bottom:2px solid var(--gray-100);margin-bottom:20px}
+.tab{padding:8px 16px;cursor:pointer;font-size:.88rem;font-weight:600;color:var(--gray-400);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all var(--tr)}
+.tab.active{color:var(--red);border-color:var(--red)}
+.empty-state{text-align:center;padding:48px 24px;color:var(--gray-400)}
+.empty-state .icon{font-size:2.5rem;margin-bottom:12px}
 </style>
 </head>
 <body>
 
-<!-- TOAST CONTAINER -->
 <div id="toast-container"></div>
 
-<!-- ══ SETUP SCREEN ══════════════════════════════════════════ -->
-<div id="setup-screen">
-  <div class="setup-card">
-    <div class="logo"><div class="dot"></div><strong>Enpro Training</strong></div>
-    <h1>Connect to Supabase</h1>
-    <p>Enter your Supabase project credentials. These are saved locally in your browser.</p>
-    <div class="form-group">
-      <label>Supabase Project URL</label>
-      <input class="form-control" id="sb-url" placeholder="https://xxxx.supabase.co"/>
-    </div>
-    <div class="form-group">
-      <label>Supabase Anon Key</label>
-      <input class="form-control" id="sb-key" placeholder="eyJhbGciOi..."/>
-    </div>
+<!-- SETUP -->
+<div id="setup-screen" class="center-screen">
+  <div class="auth-card">
+    <div class="brand-row"><div class="brand-mark">E</div><div><h2>Enpro Training</h2><span>Initial Setup</span></div></div>
+    <div class="form-group"><label>Supabase Project URL</label>
+      <input class="form-control" id="sb-url" placeholder="https://xxxx.supabase.co"/></div>
+    <div class="form-group"><label>Supabase Anon Key</label>
+      <input class="form-control" id="sb-key" placeholder="eyJhbGci..."/></div>
     <button class="btn btn-primary" style="width:100%" onclick="saveSetup()">Save & Continue</button>
   </div>
 </div>
 
-<!-- ══ LOGIN SCREEN ══════════════════════════════════════════ -->
-<div id="login-screen">
-  <div class="login-card">
-    <div class="login-logo">
-      <div class="brand-mark">E</div>
-      <div><h2>Enpro Industries</h2><span>Training Management System</span></div>
-    </div>
-    <div class="form-group">
-      <label>Employee ID</label>
-      <input class="form-control" id="login-emp" placeholder="e.g. ADMIN-001" onkeydown="if(event.key==='Enter')doLogin()"/>
-    </div>
-    <div class="form-group">
-      <label>Password</label>
-      <input class="form-control" type="password" id="login-pw" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()"/>
-    </div>
+<!-- LOGIN -->
+<div id="login-screen" class="center-screen" style="display:none">
+  <div class="auth-card">
+    <div class="brand-row"><div class="brand-mark">E</div><div><h2>Enpro Industries</h2><span>Training Management System</span></div></div>
+    <div class="form-group"><label>Employee ID</label>
+      <input class="form-control" id="login-emp" placeholder="e.g. ADMIN-001" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+    <div class="form-group"><label>Password</label>
+      <input class="form-control" type="password" id="login-pw" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()"/></div>
     <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="doLogin()" id="login-btn">Sign In</button>
     <p style="font-size:.78rem;color:var(--gray-400);margin-top:14px;text-align:center">
-      <a href="#" onclick="clearSetup()">Change Supabase connection</a>
-    </p>
+      <a href="#" onclick="clearSetup()">Change Supabase connection</a></p>
   </div>
 </div>
 
-<!-- ══ FORCE PASSWORD CHANGE MODAL ═══════════════════════════ -->
+<!-- FORCE PASSWORD CHANGE -->
 <div class="modal-overlay" id="pw-change-modal">
   <div class="modal">
-    <div class="modal-header">
-      <h3>🔒 Set Your Password</h3>
-    </div>
+    <div class="modal-header"><h3>🔒 Set Your Password</h3></div>
     <div class="modal-body">
       <p style="margin-bottom:16px;font-size:.88rem;color:var(--gray-600)">You must set a new password before continuing.</p>
-      <div class="form-group">
-        <label>New Password</label>
-        <input class="form-control" type="password" id="new-pw1" placeholder="Min 8 characters"/>
-      </div>
-      <div class="form-group">
-        <label>Confirm Password</label>
-        <input class="form-control" type="password" id="new-pw2" placeholder="Repeat password"/>
-      </div>
+      <div class="form-group"><label>New Password</label>
+        <input class="form-control" type="password" id="new-pw1" placeholder="Min 8 characters"/></div>
+      <div class="form-group"><label>Confirm Password</label>
+        <input class="form-control" type="password" id="new-pw2" placeholder="Repeat password"/></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-primary" onclick="submitNewPassword()">Update Password</button>
@@ -270,38 +187,26 @@ tr:hover td{background:var(--gray-50)}
   </div>
 </div>
 
-<!-- ══ APP SHELL ═════════════════════════════════════════════ -->
+<!-- APP -->
 <div id="app">
-  <!-- Topbar -->
   <div class="topbar">
     <button class="burger" onclick="toggleSidebar()">☰</button>
     <div class="brand">Enpro Training</div>
-    <button class="theme-btn" onclick="toggleTheme()" title="Toggle dark/light mode">🌙</button>
+    <button class="theme-btn" onclick="toggleTheme()">🌙</button>
     <div class="user-chip">
-      <span>👤</span>
-      <span id="topbar-user">—</span>
-      <button style="background:none;border:none;color:#fff;cursor:pointer;font-size:.8rem;padding:0" onclick="logout()">Sign out</button>
+      <span>👤</span><span id="topbar-user">—</span>
+      <button class="signout-btn" onclick="logout()">Sign out</button>
     </div>
   </div>
-
   <div class="app-body">
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-      <nav id="sidebar-nav">
-        <!-- built dynamically -->
-      </nav>
-    </div>
-
-    <!-- Main area -->
-    <div class="main" id="main-content">
-      <!-- pages rendered here -->
-    </div>
+    <div class="sidebar" id="sidebar"><nav id="sidebar-nav"></nav></div>
+    <div class="main" id="main-content"></div>
   </div>
 </div>
 
-<!-- ══ GENERIC MODAL ══════════════════════════════════════════ -->
+<!-- GENERIC MODAL -->
 <div class="modal-overlay" id="generic-modal">
-  <div class="modal" id="generic-modal-inner">
+  <div class="modal">
     <div class="modal-header">
       <h3 id="gm-title">—</h3>
       <button class="modal-close" onclick="closeModal()">✕</button>
@@ -312,20 +217,20 @@ tr:hover td{background:var(--gray-50)}
 </div>
 
 <script>
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════
    GLOBALS
-═══════════════════════════════════════════════════════════ */
-let SB = null;      // supabase client
-let SESSION = null; // { user, permissions[] }
+═══════════════════════════════ */
+let SB = null;
+let SESSION = null;
 
 const PERMISSIONS = [
-  { key:'manage_users',        label:'Manage Users',        icon:'👥' },
-  { key:'manage_departments',  label:'Manage Departments',  icon:'🏢' },
-  { key:'manage_trainings',    label:'Manage Trainings',    icon:'📋' },
-  { key:'manage_workflows',    label:'Manage Workflows',    icon:'🔄' },
-  { key:'assign_trainings',    label:'Assign Trainings',    icon:'📌' },
-  { key:'approve_completions', label:'Approve Completions', icon:'✅' },
-  { key:'view_reports',        label:'View Reports',        icon:'📊' },
+  {key:'manage_users',        label:'Manage Users',        icon:'👥'},
+  {key:'manage_departments',  label:'Manage Departments',  icon:'🏢'},
+  {key:'manage_trainings',    label:'Manage Trainings',    icon:'📋'},
+  {key:'manage_workflows',    label:'Manage Workflows',    icon:'🔄'},
+  {key:'assign_trainings',    label:'Assign Trainings',    icon:'📌'},
+  {key:'approve_completions', label:'Approve Completions', icon:'✅'},
+  {key:'view_reports',        label:'View Reports',        icon:'📊'},
 ];
 
 const STATUS_BADGE = {
@@ -336,66 +241,65 @@ const STATUS_BADGE = {
   rejected:    '<span class="badge badge-red">Rejected</span>',
 };
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════
    INIT
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════ */
 window.addEventListener('DOMContentLoaded', () => {
   const url = localStorage.getItem('sb_url');
   const key = localStorage.getItem('sb_key');
+  const theme = localStorage.getItem('theme') || 'light';
+  document.documentElement.setAttribute('data-theme', theme);
+  document.querySelector('.theme-btn') && (document.querySelector('.theme-btn').textContent = theme === 'dark' ? '☀️' : '🌙');
   if (url && key) {
     SB = supabase.createClient(url, key);
-    show('login-screen');
+    showScreen('login-screen');
   } else {
-    show('setup-screen');
+    showScreen('setup-screen');
   }
-  // pre-fill
-  document.getElementById('sb-url').value = url || '';
-  document.getElementById('sb-key').value = key || '';
-  // theme
-  const t = localStorage.getItem('theme') || 'light';
-  document.documentElement.setAttribute('data-theme', t);
 });
 
-function show(id) {
-  ['setup-screen','login-screen','app'].forEach(s => {
-    const el = document.getElementById(s);
-    el.style.display = (s === id) ? (id === 'app' ? 'flex' : 'flex') : 'none';
+function showScreen(id) {
+  ['setup-screen','login-screen'].forEach(s => {
+    document.getElementById(s).style.display = s === id ? 'flex' : 'none';
   });
+  document.getElementById('app').style.display = id === 'app' ? 'flex' : 'none';
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════
    SETUP
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════ */
 function saveSetup() {
   const url = document.getElementById('sb-url').value.trim();
   const key = document.getElementById('sb-key').value.trim();
-  if (!url || !key) return toast('Fill in both fields.','error');
+  if (!url || !key) return toast('Fill in both fields.', 'error');
   localStorage.setItem('sb_url', url);
   localStorage.setItem('sb_key', key);
   SB = supabase.createClient(url, key);
-  show('login-screen');
-  toast('Connection saved!','success');
+  showScreen('login-screen');
+  toast('Connection saved!', 'success');
 }
 
 function clearSetup() {
   localStorage.removeItem('sb_url');
   localStorage.removeItem('sb_key');
-  show('setup-screen');
+  SB = null;
+  showScreen('setup-screen');
 }
 
-/* ═══════════════════════════════════════════════════════════
-   AUTH
-═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════
+   LOGIN
+═══════════════════════════════ */
 async function doLogin() {
   const empId = document.getElementById('login-emp').value.trim().toUpperCase();
-  const pw    = document.getElementById('login-pw').value;
-  if (!empId || !pw) return toast('Enter your Employee ID and password.', 'error');
+  const pw = document.getElementById('login-pw').value;
+  if (!empId || !pw) return toast('Enter Employee ID and password.', 'error');
 
-  document.getElementById('login-btn').disabled = true;
-  document.getElementById('login-btn').textContent = 'Signing in…';
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
 
   try {
-    // Step 1: fetch user row by employee_id
+    // Step 1: get user row
     const { data: user, error: ue } = await SB
       .from('users')
       .select('id,employee_id,full_name,email,is_admin,is_active,must_change_pw,department_id,reports_to')
@@ -403,71 +307,65 @@ async function doLogin() {
       .eq('is_active', true)
       .maybeSingle();
 
-    if (ue) { toast('DB error: ' + ue.message, 'error'); return; }
-    if (!user) { toast('Employee ID not found.', 'error'); return; }
+    if (ue) { toast('Error: ' + ue.message, 'error'); btn.disabled=false; btn.textContent='Sign In'; return; }
+    if (!user) { toast('Employee ID not found.', 'error'); btn.disabled=false; btn.textContent='Sign In'; return; }
 
-    // Step 2: verify password via RPC
-    const { data: valid, error: ve } = await SB.rpc('check_user_password', {
+    // Step 2: verify password
+    const { data: pwOk, error: pe } = await SB.rpc('check_user_password', {
       p_user_id: user.id,
       p_password: pw
     });
 
-    if (ve) { toast('Password check error: ' + ve.message, 'error'); return; }
-    if (!valid) { toast('Incorrect password.', 'error'); return; }
+    if (pe) { toast('Auth error: ' + pe.message, 'error'); btn.disabled=false; btn.textContent='Sign In'; return; }
+    if (!pwOk) { toast('Incorrect password.', 'error'); btn.disabled=false; btn.textContent='Sign In'; return; }
 
     // Step 3: load session
     await loadSession(user);
 
-  } catch(e) {
-    toast('Login error: ' + (e.message || String(e)), 'error');
+  } catch (e) {
+    toast('Unexpected error: ' + (e.message || String(e)), 'error');
   }
 
-  document.getElementById('login-btn').disabled = false;
-  document.getElementById('login-btn').textContent = 'Sign In';
+  btn.disabled = false;
+  btn.textContent = 'Sign In';
 }
 
 async function loadSession(user) {
-  // Set session variable for RLS
-  try { await SB.rpc('set_app_user', { p_user_id: user.id }); } catch(e) {}
+  // set RLS session var (best effort)
+  try { await SB.rpc('set_app_user', { p_user_id: user.id }); } catch(_) {}
 
-  // Load permissions
+  // load permissions
   const { data: perms } = await SB
     .from('user_permissions')
     .select('permission')
     .eq('user_id', user.id);
 
-  SESSION = {
-    user,
-    permissions: (perms || []).map(p => p.permission),
-  };
-
-  // Store in sessionStorage for page refreshes
-  sessionStorage.setItem('session', JSON.stringify(SESSION));
+  SESSION = { user, permissions: (perms || []).map(p => p.permission) };
 
   document.getElementById('topbar-user').textContent =
     user.full_name + (user.is_admin ? ' (Admin)' : '');
 
   if (user.must_change_pw) {
     openPwModal();
+    showScreen('app');
     return;
   }
 
-  show('app');
+  showScreen('app');
   buildNav();
   renderPage('dashboard');
 }
 
 function logout() {
   SESSION = null;
-  sessionStorage.removeItem('session');
-  show('login-screen');
+  showScreen('login-screen');
   document.getElementById('login-pw').value = '';
-  toast('Signed out.','info');
+  toast('Signed out.', 'info');
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════
    PASSWORD CHANGE
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════ */
 function openPwModal() {
   document.getElementById('pw-change-modal').classList.add('open');
 }
@@ -475,26 +373,20 @@ function openPwModal() {
 async function submitNewPassword() {
   const p1 = document.getElementById('new-pw1').value;
   const p2 = document.getElementById('new-pw2').value;
-  if (p1.length < 8) return toast('Minimum 8 characters.','error');
-  if (p1 !== p2) return toast('Passwords do not match.','error');
-
-  const { error } = await SB.rpc('update_user_password', {
-    p_user_id: SESSION.user.id,
-    p_new_password: p1
-  });
-  if (error) return toast('Could not update password. Check RPC functions.','error');
-
+  if (p1.length < 8) return toast('Min 8 characters.', 'error');
+  if (p1 !== p2) return toast('Passwords do not match.', 'error');
+  const { error } = await SB.rpc('update_user_password', { p_user_id: SESSION.user.id, p_new_password: p1 });
+  if (error) return toast('Error: ' + error.message, 'error');
   SESSION.user.must_change_pw = false;
   document.getElementById('pw-change-modal').classList.remove('open');
-  toast('Password updated!','success');
-  show('app');
+  toast('Password updated!', 'success');
   buildNav();
   renderPage('dashboard');
 }
 
-/* ═══════════════════════════════════════════════════════════
-   NAVIGATION
-═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════
+   NAV
+═══════════════════════════════ */
 function can(perm) {
   if (!SESSION) return false;
   if (SESSION.user.is_admin) return true;
@@ -504,22 +396,20 @@ function can(perm) {
 function buildNav() {
   const nav = document.getElementById('sidebar-nav');
   nav.innerHTML = '';
-
   const pages = [
-    { id:'dashboard', label:'Dashboard',   icon:'📊', always:true },
-    { id:'my-trainings', label:'My Trainings', icon:'📋', always:true },
-    { id:'approvals', label:'Approvals',   icon:'✅', perm:'approve_completions' },
-    { section: 'Management' },
-    { id:'users', label:'Users',           icon:'👥', perm:'manage_users' },
-    { id:'departments', label:'Departments', icon:'🏢', perm:'manage_departments' },
-    { id:'trainings', label:'Trainings',   icon:'📚', perm:'manage_trainings' },
-    { id:'workflows', label:'Workflows',   icon:'🔄', perm:'manage_workflows' },
-    { id:'assign', label:'Assign',         icon:'📌', perm:'assign_trainings' },
-    { section: 'Admin', admin:true },
-    { id:'reports', label:'Reports',       icon:'📈', perm:'view_reports' },
-    { id:'settings', label:'Settings',     icon:'⚙️', admin:true },
+    {id:'dashboard',    label:'Dashboard',    icon:'📊', always:true},
+    {id:'my-trainings', label:'My Trainings', icon:'📋', always:true},
+    {id:'approvals',    label:'Approvals',    icon:'✅', perm:'approve_completions'},
+    {section:'Management'},
+    {id:'users',        label:'Users',        icon:'👥', perm:'manage_users'},
+    {id:'departments',  label:'Departments',  icon:'🏢', perm:'manage_departments'},
+    {id:'trainings',    label:'Trainings',    icon:'📚', perm:'manage_trainings'},
+    {id:'workflows',    label:'Workflows',    icon:'🔄', perm:'manage_workflows'},
+    {id:'assign',       label:'Assign',       icon:'📌', perm:'assign_trainings'},
+    {section:'Admin', admin:true},
+    {id:'reports',      label:'Reports',      icon:'📈', perm:'view_reports'},
+    {id:'settings',     label:'Settings',     icon:'⚙️', always:true},
   ];
-
   pages.forEach(p => {
     if (p.section) {
       if (p.admin && !SESSION.user.is_admin) return;
@@ -534,34 +424,28 @@ function buildNav() {
     const el = document.createElement('div');
     el.className = 'nav-item';
     el.dataset.page = p.id;
-    el.innerHTML = `<span class="icon">${p.icon}</span> ${p.label}`;
+    el.innerHTML = `<span class="icon">${p.icon}</span>${p.label}`;
     el.onclick = () => { renderPage(p.id); closeSidebar(); };
     nav.appendChild(el);
   });
 }
 
-function setActiveNav(pageId) {
-  document.querySelectorAll('.nav-item').forEach(el => {
-    el.classList.toggle('active', el.dataset.page === pageId);
-  });
+function setActiveNav(id) {
+  document.querySelectorAll('.nav-item').forEach(el =>
+    el.classList.toggle('active', el.dataset.page === id));
 }
 
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-}
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+function closeSidebar()   { document.getElementById('sidebar').classList.remove('open'); }
 
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-}
-
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════
    ROUTER
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════ */
 function renderPage(id) {
   setActiveNav(id);
-  const mc = document.getElementById('main-content');
-  mc.innerHTML = '<div style="padding:40px;text-align:center;color:var(--gray-400)">Loading…</div>';
-  const pages = {
+  document.getElementById('main-content').innerHTML =
+    '<div style="padding:40px;text-align:center;color:var(--gray-400)">Loading…</div>';
+  const map = {
     'dashboard':    pageDashboard,
     'my-trainings': pageMyTrainings,
     'approvals':    pageApprovals,
@@ -573,99 +457,81 @@ function renderPage(id) {
     'reports':      pageReports,
     'settings':     pageSettings,
   };
-  if (pages[id]) pages[id]();
+  if (map[id]) map[id]();
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════
    DASHBOARD
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════ */
 async function pageDashboard() {
   const mc = document.getElementById('main-content');
-
-  // fetch counts
   const [uRes, tRes, wRes, aRes] = await Promise.all([
-    SB.from('users').select('id', {count:'exact',head:true}).eq('is_active',true),
-    SB.from('trainings').select('id', {count:'exact',head:true}).eq('is_active',true),
-    SB.from('workflows').select('id', {count:'exact',head:true}).eq('is_active',true),
-    SB.from('training_assignments').select('id', {count:'exact',head:true}).eq('assigned_to', SESSION.user.id).neq('status','approved'),
+    SB.from('users').select('id',{count:'exact',head:true}).eq('is_active',true),
+    SB.from('trainings').select('id',{count:'exact',head:true}).eq('is_active',true),
+    SB.from('workflows').select('id',{count:'exact',head:true}).eq('is_active',true),
+    SB.from('training_assignments').select('id',{count:'exact',head:true})
+      .eq('assigned_to',SESSION.user.id).not('status','in','("approved")'),
   ]);
-
   let pendingApprovals = 0;
   if (can('approve_completions')) {
-    const { count } = await SB.from('training_assignments')
-      .select('id',{count:'exact',head:true})
-      .eq('status','submitted');
+    const {count} = await SB.from('training_assignments')
+      .select('id',{count:'exact',head:true}).eq('status','submitted');
     pendingApprovals = count || 0;
   }
-
   mc.innerHTML = `
-    <div class="page-header">
-      <h1>Dashboard</h1>
-      <p>Welcome back, ${SESSION.user.full_name}</p>
-    </div>
+    <div class="page-header"><h1>Dashboard</h1><p>Welcome back, ${SESSION.user.full_name}</p></div>
     <div class="stats-grid">
       ${SESSION.user.is_admin ? `
       <div class="stat-card"><div class="val">${uRes.count||0}</div><div class="lbl">Active Users</div></div>
       <div class="stat-card"><div class="val">${tRes.count||0}</div><div class="lbl">Trainings</div></div>
       <div class="stat-card"><div class="val">${wRes.count||0}</div><div class="lbl">Workflows</div></div>` : ''}
       <div class="stat-card"><div class="val">${aRes.count||0}</div><div class="lbl">My Pending</div></div>
-      ${pendingApprovals > 0 ? `<div class="stat-card"><div class="val text-red">${pendingApprovals}</div><div class="lbl">Awaiting Approval</div></div>` : ''}
+      ${pendingApprovals > 0 ? `<div class="stat-card"><div class="val text-red">${pendingApprovals}</div><div class="lbl">Need Approval</div></div>` : ''}
     </div>
     <div class="card">
       <div class="card-header"><h2>My Recent Assignments</h2></div>
       <div class="card-body" id="dash-recent">Loading…</div>
     </div>`;
-
-  // recent assignments
-  const { data: recents } = await SB
-    .from('training_assignments')
-    .select('id, status, created_at, trainings(title)')
-    .eq('assigned_to', SESSION.user.id)
-    .order('created_at', {ascending:false})
-    .limit(5);
-
+  const {data} = await SB.from('training_assignments')
+    .select('id,status,created_at,trainings(title)')
+    .eq('assigned_to',SESSION.user.id)
+    .order('created_at',{ascending:false}).limit(5);
   const db = document.getElementById('dash-recent');
-  if (!recents || recents.length === 0) {
+  if (!data || data.length === 0) {
     db.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No assignments yet.</p></div>';
   } else {
     db.innerHTML = `<div class="table-wrap"><table>
-      <thead><tr><th>Training</th><th>Status</th><th>Assigned</th></tr></thead>
-      <tbody>${recents.map(r=>`
-        <tr>
-          <td>${r.trainings?.title||'—'}</td>
-          <td>${STATUS_BADGE[r.status]||r.status}</td>
-          <td>${fmtDate(r.created_at)}</td>
-        </tr>`).join('')}
-      </tbody></table></div>`;
+      <thead><tr><th>Training</th><th>Status</th><th>Date</th></tr></thead>
+      <tbody>${data.map(r=>`<tr>
+        <td>${r.trainings?.title||'—'}</td>
+        <td>${STATUS_BADGE[r.status]||r.status}</td>
+        <td>${fmtDate(r.created_at)}</td>
+      </tr>`).join('')}</tbody></table></div>`;
   }
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════
    MY TRAININGS
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════ */
 async function pageMyTrainings() {
-  const mc = document.getElementById('main-content');
-  mc.innerHTML = `
+  document.getElementById('main-content').innerHTML = `
     <div class="page-header"><h1>My Trainings</h1><p>Your assigned trainings and checklists.</p></div>
     <div id="my-train-list">Loading…</div>`;
   await loadMyTrainings();
 }
 
 async function loadMyTrainings() {
-  const { data, error } = await SB
-    .from('training_assignments')
-    .select('id, status, remarks, approved_at, trainings(id, title, description)')
-    .eq('assigned_to', SESSION.user.id)
-    .order('created_at', {ascending:false});
-
+  const {data} = await SB.from('training_assignments')
+    .select('id,status,remarks,approved_at,trainings(id,title,description)')
+    .eq('assigned_to',SESSION.user.id)
+    .order('created_at',{ascending:false});
   const el = document.getElementById('my-train-list');
-  if (error || !data || data.length === 0) {
-    el.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No trainings assigned to you yet.</p></div>';
+  if (!data || data.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No trainings assigned yet.</p></div>';
     return;
   }
-
-  el.innerHTML = data.map(a => `
-    <div class="card" style="margin-bottom:12px">
+  el.innerHTML = data.map(a=>`
+    <div class="card">
       <div class="card-header">
         <div>
           <h2>${a.trainings?.title||'Training'}</h2>
@@ -673,12 +539,8 @@ async function loadMyTrainings() {
         </div>
         <div class="flex-row">
           ${STATUS_BADGE[a.status]}
-          ${['pending','in_progress','rejected'].includes(a.status) ?
-            `<button class="btn btn-primary btn-sm" onclick="openChecklist('${a.id}')">Open Checklist</button>` : ''}
-          ${a.status === 'submitted' ?
-            `<span class="badge badge-yellow">Awaiting Approval</span>` : ''}
-          ${a.status === 'approved' ?
-            `<span class="badge badge-green">✓ Completed</span>` : ''}
+          ${['pending','in_progress','rejected'].includes(a.status)
+            ? `<button class="btn btn-primary btn-sm" onclick="openChecklist('${a.id}')">Open Checklist</button>` : ''}
         </div>
       </div>
       ${a.remarks ? `<div style="padding:10px 20px;background:var(--red-light);font-size:.82rem;color:var(--red)">Remark: ${a.remarks}</div>` : ''}
@@ -686,293 +548,157 @@ async function loadMyTrainings() {
 }
 
 async function openChecklist(assignmentId) {
-  // Load assignment with checklist items and existing completions
-  const { data: ta } = await SB
-    .from('training_assignments')
-    .select('id, status, trainings(id, title)')
-    .eq('id', assignmentId)
-    .single();
-
-  const { data: items } = await SB
-    .from('checklist_items')
-    .select('id, description, requires_photo, sort_order')
-    .eq('training_id', ta.trainings.id)
-    .order('sort_order');
-
-  const { data: completions } = await SB
-    .from('checklist_item_completions')
-    .select('id, checklist_item_id, is_done, photo_url')
-    .eq('training_assignment_id', assignmentId);
-
+  const {data:ta} = await SB.from('training_assignments')
+    .select('id,status,trainings(id,title)').eq('id',assignmentId).single();
+  const {data:items} = await SB.from('checklist_items')
+    .select('id,description,requires_photo,sort_order')
+    .eq('training_id',ta.trainings.id).order('sort_order');
+  const {data:comps} = await SB.from('checklist_item_completions')
+    .select('id,checklist_item_id,is_done,photo_url')
+    .eq('training_assignment_id',assignmentId);
   const compMap = {};
-  (completions || []).forEach(c => { compMap[c.checklist_item_id] = c; });
-
-  const isEditable = ['pending','in_progress','rejected'].includes(ta.status);
+  (comps||[]).forEach(c => { compMap[c.checklist_item_id] = c; });
+  const editable = ['pending','in_progress','rejected'].includes(ta.status);
 
   openModal(`Checklist: ${ta.trainings.title}`, `
-    <div id="checklist-wrap">
+    <div>
       ${items && items.length > 0 ? items.map(item => {
-        const comp = compMap[item.id];
-        const done = comp?.is_done || false;
-        return `
-        <div class="checklist-item" id="ci-${item.id}">
-          <input type="checkbox" id="chk-${item.id}" ${done?'checked':''} ${isEditable?'':'disabled'}
-            onchange="toggleChecklistItem('${assignmentId}','${item.id}',this.checked)"/>
+        const c = compMap[item.id];
+        return `<div class="checklist-item">
+          <input type="checkbox" id="chk-${item.id}" ${c?.is_done?'checked':''} ${editable?'':'disabled'}
+            onchange="toggleCI('${assignmentId}','${item.id}',this.checked)"/>
           <div class="item-desc">
             <div>${item.description}</div>
             ${item.requires_photo ? `<span class="photo-label">📷 Photo required</span>
-              ${comp?.photo_url ? `<br><img src="${comp.photo_url}" class="photo-preview" onclick="window.open('${comp.photo_url}')"/>` : ''}
-              ${isEditable ? `<br><input type="file" accept="image/*" capture="environment" style="margin-top:6px;font-size:.78rem"
-                onchange="uploadChecklistPhoto('${assignmentId}','${item.id}',this)"/>` : ''}
-            ` : ''}
+              ${c?.photo_url ? `<img src="${c.photo_url}" class="photo-preview" onclick="window.open('${c.photo_url}')"/>` : ''}
+              ${editable ? `<input type="file" accept="image/*" capture="environment" style="margin-top:6px;font-size:.78rem"
+                onchange="uploadPhoto('${assignmentId}','${item.id}',this)"/>` : ''}` : ''}
           </div>
         </div>`;
-      }).join('') : '<p style="color:var(--gray-400)">No checklist items defined for this training.</p>'}
+      }).join('') : '<p style="color:var(--gray-400)">No checklist items for this training.</p>'}
     </div>`,
-    isEditable ? [
-      { label:'Save Progress', action: () => saveChecklistProgress(assignmentId), style:'btn-outline' },
-      { label:'Submit for Approval', action: () => submitTraining(assignmentId), style:'btn-primary' },
+    editable ? [
+      {label:'Submit for Approval', action:()=>submitTraining(assignmentId,ta.trainings.id), style:'btn-primary'},
     ] : []
   );
 }
 
-async function toggleChecklistItem(assignmentId, itemId, checked) {
-  // upsert completion record
-  const { data: existing } = await SB
-    .from('checklist_item_completions')
-    .select('id')
-    .eq('training_assignment_id', assignmentId)
-    .eq('checklist_item_id', itemId)
-    .maybeSingle();
-
-  if (existing) {
-    await SB.from('checklist_item_completions').update({
-      is_done: checked,
-      completed_at: checked ? new Date().toISOString() : null
-    }).eq('id', existing.id);
+async function toggleCI(assignmentId, itemId, checked) {
+  const {data:ex} = await SB.from('checklist_item_completions')
+    .select('id').eq('training_assignment_id',assignmentId).eq('checklist_item_id',itemId).maybeSingle();
+  if (ex) {
+    await SB.from('checklist_item_completions').update({is_done:checked,completed_at:checked?new Date().toISOString():null}).eq('id',ex.id);
   } else {
-    await SB.from('checklist_item_completions').insert({
-      training_assignment_id: assignmentId,
-      checklist_item_id: itemId,
-      is_done: checked,
-      completed_at: checked ? new Date().toISOString() : null
-    });
+    await SB.from('checklist_item_completions').insert({training_assignment_id:assignmentId,checklist_item_id:itemId,is_done:checked,completed_at:checked?new Date().toISOString():null});
   }
-
-  // Update assignment to in_progress if needed
-  await SB.from('training_assignments')
-    .update({ status: 'in_progress' })
-    .eq('id', assignmentId)
-    .eq('status', 'pending');
+  await SB.from('training_assignments').update({status:'in_progress'}).eq('id',assignmentId).eq('status','pending');
 }
 
-async function uploadChecklistPhoto(assignmentId, itemId, input) {
+async function uploadPhoto(assignmentId, itemId, input) {
   const file = input.files[0];
   if (!file) return;
-  toast('Uploading photo…','info');
+  toast('Uploading…','info');
   const ext = file.name.split('.').pop();
-  const path = `${assignmentId}/${itemId}.${ext}`;
-  const { error } = await SB.storage.from('training-photos').upload(path, file, { upsert: true });
-  if (error) return toast('Upload failed: ' + error.message,'error');
-
-  const { data: urlData } = SB.storage.from('training-photos').getPublicUrl(path);
-  const photoUrl = urlData.publicUrl;
-
-  // Upsert completion with photo
-  const { data: existing } = await SB
-    .from('checklist_item_completions')
-    .select('id')
-    .eq('training_assignment_id', assignmentId)
-    .eq('checklist_item_id', itemId)
-    .maybeSingle();
-
-  if (existing) {
-    await SB.from('checklist_item_completions').update({ photo_url: photoUrl }).eq('id', existing.id);
-  } else {
-    await SB.from('checklist_item_completions').insert({
-      training_assignment_id: assignmentId,
-      checklist_item_id: itemId,
-      is_done: false,
-      photo_url: photoUrl
-    });
-  }
+  const {error} = await SB.storage.from('training-photos').upload(`${assignmentId}/${itemId}.${ext}`, file, {upsert:true});
+  if (error) return toast('Upload failed: '+error.message,'error');
+  const {data:u} = SB.storage.from('training-photos').getPublicUrl(`${assignmentId}/${itemId}.${ext}`);
+  const {data:ex} = await SB.from('checklist_item_completions')
+    .select('id').eq('training_assignment_id',assignmentId).eq('checklist_item_id',itemId).maybeSingle();
+  if (ex) { await SB.from('checklist_item_completions').update({photo_url:u.publicUrl}).eq('id',ex.id); }
+  else { await SB.from('checklist_item_completions').insert({training_assignment_id:assignmentId,checklist_item_id:itemId,is_done:false,photo_url:u.publicUrl}); }
   toast('Photo uploaded!','success');
 }
 
-async function saveChecklistProgress(assignmentId) {
-  toast('Progress saved.','success');
-  closeModal();
-  await loadMyTrainings();
-}
-
-async function submitTraining(assignmentId) {
-  // Check all required photos are uploaded
-  const { data: ta } = await SB
-    .from('training_assignments')
-    .select('id, trainings(id)')
-    .eq('id', assignmentId)
-    .single();
-
-  const { data: items } = await SB
-    .from('checklist_items')
-    .select('id, requires_photo')
-    .eq('training_id', ta.trainings.id)
-    .eq('requires_photo', true);
-
-  if (items && items.length > 0) {
-    const { data: comps } = await SB
-      .from('checklist_item_completions')
-      .select('checklist_item_id, photo_url')
-      .eq('training_assignment_id', assignmentId)
-      .in('checklist_item_id', items.map(i=>i.id));
-
-    const missingPhoto = items.some(item => {
-      const c = (comps||[]).find(c => c.checklist_item_id === item.id);
-      return !c?.photo_url;
-    });
-    if (missingPhoto) return toast('Please upload all required photos before submitting.','error');
+async function submitTraining(assignmentId, trainingId) {
+  // check required photos
+  const {data:reqItems} = await SB.from('checklist_items')
+    .select('id').eq('training_id',trainingId).eq('requires_photo',true);
+  if (reqItems && reqItems.length > 0) {
+    const {data:comps} = await SB.from('checklist_item_completions')
+      .select('checklist_item_id,photo_url').eq('training_assignment_id',assignmentId)
+      .in('checklist_item_id',reqItems.map(i=>i.id));
+    const missing = reqItems.some(item => !(comps||[]).find(c=>c.checklist_item_id===item.id)?.photo_url);
+    if (missing) return toast('Upload all required photos first.','error');
   }
-
-  const { error } = await SB
-    .from('training_assignments')
-    .update({ status: 'submitted' })
-    .eq('id', assignmentId);
-
-  if (error) return toast('Error submitting.','error');
-
-  await auditLog('TRAINING_SUBMITTED', 'training_assignments', assignmentId, {});
+  const {error} = await SB.from('training_assignments').update({status:'submitted'}).eq('id',assignmentId);
+  if (error) return toast('Error: '+error.message,'error');
+  await auditLog('TRAINING_SUBMITTED','training_assignments',assignmentId,{});
   toast('Submitted for approval!','success');
   closeModal();
   await loadMyTrainings();
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════
    APPROVALS
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════ */
 async function pageApprovals() {
-  const mc = document.getElementById('main-content');
-  mc.innerHTML = `
+  document.getElementById('main-content').innerHTML = `
     <div class="page-header"><h1>Approvals</h1><p>Review submitted training completions.</p></div>
     <div class="card"><div class="card-body" id="approval-list">Loading…</div></div>`;
-
-  const { data } = await SB
-    .from('training_assignments')
-    .select('id, status, created_at, assigned_to(full_name, employee_id), trainings(title)')
-    .eq('status', 'submitted')
-    .order('created_at');
-
+  const {data} = await SB.from('training_assignments')
+    .select('id,status,created_at,assigned_to(full_name,employee_id),trainings(title)')
+    .eq('status','submitted').order('created_at');
   const el = document.getElementById('approval-list');
   if (!data || data.length === 0) {
-    el.innerHTML = '<div class="empty-state"><div class="icon">✅</div><p>No pending approvals.</p></div>';
-    return;
+    el.innerHTML = '<div class="empty-state"><div class="icon">✅</div><p>No pending approvals.</p></div>'; return;
   }
-
   el.innerHTML = `<div class="table-wrap"><table>
     <thead><tr><th>Employee</th><th>Training</th><th>Submitted</th><th>Actions</th></tr></thead>
-    <tbody>${data.map(a=>`
-      <tr>
-        <td>${a.assigned_to?.full_name||'—'}<br><small class="chip">${a.assigned_to?.employee_id||''}</small></td>
-        <td>${a.trainings?.title||'—'}</td>
-        <td>${fmtDate(a.created_at)}</td>
-        <td class="flex-row">
-          <button class="btn btn-sm" style="background:#dcfce7;color:#15803d"
-            onclick="approveTraining('${a.id}')">Approve</button>
-          <button class="btn btn-sm btn-danger"
-            onclick="rejectTrainingPrompt('${a.id}')">Reject</button>
-          <button class="btn btn-sm btn-outline"
-            onclick="viewCompletedChecklist('${a.id}','${a.trainings?.title||''}')">View</button>
-        </td>
-      </tr>`).join('')}
-    </tbody></table></div>`;
+    <tbody>${data.map(a=>`<tr>
+      <td>${a.assigned_to?.full_name||'—'}<br><small class="chip">${a.assigned_to?.employee_id||''}</small></td>
+      <td>${a.trainings?.title||'—'}</td>
+      <td>${fmtDate(a.created_at)}</td>
+      <td class="flex-row">
+        <button class="btn btn-sm btn-success" onclick="approveTraining('${a.id}')">Approve</button>
+        <button class="btn btn-sm btn-danger" onclick="rejectPrompt('${a.id}')">Reject</button>
+      </td>
+    </tr>`).join('')}</tbody></table></div>`;
 }
 
-async function viewCompletedChecklist(assignmentId, title) {
-  const { data: ta } = await SB
-    .from('training_assignments')
-    .select('id, trainings(id)')
-    .eq('id', assignmentId)
-    .single();
-
-  const { data: items } = await SB
-    .from('checklist_items')
-    .select('id, description, requires_photo, sort_order')
-    .eq('training_id', ta.trainings.id)
-    .order('sort_order');
-
-  const { data: comps } = await SB
-    .from('checklist_item_completions')
-    .select('checklist_item_id, is_done, photo_url')
-    .eq('training_assignment_id', assignmentId);
-
-  const compMap = {};
-  (comps||[]).forEach(c => { compMap[c.checklist_item_id] = c; });
-
-  openModal(`Checklist: ${title}`, `
-    ${(items||[]).map(item => {
-      const c = compMap[item.id];
-      return `<div class="checklist-item">
-        <input type="checkbox" ${c?.is_done?'checked':''} disabled/>
-        <div class="item-desc">
-          <div>${item.description}</div>
-          ${c?.photo_url ? `<img src="${c.photo_url}" class="photo-preview" onclick="window.open('${c.photo_url}')"/>` : ''}
-        </div>
-      </div>`;
-    }).join('')}`, []);
-}
-
-async function approveTraining(assignmentId) {
-  const { error } = await SB
-    .from('training_assignments')
-    .update({ status:'approved', approved_by: SESSION.user.id, approved_at: new Date().toISOString(), remarks: null })
-    .eq('id', assignmentId);
-  if (error) return toast('Error approving.','error');
-  await auditLog('TRAINING_APPROVED','training_assignments', assignmentId, { approver: SESSION.user.id });
-  toast('Training approved!','success');
+async function approveTraining(id) {
+  const {error} = await SB.from('training_assignments')
+    .update({status:'approved',approved_by:SESSION.user.id,approved_at:new Date().toISOString(),remarks:null}).eq('id',id);
+  if (error) return toast('Error: '+error.message,'error');
+  await auditLog('TRAINING_APPROVED','training_assignments',id,{});
+  toast('Approved!','success');
   pageApprovals();
 }
 
-function rejectTrainingPrompt(assignmentId) {
-  openModal('Reject Training', `
-    <div class="form-group">
-      <label>Reason / Remarks</label>
-      <textarea class="form-control" id="reject-remarks" placeholder="Explain what needs to be redone…"></textarea>
-    </div>`,
-    [{ label:'Reject & Send Back', action: () => rejectTraining(assignmentId), style:'btn-danger' }]
-  );
+function rejectPrompt(id) {
+  openModal('Reject Training',`
+    <div class="form-group"><label>Reason</label>
+      <textarea class="form-control" id="reject-rem" placeholder="What needs to be redone…"></textarea></div>`,
+    [{label:'Reject & Send Back', action:()=>rejectTraining(id), style:'btn-danger'}]);
 }
 
-async function rejectTraining(assignmentId) {
-  const remarks = document.getElementById('reject-remarks').value.trim();
-  if (!remarks) return toast('Please enter a reason.','error');
-  const { error } = await SB
-    .from('training_assignments')
-    .update({ status:'rejected', remarks, approved_by: SESSION.user.id, approved_at: new Date().toISOString() })
-    .eq('id', assignmentId);
-  if (error) return toast('Error rejecting.','error');
-  await auditLog('TRAINING_REJECTED','training_assignments', assignmentId, { remarks });
-  toast('Sent back to employee.','success');
+async function rejectTraining(id) {
+  const remarks = document.getElementById('reject-rem').value.trim();
+  if (!remarks) return toast('Enter a reason.','error');
+  const {error} = await SB.from('training_assignments')
+    .update({status:'rejected',remarks,approved_by:SESSION.user.id,approved_at:new Date().toISOString()}).eq('id',id);
+  if (error) return toast('Error: '+error.message,'error');
+  await auditLog('TRAINING_REJECTED','training_assignments',id,{remarks});
+  toast('Sent back.','success');
   closeModal();
   pageApprovals();
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════
    USERS
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════ */
 async function pageUsers() {
-  const mc = document.getElementById('main-content');
-  mc.innerHTML = `
-    <div class="page-header"><h1>Users</h1><p>Manage system users and permissions.</p></div>
+  document.getElementById('main-content').innerHTML = `
+    <div class="page-header"><h1>Users</h1></div>
     <div class="card">
-      <div class="card-header">
-        <h2>All Users</h2>
+      <div class="card-header"><h2>All Users</h2>
         <div class="flex-row">
-          <input class="search-input" placeholder="Search…" oninput="filterTable(this,'users-tbody')" />
-          ${can('manage_users')?`<button class="btn btn-primary btn-sm" onclick="openCreateUser()">+ Add User</button>`:''}
+          <input class="search-input" placeholder="Search…" oninput="filterTable(this,'users-tbody')"/>
+          ${can('manage_users')?'<button class="btn btn-primary btn-sm" onclick="openCreateUser()">+ Add User</button>':''}
         </div>
       </div>
       <div class="card-body table-wrap">
         <table>
-          <thead><tr><th>ID</th><th>Name</th><th>Department</th><th>Reports To</th><th>Admin</th><th>Status</th><th>Actions</th></tr></thead>
+          <thead><tr><th>ID</th><th>Name</th><th>Department</th><th>Manager</th><th>Admin</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody id="users-tbody"><tr><td colspan="7" style="text-align:center;color:var(--gray-400)">Loading…</td></tr></tbody>
         </table>
       </div>
@@ -981,942 +707,641 @@ async function pageUsers() {
 }
 
 async function loadUsersTable() {
-  const { data } = await SB
-    .from('v_user_profiles')
-    .select('*')
-    .order('created_at');
+  const {data} = await SB.from('v_user_profiles').select('*').order('created_at');
   const tb = document.getElementById('users-tbody');
-  if (!data || data.length === 0) {
-    tb.innerHTML = '<tr><td colspan="7" class="empty-state">No users.</td></tr>';
-    return;
-  }
-  tb.innerHTML = data.map(u => `
-    <tr>
-      <td><code>${u.employee_id}</code></td>
-      <td>${u.full_name}</td>
-      <td>${u.department_name||'—'}</td>
-      <td>${u.manager_name||'—'}</td>
-      <td>${u.is_admin?'<span class="badge badge-red">Admin</span>':'—'}</td>
-      <td>${u.is_active?'<span class="badge badge-green">Active</span>':'<span class="badge badge-gray">Inactive</span>'}</td>
-      <td class="flex-row">
-        ${can('manage_users')?`
-          <button class="btn btn-ghost btn-sm" onclick='editUser(${JSON.stringify(u)})'>Edit</button>
-          <button class="btn btn-ghost btn-sm" onclick="openPermissions('${u.id}','${u.full_name}')">Perms</button>
-          <button class="btn btn-ghost btn-sm text-red" onclick="toggleUserActive('${u.id}',${u.is_active})">
-            ${u.is_active?'Deactivate':'Activate'}</button>`:'—'}
-      </td>
-    </tr>`).join('');
+  if (!data||data.length===0){tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--gray-400)">No users.</td></tr>';return;}
+  tb.innerHTML = data.map(u=>`<tr>
+    <td><code>${u.employee_id}</code></td>
+    <td>${u.full_name}</td>
+    <td>${u.department_name||'—'}</td>
+    <td>${u.manager_name||'—'}</td>
+    <td>${u.is_admin?'<span class="badge badge-red">Admin</span>':'—'}</td>
+    <td>${u.is_active?'<span class="badge badge-green">Active</span>':'<span class="badge badge-gray">Inactive</span>'}</td>
+    <td class="flex-row">
+      ${can('manage_users')?`
+        <button class="btn btn-ghost btn-sm" onclick='editUser(${JSON.stringify(u)})'>Edit</button>
+        <button class="btn btn-ghost btn-sm" onclick="openPerms('${u.id}','${esc(u.full_name)}')">Perms</button>
+        <button class="btn btn-ghost btn-sm text-red" onclick="toggleActive('${u.id}',${u.is_active})">${u.is_active?'Deactivate':'Activate'}</button>`:'—'}
+    </td>
+  </tr>`).join('');
 }
 
 async function openCreateUser() {
-  const { data: depts } = await SB.from('departments').select('id,name').order('name');
-  const { data: users } = await SB.from('users').select('id,full_name,employee_id').eq('is_active',true).order('full_name');
-
-  openModal('Add New User', `
-    <div class="form-group"><label>Employee ID</label>
-      <input class="form-control" id="u-emp" placeholder="e.g. EMP-005"/></div>
-    <div class="form-group"><label>Full Name</label>
-      <input class="form-control" id="u-name"/></div>
-    <div class="form-group"><label>Email (optional)</label>
-      <input class="form-control" id="u-email" type="email"/></div>
+  const [{data:depts},{data:users}] = await Promise.all([
+    SB.from('departments').select('id,name').order('name'),
+    SB.from('users').select('id,full_name,employee_id').eq('is_active',true).order('full_name'),
+  ]);
+  const tmpPw = 'Tmp'+Math.random().toString(36).slice(2,8).toUpperCase()+'!';
+  openModal('Add New User',`
+    <div class="form-group"><label>Employee ID</label><input class="form-control" id="u-emp" placeholder="e.g. EMP-005"/></div>
+    <div class="form-group"><label>Full Name</label><input class="form-control" id="u-name"/></div>
+    <div class="form-group"><label>Email (optional)</label><input class="form-control" id="u-email" type="email"/></div>
     <div class="form-group"><label>Department</label>
-      <select class="form-control" id="u-dept">
-        <option value="">— None —</option>
-        ${(depts||[]).map(d=>`<option value="${d.id}">${d.name}</option>`).join('')}
-      </select></div>
+      <select class="form-control" id="u-dept"><option value="">— None —</option>
+        ${(depts||[]).map(d=>`<option value="${d.id}">${d.name}</option>`).join('')}</select></div>
     <div class="form-group"><label>Reports To</label>
-      <select class="form-control" id="u-reports">
-        <option value="">— None —</option>
-        ${(users||[]).map(u=>`<option value="${u.id}">${u.full_name} (${u.employee_id})</option>`).join('')}
-      </select></div>
-    <div class="form-group"><label>Temporary Password</label>
-      <input class="form-control" id="u-pw" type="text" value="${generateTempPw()}"/></div>
-    <div class="form-group"><div class="checkbox-row">
-      <input type="checkbox" id="u-admin"/>
-      <label for="u-admin">Grant Admin access</label>
-    </div></div>`,
-    [{ label:'Create User', action: createUser, style:'btn-primary' }]
+      <select class="form-control" id="u-reports"><option value="">— None —</option>
+        ${(users||[]).map(u=>`<option value="${u.id}">${u.full_name} (${u.employee_id})</option>`).join('')}</select></div>
+    <div class="form-group"><label>Temporary Password</label><input class="form-control" id="u-pw" value="${tmpPw}"/></div>
+    <div class="form-group"><div class="checkbox-row"><input type="checkbox" id="u-admin"/><label for="u-admin">Admin access</label></div></div>`,
+    [{label:'Create User', action:createUser, style:'btn-primary'}]
   );
 }
 
-function generateTempPw() {
-  return 'Tmp' + Math.random().toString(36).slice(2,8).toUpperCase() + '!';
-}
-
 async function createUser() {
-  const empId = document.getElementById('u-emp').value.trim().toUpperCase();
-  const name  = document.getElementById('u-name').value.trim();
-  const email = document.getElementById('u-email').value.trim() || null;
-  const dept  = document.getElementById('u-dept').value || null;
-  const rep   = document.getElementById('u-reports').value || null;
-  const pw    = document.getElementById('u-pw').value;
+  const empId   = document.getElementById('u-emp').value.trim().toUpperCase();
+  const name    = document.getElementById('u-name').value.trim();
+  const email   = document.getElementById('u-email').value.trim()||null;
+  const dept    = document.getElementById('u-dept').value||null;
+  const reports = document.getElementById('u-reports').value||null;
+  const pw      = document.getElementById('u-pw').value;
   const isAdmin = document.getElementById('u-admin').checked;
-
-  if (!empId || !name || !pw) return toast('Employee ID, Name, and Password are required.','error');
-
-  const { error } = await SB.rpc('create_user_with_password', {
-    p_employee_id: empId,
-    p_full_name: name,
-    p_email: email,
-    p_department_id: dept,
-    p_reports_to: rep,
-    p_password: pw,
-    p_is_admin: isAdmin,
-    p_created_by: SESSION.user.id
+  if (!empId||!name||!pw) return toast('ID, Name and Password required.','error');
+  const {error} = await SB.rpc('create_user_with_password',{
+    p_employee_id:empId, p_full_name:name, p_email:email,
+    p_department_id:dept, p_reports_to:reports,
+    p_password:pw, p_is_admin:isAdmin, p_created_by:SESSION.user.id
   });
-
-  if (error) return toast('Error: ' + error.message,'error');
-
-  await auditLog('USER_CREATED','users', null, { employee_id: empId, created_by: SESSION.user.id });
-  toast(`User ${empId} created! Temp password: ${pw}`,'success');
+  if (error) return toast('Error: '+error.message,'error');
+  await auditLog('USER_CREATED','users',null,{employee_id:empId});
+  toast(`User ${empId} created! Temp PW: ${pw}`,'success');
   closeModal();
   await loadUsersTable();
 }
 
 async function editUser(u) {
-  const { data: depts } = await SB.from('departments').select('id,name').order('name');
-  const { data: users } = await SB.from('users').select('id,full_name,employee_id').eq('is_active',true).order('full_name');
-
-  openModal('Edit User: ' + u.full_name, `
-    <div class="form-group"><label>Full Name</label>
-      <input class="form-control" id="eu-name" value="${u.full_name}"/></div>
-    <div class="form-group"><label>Email</label>
-      <input class="form-control" id="eu-email" type="email" value="${u.email||''}"/></div>
+  const [{data:depts},{data:users}] = await Promise.all([
+    SB.from('departments').select('id,name').order('name'),
+    SB.from('users').select('id,full_name,employee_id').eq('is_active',true).order('full_name'),
+  ]);
+  openModal('Edit: '+u.full_name,`
+    <div class="form-group"><label>Full Name</label><input class="form-control" id="eu-name" value="${esc(u.full_name)}"/></div>
+    <div class="form-group"><label>Email</label><input class="form-control" id="eu-email" type="email" value="${u.email||''}"/></div>
     <div class="form-group"><label>Department</label>
-      <select class="form-control" id="eu-dept">
-        <option value="">— None —</option>
-        ${(depts||[]).map(d=>`<option value="${d.id}" ${d.id===u.department_id?'selected':''}>${d.name}</option>`).join('')}
-      </select></div>
+      <select class="form-control" id="eu-dept"><option value="">— None —</option>
+        ${(depts||[]).map(d=>`<option value="${d.id}"${d.id===u.department_id?' selected':''}>${d.name}</option>`).join('')}</select></div>
     <div class="form-group"><label>Reports To</label>
-      <select class="form-control" id="eu-reports">
-        <option value="">— None —</option>
-        ${(users||[]).filter(x=>x.id!==u.id).map(x=>`<option value="${x.id}" ${x.id===u.reports_to?'selected':''}>${x.full_name} (${x.employee_id})</option>`).join('')}
-      </select></div>
-    <div class="form-group"><label>Reset Password (leave blank to keep)</label>
-      <input class="form-control" id="eu-pw" type="text" placeholder="New password…"/></div>`,
-    [{ label:'Save Changes', action: () => saveEditUser(u.id), style:'btn-primary' }]
+      <select class="form-control" id="eu-reports"><option value="">— None —</option>
+        ${(users||[]).filter(x=>x.id!==u.id).map(x=>`<option value="${x.id}"${x.id===u.reports_to?' selected':''}>${x.full_name} (${x.employee_id})</option>`).join('')}</select></div>
+    <div class="form-group"><label>Reset Password (blank = keep)</label><input class="form-control" id="eu-pw" type="text" placeholder="New password…"/></div>`,
+    [{label:'Save', action:()=>saveEditUser(u.id), style:'btn-primary'}]
   );
 }
 
-async function saveEditUser(userId) {
+async function saveEditUser(id) {
   const name  = document.getElementById('eu-name').value.trim();
-  const email = document.getElementById('eu-email').value.trim() || null;
-  const dept  = document.getElementById('eu-dept').value || null;
-  const rep   = document.getElementById('eu-reports').value || null;
+  const email = document.getElementById('eu-email').value.trim()||null;
+  const dept  = document.getElementById('eu-dept').value||null;
+  const rep   = document.getElementById('eu-reports').value||null;
   const pw    = document.getElementById('eu-pw').value.trim();
-
-  const update = { full_name: name, email, department_id: dept, reports_to: rep };
-  const { error } = await SB.from('users').update(update).eq('id', userId);
-  if (error) return toast('Error: ' + error.message,'error');
-
+  const {error} = await SB.from('users').update({full_name:name,email,department_id:dept,reports_to:rep}).eq('id',id);
+  if (error) return toast('Error: '+error.message,'error');
   if (pw) {
-    const { error: pe } = await SB.rpc('update_user_password', { p_user_id: userId, p_new_password: pw });
-    if (pe) return toast('User updated but password reset failed.','error');
-    // Force must_change_pw
-    await SB.from('users').update({ must_change_pw: true }).eq('id', userId);
+    await SB.rpc('update_user_password',{p_user_id:id,p_new_password:pw});
+    await SB.from('users').update({must_change_pw:true}).eq('id',id);
   }
-
-  await auditLog('USER_UPDATED','users', userId, {});
-  toast('User updated!','success');
+  toast('Saved!','success');
   closeModal();
   await loadUsersTable();
 }
 
-async function toggleUserActive(userId, current) {
-  await SB.from('users').update({ is_active: !current }).eq('id', userId);
-  toast(current ? 'User deactivated.' : 'User activated.','success');
+async function toggleActive(id, current) {
+  await SB.from('users').update({is_active:!current}).eq('id',id);
+  toast(current?'User deactivated.':'User activated.','success');
   await loadUsersTable();
 }
 
-async function openPermissions(userId, userName) {
-  const { data: existing } = await SB
-    .from('user_permissions')
-    .select('permission')
-    .eq('user_id', userId);
-  const existingSet = new Set((existing||[]).map(p=>p.permission));
-
-  openModal(`Permissions: ${userName}`, `
+async function openPerms(userId, userName) {
+  const {data:ex} = await SB.from('user_permissions').select('permission').eq('user_id',userId);
+  const exSet = new Set((ex||[]).map(p=>p.permission));
+  openModal('Permissions: '+userName,`
     <div class="perm-grid">
       ${PERMISSIONS.map(p=>`
         <label class="perm-item">
-          <input type="checkbox" id="perm-${p.key}" ${existingSet.has(p.key)?'checked':''}/>
+          <input type="checkbox" id="perm-${p.key}" ${exSet.has(p.key)?'checked':''}/>
           <span>${p.icon} ${p.label}</span>
         </label>`).join('')}
     </div>`,
-    [{ label:'Save Permissions', action: () => savePermissions(userId), style:'btn-primary' }]
+    [{label:'Save Permissions', action:()=>savePerms(userId), style:'btn-primary'}]
   );
 }
 
-async function savePermissions(userId) {
-  const newPerms = PERMISSIONS.filter(p => document.getElementById('perm-'+p.key)?.checked).map(p=>p.key);
-
-  // delete all existing
-  await SB.from('user_permissions').delete().eq('user_id', userId);
-
-  // insert new
-  if (newPerms.length > 0) {
-    await SB.from('user_permissions').insert(
-      newPerms.map(p => ({ user_id: userId, permission: p, granted_by: SESSION.user.id }))
-    );
-  }
-
-  await auditLog('PERMISSIONS_UPDATED','users', userId, { permissions: newPerms });
+async function savePerms(userId) {
+  const newPerms = PERMISSIONS.filter(p=>document.getElementById('perm-'+p.key)?.checked).map(p=>p.key);
+  await SB.from('user_permissions').delete().eq('user_id',userId);
+  if (newPerms.length>0) await SB.from('user_permissions').insert(newPerms.map(p=>({user_id:userId,permission:p,granted_by:SESSION.user.id})));
+  await auditLog('PERMISSIONS_UPDATED','users',userId,{permissions:newPerms});
   toast('Permissions saved!','success');
   closeModal();
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════
    DEPARTMENTS
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════ */
 async function pageDepartments() {
-  const mc = document.getElementById('main-content');
-  mc.innerHTML = `
+  document.getElementById('main-content').innerHTML = `
     <div class="page-header"><h1>Departments</h1></div>
     <div class="card">
-      <div class="card-header">
-        <h2>All Departments</h2>
-        ${can('manage_departments')?`<button class="btn btn-primary btn-sm" onclick="openCreateDept()">+ Add Department</button>`:''}
+      <div class="card-header"><h2>All Departments</h2>
+        ${can('manage_departments')?'<button class="btn btn-primary btn-sm" onclick="openCreateDept()">+ Add</button>':''}
       </div>
       <div class="card-body table-wrap">
-        <table>
-          <thead><tr><th>Name</th><th>Description</th><th>Actions</th></tr></thead>
-          <tbody id="dept-tbody">Loading…</tbody>
-        </table>
+        <table><thead><tr><th>Name</th><th>Description</th><th>Actions</th></tr></thead>
+        <tbody id="dept-tbody">Loading…</tbody></table>
       </div>
     </div>`;
-  await loadDeptTable();
+  await loadDepts();
 }
 
-async function loadDeptTable() {
-  const { data } = await SB.from('departments').select('*').order('name');
+async function loadDepts() {
+  const {data} = await SB.from('departments').select('*').order('name');
   const tb = document.getElementById('dept-tbody');
-  if (!data || data.length === 0) {
-    tb.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--gray-400)">No departments yet.</td></tr>';
-    return;
-  }
-  tb.innerHTML = data.map(d=>`
-    <tr>
-      <td><strong>${d.name}</strong></td>
-      <td>${d.description||'—'}</td>
-      <td class="flex-row">
-        ${can('manage_departments')?`
-          <button class="btn btn-ghost btn-sm" onclick='editDept(${JSON.stringify(d)})'>Edit</button>
-          <button class="btn btn-ghost btn-sm text-red" onclick="deleteDept('${d.id}','${d.name}')">Delete</button>`:'—'}
-      </td>
-    </tr>`).join('');
+  if (!data||data.length===0){tb.innerHTML='<tr><td colspan="3" style="text-align:center;color:var(--gray-400)">No departments yet.</td></tr>';return;}
+  tb.innerHTML = data.map(d=>`<tr>
+    <td><strong>${d.name}</strong></td><td>${d.description||'—'}</td>
+    <td class="flex-row">
+      ${can('manage_departments')?`
+        <button class="btn btn-ghost btn-sm" onclick='editDept(${JSON.stringify(d)})'>Edit</button>
+        <button class="btn btn-ghost btn-sm text-red" onclick="deleteDept('${d.id}','${esc(d.name)}')">Delete</button>`:'—'}
+    </td>
+  </tr>`).join('');
 }
 
-function openCreateDept() {
-  openModal('Add Department', `
-    <div class="form-group"><label>Name</label><input class="form-control" id="d-name"/></div>
-    <div class="form-group"><label>Description</label><textarea class="form-control" id="d-desc"></textarea></div>`,
-    [{ label:'Create', action: createDept, style:'btn-primary' }]
-  );
+function openCreateDept(){openModal('Add Department',`
+  <div class="form-group"><label>Name</label><input class="form-control" id="d-name"/></div>
+  <div class="form-group"><label>Description</label><textarea class="form-control" id="d-desc"></textarea></div>`,
+  [{label:'Create', action:async()=>{
+    const n=document.getElementById('d-name').value.trim();
+    const d=document.getElementById('d-desc').value.trim()||null;
+    if(!n)return toast('Name required.','error');
+    const {error}=await SB.from('departments').insert({name:n,description:d});
+    if(error)return toast('Error: '+error.message,'error');
+    toast('Created!','success');closeModal();await loadDepts();
+  },style:'btn-primary'}]);}
+
+function editDept(d){openModal('Edit Department',`
+  <div class="form-group"><label>Name</label><input class="form-control" id="ed-name" value="${esc(d.name)}"/></div>
+  <div class="form-group"><label>Description</label><textarea class="form-control" id="ed-desc">${esc(d.description||'')}</textarea></div>`,
+  [{label:'Save', action:async()=>{
+    const n=document.getElementById('ed-name').value.trim();
+    const desc=document.getElementById('ed-desc').value.trim()||null;
+    if(!n)return toast('Name required.','error');
+    await SB.from('departments').update({name:n,description:desc}).eq('id',d.id);
+    toast('Saved!','success');closeModal();await loadDepts();
+  },style:'btn-primary'}]);}
+
+async function deleteDept(id,name){
+  if(!confirm(`Delete "${name}"?`))return;
+  await SB.from('departments').delete().eq('id',id);
+  toast('Deleted.','success');await loadDepts();
 }
 
-async function createDept() {
-  const name = document.getElementById('d-name').value.trim();
-  const desc = document.getElementById('d-desc').value.trim() || null;
-  if (!name) return toast('Name required.','error');
-  const { error } = await SB.from('departments').insert({ name, description: desc });
-  if (error) return toast('Error: ' + error.message,'error');
-  toast('Department created!','success');
-  closeModal();
-  await loadDeptTable();
-}
-
-function editDept(d) {
-  openModal('Edit Department', `
-    <div class="form-group"><label>Name</label><input class="form-control" id="ed-name" value="${d.name}"/></div>
-    <div class="form-group"><label>Description</label><textarea class="form-control" id="ed-desc">${d.description||''}</textarea></div>`,
-    [{ label:'Save', action: () => saveDept(d.id), style:'btn-primary' }]
-  );
-}
-
-async function saveDept(id) {
-  const name = document.getElementById('ed-name').value.trim();
-  const desc = document.getElementById('ed-desc').value.trim() || null;
-  if (!name) return toast('Name required.','error');
-  await SB.from('departments').update({ name, description: desc }).eq('id', id);
-  toast('Saved!','success');
-  closeModal();
-  await loadDeptTable();
-}
-
-async function deleteDept(id, name) {
-  if (!confirm(`Delete department "${name}"?`)) return;
-  await SB.from('departments').delete().eq('id', id);
-  toast('Deleted.','success');
-  await loadDeptTable();
-}
-
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════
    TRAININGS
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════ */
 async function pageTrainings() {
-  const mc = document.getElementById('main-content');
-  mc.innerHTML = `
-    <div class="page-header"><h1>Trainings</h1><p>Manage training modules and their checklists.</p></div>
+  document.getElementById('main-content').innerHTML = `
+    <div class="page-header"><h1>Trainings</h1><p>Manage training modules and checklists.</p></div>
     <div class="card">
-      <div class="card-header">
-        <h2>All Trainings</h2>
+      <div class="card-header"><h2>All Trainings</h2>
         <div class="flex-row">
           <input class="search-input" placeholder="Search…" oninput="filterTable(this,'train-tbody')"/>
-          ${can('manage_trainings')?`<button class="btn btn-primary btn-sm" onclick="openCreateTraining()">+ Add Training</button>`:''}
+          ${can('manage_trainings')?'<button class="btn btn-primary btn-sm" onclick="openCreateTraining()">+ Add Training</button>':''}
         </div>
       </div>
       <div class="card-body table-wrap">
-        <table>
-          <thead><tr><th>Title</th><th>Checklist Items</th><th>Status</th><th>Actions</th></tr></thead>
-          <tbody id="train-tbody">Loading…</tbody>
-        </table>
+        <table><thead><tr><th>Title</th><th>Items</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="train-tbody">Loading…</tbody></table>
       </div>
     </div>`;
-  await loadTrainingsTable();
+  await loadTrainings();
 }
 
-async function loadTrainingsTable() {
-  const { data } = await SB
-    .from('trainings')
-    .select('id, title, description, is_active, created_at, checklist_items(count)')
-    .order('created_at', {ascending:false});
+async function loadTrainings() {
+  const {data} = await SB.from('trainings')
+    .select('id,title,description,is_active,created_at,checklist_items(count)')
+    .order('created_at',{ascending:false});
   const tb = document.getElementById('train-tbody');
-  if (!data || data.length === 0) {
-    tb.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--gray-400)">No trainings yet.</td></tr>';
-    return;
-  }
-  tb.innerHTML = data.map(t=>`
-    <tr>
-      <td><strong>${t.title}</strong><br><small style="color:var(--gray-400)">${t.description||''}</small></td>
-      <td>${t.checklist_items?.[0]?.count??0} items</td>
-      <td>${t.is_active?'<span class="badge badge-green">Active</span>':'<span class="badge badge-gray">Inactive</span>'}</td>
-      <td class="flex-row">
-        ${can('manage_trainings')?`
-          <button class="btn btn-ghost btn-sm" onclick="openEditTraining('${t.id}','${escHtml(t.title)}','${escHtml(t.description||'')}',${t.is_active})">Edit</button>
-          <button class="btn btn-ghost btn-sm" onclick="openChecklist_manage('${t.id}','${escHtml(t.title)}')">Checklist</button>`:'—'}
-      </td>
-    </tr>`).join('');
+  if (!data||data.length===0){tb.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--gray-400)">No trainings yet.</td></tr>';return;}
+  tb.innerHTML = data.map(t=>`<tr>
+    <td><strong>${t.title}</strong><br><small style="color:var(--gray-400)">${t.description||''}</small></td>
+    <td>${t.checklist_items?.[0]?.count??0}</td>
+    <td>${t.is_active?'<span class="badge badge-green">Active</span>':'<span class="badge badge-gray">Inactive</span>'}</td>
+    <td class="flex-row">
+      ${can('manage_trainings')?`
+        <button class="btn btn-ghost btn-sm" onclick="openEditTraining('${t.id}','${esc(t.title)}','${esc(t.description||'')}',${t.is_active})">Edit</button>
+        <button class="btn btn-ghost btn-sm" onclick="manageChecklist('${t.id}','${esc(t.title)}')">Checklist</button>`:'—'}
+    </td>
+  </tr>`).join('');
 }
 
-function openCreateTraining() {
-  openModal('Add Training', `
-    <div class="form-group"><label>Title</label><input class="form-control" id="t-title"/></div>
-    <div class="form-group"><label>Description</label><textarea class="form-control" id="t-desc"></textarea></div>`,
-    [{ label:'Create Training', action: createTraining, style:'btn-primary' }]
-  );
-}
+function openCreateTraining(){openModal('Add Training',`
+  <div class="form-group"><label>Title</label><input class="form-control" id="t-title"/></div>
+  <div class="form-group"><label>Description</label><textarea class="form-control" id="t-desc"></textarea></div>`,
+  [{label:'Create', action:async()=>{
+    const title=document.getElementById('t-title').value.trim();
+    const desc=document.getElementById('t-desc').value.trim()||null;
+    if(!title)return toast('Title required.','error');
+    const {error}=await SB.from('trainings').insert({title,description:desc,created_by:SESSION.user.id});
+    if(error)return toast('Error: '+error.message,'error');
+    toast('Training created!','success');closeModal();await loadTrainings();
+  },style:'btn-primary'}]);}
 
-async function createTraining() {
-  const title = document.getElementById('t-title').value.trim();
-  const desc  = document.getElementById('t-desc').value.trim() || null;
-  if (!title) return toast('Title required.','error');
-  const { error } = await SB.from('trainings').insert({ title, description: desc, created_by: SESSION.user.id });
-  if (error) return toast('Error: ' + error.message,'error');
-  toast('Training created!','success');
-  closeModal();
-  await loadTrainingsTable();
-}
+function openEditTraining(id,title,desc,active){openModal('Edit Training',`
+  <div class="form-group"><label>Title</label><input class="form-control" id="et-title" value="${title}"/></div>
+  <div class="form-group"><label>Description</label><textarea class="form-control" id="et-desc">${desc}</textarea></div>
+  <div class="form-group"><div class="checkbox-row"><input type="checkbox" id="et-active" ${active?'checked':''}/><label for="et-active">Active</label></div></div>`,
+  [{label:'Save', action:async()=>{
+    const t=document.getElementById('et-title').value.trim();
+    const d=document.getElementById('et-desc').value.trim()||null;
+    const a=document.getElementById('et-active').checked;
+    if(!t)return toast('Title required.','error');
+    await SB.from('trainings').update({title:t,description:d,is_active:a}).eq('id',id);
+    toast('Saved!','success');closeModal();await loadTrainings();
+  },style:'btn-primary'}]);}
 
-function openEditTraining(id, title, desc, active) {
-  openModal('Edit Training', `
-    <div class="form-group"><label>Title</label><input class="form-control" id="et-title" value="${title}"/></div>
-    <div class="form-group"><label>Description</label><textarea class="form-control" id="et-desc">${desc}</textarea></div>
-    <div class="form-group"><div class="checkbox-row"><input type="checkbox" id="et-active" ${active?'checked':''}/><label for="et-active">Active</label></div></div>`,
-    [{ label:'Save', action: () => saveEditTraining(id), style:'btn-primary' }]
-  );
-}
-
-async function saveEditTraining(id) {
-  const title  = document.getElementById('et-title').value.trim();
-  const desc   = document.getElementById('et-desc').value.trim() || null;
-  const active = document.getElementById('et-active').checked;
-  if (!title) return toast('Title required.','error');
-  await SB.from('trainings').update({ title, description: desc, is_active: active }).eq('id', id);
-  toast('Saved!','success');
-  closeModal();
-  await loadTrainingsTable();
-}
-
-async function openChecklist_manage(trainingId, trainingTitle) {
-  const { data: items } = await SB
-    .from('checklist_items')
-    .select('*')
-    .eq('training_id', trainingId)
-    .order('sort_order');
-
-  openModal(`Checklist: ${trainingTitle}`, `
-    <div id="cl-items">
+async function manageChecklist(trainingId, trainingTitle) {
+  const {data:items} = await SB.from('checklist_items')
+    .select('*').eq('training_id',trainingId).order('sort_order');
+  openModal(`Checklist: ${trainingTitle}`,`
+    <div id="cl-manage">
       ${(items||[]).map((item,i)=>`
-        <div class="checklist-item" id="cli-${item.id}">
+        <div class="checklist-item">
           <span style="color:var(--gray-400);font-size:.8rem;min-width:20px">${i+1}.</span>
-          <div class="item-desc" style="flex:1">
-            <input class="form-control" style="margin-bottom:4px" value="${escHtml(item.description)}" id="cli-desc-${item.id}"/>
-            <div class="checkbox-row"><input type="checkbox" id="cli-photo-${item.id}" ${item.requires_photo?'checked':''}/><label>Requires Photo</label></div>
+          <div style="flex:1">
+            <input class="form-control" style="margin-bottom:4px" value="${esc(item.description)}" id="cld-${item.id}"/>
+            <div class="checkbox-row"><input type="checkbox" id="clp-${item.id}" ${item.requires_photo?'checked':''}/><label>Requires Photo</label></div>
           </div>
-          <button class="btn btn-ghost btn-sm text-red" onclick="deleteChecklistItem('${item.id}','${trainingId}','${escHtml(trainingTitle)}')">✕</button>
+          <button class="btn btn-ghost btn-sm text-red" onclick="deleteCI('${item.id}','${trainingId}','${esc(trainingTitle)}')">✕</button>
         </div>`).join('')}
     </div>
     <hr class="divider"/>
-    <div class="form-group"><label>New Item</label><input class="form-control" id="new-ci-desc" placeholder="Checklist item description"/></div>
+    <div class="form-group"><label>New Item</label><input class="form-control" id="new-ci" placeholder="Item description"/></div>
     <div class="form-group"><div class="checkbox-row"><input type="checkbox" id="new-ci-photo"/><label>Requires Photo</label></div></div>`,
     [
-      { label:'Save Changes', action: () => saveChecklistItems(trainingId, items||[]), style:'btn-outline' },
-      { label:'Add Item', action: () => addChecklistItem(trainingId, trainingTitle), style:'btn-primary' },
+      {label:'Save Edits', action:async()=>{
+        for(const item of (items||[])){
+          const d=document.getElementById('cld-'+item.id)?.value?.trim();
+          const p=document.getElementById('clp-'+item.id)?.checked;
+          if(d!==undefined) await SB.from('checklist_items').update({description:d,requires_photo:!!p}).eq('id',item.id);
+        }
+        toast('Saved!','success');closeModal();
+      },style:'btn-outline'},
+      {label:'Add Item', action:async()=>{
+        const desc=document.getElementById('new-ci').value.trim();
+        const photo=document.getElementById('new-ci-photo').checked;
+        if(!desc)return toast('Enter description.','error');
+        const nextOrder=(items?.length||0);
+        await SB.from('checklist_items').insert({training_id:trainingId,description:desc,requires_photo:photo,sort_order:nextOrder});
+        toast('Added!','success');closeModal();manageChecklist(trainingId,trainingTitle);
+      },style:'btn-primary'},
     ]
   );
 }
 
-async function addChecklistItem(trainingId, trainingTitle) {
-  const desc  = document.getElementById('new-ci-desc').value.trim();
-  const photo = document.getElementById('new-ci-photo').checked;
-  if (!desc) return toast('Enter item description.','error');
-
-  const { data: existing } = await SB.from('checklist_items').select('sort_order').eq('training_id', trainingId).order('sort_order',{ascending:false}).limit(1);
-  const nextOrder = existing && existing.length > 0 ? existing[0].sort_order + 1 : 0;
-
-  await SB.from('checklist_items').insert({ training_id: trainingId, description: desc, requires_photo: photo, sort_order: nextOrder });
-  toast('Item added!','success');
-  closeModal();
-  openChecklist_manage(trainingId, trainingTitle);
+async function deleteCI(itemId, trainingId, trainingTitle) {
+  if(!confirm('Delete this item?'))return;
+  await SB.from('checklist_items').delete().eq('id',itemId);
+  toast('Removed.','success');closeModal();manageChecklist(trainingId,trainingTitle);
 }
 
-async function saveChecklistItems(trainingId, items) {
-  for (const item of items) {
-    const desc  = document.getElementById(`cli-desc-${item.id}`)?.value?.trim();
-    const photo = document.getElementById(`cli-photo-${item.id}`)?.checked;
-    if (desc !== undefined) {
-      await SB.from('checklist_items').update({ description: desc, requires_photo: !!photo }).eq('id', item.id);
-    }
-  }
-  toast('Checklist saved!','success');
-  closeModal();
-}
-
-async function deleteChecklistItem(itemId, trainingId, trainingTitle) {
-  if (!confirm('Delete this checklist item?')) return;
-  await SB.from('checklist_items').delete().eq('id', itemId);
-  toast('Item removed.','success');
-  closeModal();
-  openChecklist_manage(trainingId, trainingTitle);
-}
-
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════
    WORKFLOWS
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════ */
 async function pageWorkflows() {
-  const mc = document.getElementById('main-content');
-  mc.innerHTML = `
+  document.getElementById('main-content').innerHTML = `
     <div class="page-header"><h1>Workflows</h1><p>Group trainings into sequential or flexible workflows.</p></div>
     <div class="card">
-      <div class="card-header">
-        <h2>All Workflows</h2>
-        ${can('manage_workflows')?`<button class="btn btn-primary btn-sm" onclick="openCreateWorkflow()">+ New Workflow</button>`:''}
+      <div class="card-header"><h2>All Workflows</h2>
+        ${can('manage_workflows')?'<button class="btn btn-primary btn-sm" onclick="openCreateWorkflow()">+ New Workflow</button>':''}
       </div>
       <div class="card-body table-wrap">
-        <table>
-          <thead><tr><th>Title</th><th>Type</th><th>Trainings</th><th>Status</th><th>Actions</th></tr></thead>
-          <tbody id="wf-tbody">Loading…</tbody>
-        </table>
+        <table><thead><tr><th>Title</th><th>Type</th><th>Trainings</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="wf-tbody">Loading…</tbody></table>
       </div>
     </div>`;
-  await loadWorkflowsTable();
+  await loadWorkflows();
 }
 
-async function loadWorkflowsTable() {
-  const { data } = await SB
-    .from('workflows')
-    .select('id, title, description, is_sequential, is_active, workflow_trainings(count)')
-    .order('created_at', {ascending:false});
+async function loadWorkflows() {
+  const {data} = await SB.from('workflows')
+    .select('id,title,description,is_sequential,is_active,workflow_trainings(count)')
+    .order('created_at',{ascending:false});
   const tb = document.getElementById('wf-tbody');
-  if (!data || data.length === 0) {
-    tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--gray-400)">No workflows yet.</td></tr>';
-    return;
-  }
-  tb.innerHTML = data.map(w=>`
-    <tr>
-      <td><strong>${w.title}</strong><br><small style="color:var(--gray-400)">${w.description||''}</small></td>
-      <td>${w.is_sequential?'<span class="badge badge-blue">Sequential</span>':'<span class="badge badge-gray">Flexible</span>'}</td>
-      <td>${w.workflow_trainings?.[0]?.count??0} trainings</td>
-      <td>${w.is_active?'<span class="badge badge-green">Active</span>':'<span class="badge badge-gray">Inactive</span>'}</td>
-      <td class="flex-row">
-        ${can('manage_workflows')?`
-          <button class="btn btn-ghost btn-sm" onclick="editWorkflow('${w.id}','${escHtml(w.title)}','${escHtml(w.description||'')}',${w.is_sequential},${w.is_active})">Edit</button>
-          <button class="btn btn-ghost btn-sm" onclick="manageWorkflowTrainings('${w.id}','${escHtml(w.title)}')">Trainings</button>`:'—'}
-      </td>
-    </tr>`).join('');
+  if (!data||data.length===0){tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--gray-400)">No workflows yet.</td></tr>';return;}
+  tb.innerHTML = data.map(w=>`<tr>
+    <td><strong>${w.title}</strong><br><small style="color:var(--gray-400)">${w.description||''}</small></td>
+    <td>${w.is_sequential?'<span class="badge badge-blue">Sequential</span>':'<span class="badge badge-gray">Flexible</span>'}</td>
+    <td>${w.workflow_trainings?.[0]?.count??0}</td>
+    <td>${w.is_active?'<span class="badge badge-green">Active</span>':'<span class="badge badge-gray">Inactive</span>'}</td>
+    <td class="flex-row">
+      ${can('manage_workflows')?`
+        <button class="btn btn-ghost btn-sm" onclick="editWorkflow('${w.id}','${esc(w.title)}','${esc(w.description||'')}',${w.is_sequential},${w.is_active})">Edit</button>
+        <button class="btn btn-ghost btn-sm" onclick="manageWFTrainings('${w.id}','${esc(w.title)}')">Trainings</button>`:'—'}
+    </td>
+  </tr>`).join('');
 }
 
-function openCreateWorkflow() {
-  openModal('New Workflow', `
-    <div class="form-group"><label>Title</label><input class="form-control" id="wf-title"/></div>
-    <div class="form-group"><label>Description</label><textarea class="form-control" id="wf-desc"></textarea></div>
-    <div class="form-group"><div class="checkbox-row"><input type="checkbox" id="wf-seq" checked/><label for="wf-seq">Sequential (must complete in order)</label></div></div>`,
-    [{ label:'Create Workflow', action: createWorkflow, style:'btn-primary' }]
-  );
-}
+function openCreateWorkflow(){openModal('New Workflow',`
+  <div class="form-group"><label>Title</label><input class="form-control" id="wf-title"/></div>
+  <div class="form-group"><label>Description</label><textarea class="form-control" id="wf-desc"></textarea></div>
+  <div class="form-group"><div class="checkbox-row"><input type="checkbox" id="wf-seq" checked/><label for="wf-seq">Sequential (complete in order)</label></div></div>`,
+  [{label:'Create', action:async()=>{
+    const t=document.getElementById('wf-title').value.trim();
+    const d=document.getElementById('wf-desc').value.trim()||null;
+    const s=document.getElementById('wf-seq').checked;
+    if(!t)return toast('Title required.','error');
+    const {error}=await SB.from('workflows').insert({title:t,description:d,is_sequential:s,created_by:SESSION.user.id});
+    if(error)return toast('Error: '+error.message,'error');
+    toast('Created!','success');closeModal();await loadWorkflows();
+  },style:'btn-primary'}]);}
 
-async function createWorkflow() {
-  const title = document.getElementById('wf-title').value.trim();
-  const desc  = document.getElementById('wf-desc').value.trim() || null;
-  const seq   = document.getElementById('wf-seq').checked;
-  if (!title) return toast('Title required.','error');
-  const { error } = await SB.from('workflows').insert({ title, description: desc, is_sequential: seq, created_by: SESSION.user.id });
-  if (error) return toast('Error: ' + error.message,'error');
-  toast('Workflow created!','success');
-  closeModal();
-  await loadWorkflowsTable();
-}
+function editWorkflow(id,title,desc,isSeq,isActive){openModal('Edit Workflow',`
+  <div class="form-group"><label>Title</label><input class="form-control" id="ewf-title" value="${title}"/></div>
+  <div class="form-group"><label>Description</label><textarea class="form-control" id="ewf-desc">${desc}</textarea></div>
+  <div class="form-group"><div class="checkbox-row"><input type="checkbox" id="ewf-seq" ${isSeq?'checked':''}/><label for="ewf-seq">Sequential</label></div></div>
+  <div class="form-group"><div class="checkbox-row"><input type="checkbox" id="ewf-active" ${isActive?'checked':''}/><label for="ewf-active">Active</label></div></div>`,
+  [{label:'Save', action:async()=>{
+    const t=document.getElementById('ewf-title').value.trim();
+    const d=document.getElementById('ewf-desc').value.trim()||null;
+    const s=document.getElementById('ewf-seq').checked;
+    const a=document.getElementById('ewf-active').checked;
+    if(!t)return toast('Title required.','error');
+    await SB.from('workflows').update({title:t,description:d,is_sequential:s,is_active:a}).eq('id',id);
+    toast('Saved!','success');closeModal();await loadWorkflows();
+  },style:'btn-primary'}]);}
 
-function editWorkflow(id, title, desc, isSeq, isActive) {
-  openModal('Edit Workflow', `
-    <div class="form-group"><label>Title</label><input class="form-control" id="ewf-title" value="${title}"/></div>
-    <div class="form-group"><label>Description</label><textarea class="form-control" id="ewf-desc">${desc}</textarea></div>
-    <div class="form-group"><div class="checkbox-row"><input type="checkbox" id="ewf-seq" ${isSeq?'checked':''}/><label for="ewf-seq">Sequential</label></div></div>
-    <div class="form-group"><div class="checkbox-row"><input type="checkbox" id="ewf-active" ${isActive?'checked':''}/><label for="ewf-active">Active</label></div></div>`,
-    [{ label:'Save', action: () => saveWorkflow(id), style:'btn-primary' }]
-  );
-}
-
-async function saveWorkflow(id) {
-  const title  = document.getElementById('ewf-title').value.trim();
-  const desc   = document.getElementById('ewf-desc').value.trim() || null;
-  const seq    = document.getElementById('ewf-seq').checked;
-  const active = document.getElementById('ewf-active').checked;
-  if (!title) return toast('Title required.','error');
-  await SB.from('workflows').update({ title, description: desc, is_sequential: seq, is_active: active }).eq('id', id);
-  toast('Saved!','success');
-  closeModal();
-  await loadWorkflowsTable();
-}
-
-async function manageWorkflowTrainings(wfId, wfTitle) {
-  const { data: all } = await SB.from('trainings').select('id, title').eq('is_active', true).order('title');
-  const { data: current } = await SB.from('workflow_trainings').select('id, training_id, sort_order, trainings(title)').eq('workflow_id', wfId).order('sort_order');
-
-  const currentIds = new Set((current||[]).map(c=>c.training_id));
-  const available = (all||[]).filter(t => !currentIds.has(t.id));
-
-  openModal(`Trainings in: ${wfTitle}`, `
-    <p style="font-size:.82rem;color:var(--gray-600);margin-bottom:12px">Current trainings (in order):</p>
-    <div id="wft-list">
-      ${(current||[]).map((c,i)=>`
-        <div class="wf-training-item">
-          <span class="drag-handle">⠿</span>
-          <span>${i+1}. ${c.trainings?.title||'?'}</span>
-          <button class="remove-btn" onclick="removeWorkflowTraining('${c.id}','${wfId}','${escHtml(wfTitle)}')">✕</button>
-        </div>`).join('')}
-      ${current?.length===0?'<p style="color:var(--gray-400);font-size:.85rem">No trainings added yet.</p>':''}
-    </div>
+async function manageWFTrainings(wfId, wfTitle) {
+  const [{data:all},{data:cur}] = await Promise.all([
+    SB.from('trainings').select('id,title').eq('is_active',true).order('title'),
+    SB.from('workflow_trainings').select('id,training_id,sort_order,trainings(title)').eq('workflow_id',wfId).order('sort_order'),
+  ]);
+  const curIds = new Set((cur||[]).map(c=>c.training_id));
+  const avail = (all||[]).filter(t=>!curIds.has(t.id));
+  openModal(`Trainings in: ${wfTitle}`,`
+    <p style="font-size:.82rem;color:var(--gray-600);margin-bottom:10px">Current trainings:</p>
+    ${(cur||[]).map((c,i)=>`
+      <div class="flex-row" style="padding:8px;background:var(--gray-50);border-radius:6px;margin-bottom:6px">
+        <span>${i+1}. ${c.trainings?.title||'?'}</span>
+        <button class="btn btn-ghost btn-sm text-red" style="margin-left:auto" onclick="removeWFTraining('${c.id}','${wfId}','${esc(wfTitle)}')">✕</button>
+      </div>`).join('')}
+    ${cur?.length===0?'<p style="color:var(--gray-400);font-size:.85rem;margin-bottom:12px">No trainings added yet.</p>':''}
     <hr class="divider"/>
     <div class="form-group"><label>Add Training</label>
-      <select class="form-control" id="wft-select">
-        <option value="">— Select a training —</option>
-        ${available.map(t=>`<option value="${t.id}">${t.title}</option>`).join('')}
-      </select>
-    </div>`,
-    [{ label:'Add Training', action: () => addWorkflowTraining(wfId, wfTitle), style:'btn-primary' }]
+      <select class="form-control" id="wft-sel"><option value="">— Select —</option>
+        ${avail.map(t=>`<option value="${t.id}">${t.title}</option>`).join('')}</select></div>`,
+    [{label:'Add', action:async()=>{
+      const tid=document.getElementById('wft-sel').value;
+      if(!tid)return toast('Select a training.','error');
+      const nextOrder=(cur?.length||0);
+      await SB.from('workflow_trainings').insert({workflow_id:wfId,training_id:tid,sort_order:nextOrder});
+      toast('Added!','success');closeModal();manageWFTrainings(wfId,wfTitle);
+    },style:'btn-primary'}]
   );
 }
 
-async function addWorkflowTraining(wfId, wfTitle) {
-  const trainingId = document.getElementById('wft-select').value;
-  if (!trainingId) return toast('Select a training.','error');
-
-  const { data: existing } = await SB.from('workflow_trainings').select('sort_order').eq('workflow_id', wfId).order('sort_order',{ascending:false}).limit(1);
-  const nextOrder = existing && existing.length > 0 ? existing[0].sort_order + 1 : 0;
-
-  await SB.from('workflow_trainings').insert({ workflow_id: wfId, training_id: trainingId, sort_order: nextOrder });
-  toast('Training added!','success');
-  closeModal();
-  manageWorkflowTrainings(wfId, wfTitle);
+async function removeWFTraining(rowId,wfId,wfTitle){
+  await SB.from('workflow_trainings').delete().eq('id',rowId);
+  toast('Removed.','success');closeModal();manageWFTrainings(wfId,wfTitle);
 }
 
-async function removeWorkflowTraining(rowId, wfId, wfTitle) {
-  await SB.from('workflow_trainings').delete().eq('id', rowId);
-  toast('Removed.','success');
-  closeModal();
-  manageWorkflowTrainings(wfId, wfTitle);
-}
-
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════
    ASSIGN
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════ */
 async function pageAssign() {
-  const mc = document.getElementById('main-content');
-  mc.innerHTML = `
-    <div class="page-header"><h1>Assign Trainings</h1><p>Assign a training or workflow to an employee.</p></div>
+  document.getElementById('main-content').innerHTML = `
+    <div class="page-header"><h1>Assign Trainings</h1></div>
     <div class="tabs">
-      <div class="tab active" onclick="switchAssignTab('single',this)">Single Training</div>
-      <div class="tab" onclick="switchAssignTab('workflow',this)">Workflow</div>
+      <div class="tab active" onclick="switchTab('assign-single','assign-workflow',this)">Single Training</div>
+      <div class="tab" onclick="switchTab('assign-workflow','assign-single',this)">Workflow</div>
     </div>
-    <div id="assign-single"><div class="card"><div class="card-body" id="assign-single-body">Loading…</div></div></div>
-    <div id="assign-workflow" style="display:none"><div class="card"><div class="card-body" id="assign-wf-body">Loading…</div></div></div>`;
-
+    <div id="assign-single"><div class="card"><div class="card-body" id="as-body">Loading…</div></div></div>
+    <div id="assign-workflow" style="display:none"><div class="card"><div class="card-body" id="aw-body">Loading…</div></div></div>`;
   await renderAssignSingle();
 }
 
-function switchAssignTab(tab, el) {
+function switchTab(show,hide,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  document.getElementById('assign-single').style.display  = tab === 'single'   ? '' : 'none';
-  document.getElementById('assign-workflow').style.display = tab === 'workflow' ? '' : 'none';
-  if (tab === 'workflow') renderAssignWorkflow();
+  document.getElementById(show).style.display='';
+  document.getElementById(hide).style.display='none';
+  if(show==='assign-workflow') renderAssignWorkflow();
 }
 
-async function renderAssignSingle() {
-  const [{ data: users }, { data: trainings }] = await Promise.all([
-    SB.from('users').select('id, full_name, employee_id').eq('is_active', true).order('full_name'),
-    SB.from('trainings').select('id, title').eq('is_active', true).order('title'),
+async function renderAssignSingle(){
+  const [{data:users},{data:trainings}] = await Promise.all([
+    SB.from('users').select('id,full_name,employee_id').eq('is_active',true).order('full_name'),
+    SB.from('trainings').select('id,title').eq('is_active',true).order('title'),
   ]);
-
-  document.getElementById('assign-single-body').innerHTML = `
+  document.getElementById('as-body').innerHTML=`
     <div class="form-group"><label>Employee</label>
-      <select class="form-control" id="as-user">
-        <option value="">— Select Employee —</option>
-        ${(users||[]).map(u=>`<option value="${u.id}">${u.full_name} (${u.employee_id})</option>`).join('')}
-      </select></div>
+      <select class="form-control" id="as-user"><option value="">— Select —</option>
+        ${(users||[]).map(u=>`<option value="${u.id}">${u.full_name} (${u.employee_id})</option>`).join('')}</select></div>
     <div class="form-group"><label>Training</label>
-      <select class="form-control" id="as-train">
-        <option value="">— Select Training —</option>
-        ${(trainings||[]).map(t=>`<option value="${t.id}">${t.title}</option>`).join('')}
-      </select></div>
+      <select class="form-control" id="as-train"><option value="">— Select —</option>
+        ${(trainings||[]).map(t=>`<option value="${t.id}">${t.title}</option>`).join('')}</select></div>
     <button class="btn btn-primary" onclick="doAssignSingle()">Assign Training</button>`;
 }
 
-async function doAssignSingle() {
-  const userId = document.getElementById('as-user').value;
-  const trainId = document.getElementById('as-train').value;
-  if (!userId || !trainId) return toast('Select both employee and training.','error');
-
-  // check for duplicate active assignment
-  const { data: dup } = await SB.from('training_assignments')
-    .select('id')
-    .eq('assigned_to', userId)
-    .eq('training_id', trainId)
-    .in('status', ['pending','in_progress','submitted'])
-    .maybeSingle();
-
-  if (dup) return toast('This employee already has an active assignment for this training.','error');
-
-  const { error } = await SB.from('training_assignments').insert({
-    training_id: trainId,
-    assigned_to: userId,
-    assigned_by: SESSION.user.id,
-    status: 'pending'
-  });
-  if (error) return toast('Error: ' + error.message,'error');
-  await auditLog('TRAINING_ASSIGNED','training_assignments', null, { assigned_to: userId, training_id: trainId });
+async function doAssignSingle(){
+  const userId=document.getElementById('as-user').value;
+  const trainId=document.getElementById('as-train').value;
+  if(!userId||!trainId)return toast('Select both employee and training.','error');
+  const {data:dup}=await SB.from('training_assignments').select('id')
+    .eq('assigned_to',userId).eq('training_id',trainId).in('status',['pending','in_progress','submitted']).maybeSingle();
+  if(dup)return toast('Already has an active assignment for this training.','error');
+  const {error}=await SB.from('training_assignments').insert({training_id:trainId,assigned_to:userId,assigned_by:SESSION.user.id,status:'pending'});
+  if(error)return toast('Error: '+error.message,'error');
+  await auditLog('TRAINING_ASSIGNED','training_assignments',null,{assigned_to:userId,training_id:trainId});
   toast('Training assigned!','success');
 }
 
-async function renderAssignWorkflow() {
-  const [{ data: users }, { data: workflows }] = await Promise.all([
-    SB.from('users').select('id, full_name, employee_id').eq('is_active', true).order('full_name'),
-    SB.from('workflows').select('id, title').eq('is_active', true).order('title'),
+async function renderAssignWorkflow(){
+  const [{data:users},{data:workflows}] = await Promise.all([
+    SB.from('users').select('id,full_name,employee_id').eq('is_active',true).order('full_name'),
+    SB.from('workflows').select('id,title').eq('is_active',true).order('title'),
   ]);
-
-  document.getElementById('assign-wf-body').innerHTML = `
+  document.getElementById('aw-body').innerHTML=`
     <div class="form-group"><label>Employee</label>
-      <select class="form-control" id="aw-user">
-        <option value="">— Select Employee —</option>
-        ${(users||[]).map(u=>`<option value="${u.id}">${u.full_name} (${u.employee_id})</option>`).join('')}
-      </select></div>
+      <select class="form-control" id="aw-user"><option value="">— Select —</option>
+        ${(users||[]).map(u=>`<option value="${u.id}">${u.full_name} (${u.employee_id})</option>`).join('')}</select></div>
     <div class="form-group"><label>Workflow</label>
-      <select class="form-control" id="aw-wf">
-        <option value="">— Select Workflow —</option>
-        ${(workflows||[]).map(w=>`<option value="${w.id}">${w.title}</option>`).join('')}
-      </select></div>
+      <select class="form-control" id="aw-wf"><option value="">— Select —</option>
+        ${(workflows||[]).map(w=>`<option value="${w.id}">${w.title}</option>`).join('')}</select></div>
     <button class="btn btn-primary" onclick="doAssignWorkflow()">Assign Workflow</button>`;
 }
 
-async function doAssignWorkflow() {
-  const userId = document.getElementById('aw-user').value;
-  const wfId   = document.getElementById('aw-wf').value;
-  if (!userId || !wfId) return toast('Select both employee and workflow.','error');
-
-  // Create workflow assignment
-  const { data: wa, error: wae } = await SB.from('workflow_assignments').insert({
-    workflow_id: wfId, assigned_to: userId, assigned_by: SESSION.user.id, status: 'pending'
-  }).select().single();
-  if (wae) return toast('Error: ' + wae.message,'error');
-
-  // Get trainings in workflow
-  const { data: wts } = await SB.from('workflow_trainings').select('training_id, sort_order').eq('workflow_id', wfId).order('sort_order');
-  if (!wts || wts.length === 0) return toast('Workflow has no trainings. Please add trainings first.','error');
-
-  // Create training assignments linked to this workflow assignment
-  const inserts = wts.map(wt => ({
-    training_id: wt.training_id,
-    assigned_to: userId,
-    assigned_by: SESSION.user.id,
-    workflow_assignment_id: wa.id,
-    status: 'pending'
-  }));
-
-  const { error: tae } = await SB.from('training_assignments').insert(inserts);
-  if (tae) { await SB.from('workflow_assignments').delete().eq('id', wa.id); return toast('Error creating assignments.','error'); }
-
-  await auditLog('WORKFLOW_ASSIGNED','workflow_assignments', wa.id, { assigned_to: userId, workflow_id: wfId });
+async function doAssignWorkflow(){
+  const userId=document.getElementById('aw-user').value;
+  const wfId=document.getElementById('aw-wf').value;
+  if(!userId||!wfId)return toast('Select both.','error');
+  const {data:wa,error:wae}=await SB.from('workflow_assignments')
+    .insert({workflow_id:wfId,assigned_to:userId,assigned_by:SESSION.user.id,status:'pending'}).select().single();
+  if(wae)return toast('Error: '+wae.message,'error');
+  const {data:wts}=await SB.from('workflow_trainings').select('training_id,sort_order').eq('workflow_id',wfId).order('sort_order');
+  if(!wts||wts.length===0){await SB.from('workflow_assignments').delete().eq('id',wa.id);return toast('Workflow has no trainings.','error');}
+  const {error:tae}=await SB.from('training_assignments').insert(wts.map(wt=>({
+    training_id:wt.training_id,assigned_to:userId,assigned_by:SESSION.user.id,
+    workflow_assignment_id:wa.id,status:'pending'
+  })));
+  if(tae){await SB.from('workflow_assignments').delete().eq('id',wa.id);return toast('Error creating assignments.','error');}
+  await auditLog('WORKFLOW_ASSIGNED','workflow_assignments',wa.id,{assigned_to:userId,workflow_id:wfId});
   toast('Workflow assigned!','success');
 }
 
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════
    REPORTS
-═══════════════════════════════════════════════════════════ */
+═══════════════════════════════ */
 async function pageReports() {
-  const mc = document.getElementById('main-content');
-  mc.innerHTML = `
+  document.getElementById('main-content').innerHTML = `
     <div class="page-header"><h1>Reports & Audit Trail</h1></div>
     <div class="tabs">
-      <div class="tab active" onclick="switchReportTab('assignments',this)">Training Records</div>
-      <div class="tab" onclick="switchReportTab('audit',this)">Audit Log</div>
+      <div class="tab active" onclick="switchTab('rep-assign','rep-audit',this)">Training Records</div>
+      <div class="tab" onclick="switchTab('rep-audit','rep-assign',this)">Audit Log</div>
     </div>
-    <div id="report-content">Loading…</div>`;
-  await loadAssignmentsReport();
+    <div id="rep-assign"><div id="rep-assign-body">Loading…</div></div>
+    <div id="rep-audit" style="display:none"><div id="rep-audit-body"></div></div>`;
+  await loadAssignReport();
 }
 
-function switchReportTab(tab, el) {
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  if (tab === 'assignments') loadAssignmentsReport();
-  else loadAuditLog();
+async function loadAssignReport(){
+  const {data}=await SB.from('v_training_assignment_summary').select('*').order('assigned_at',{ascending:false}).limit(200);
+  document.getElementById('rep-assign-body').innerHTML=`<div class="card"><div class="card-body table-wrap">
+    <table><thead><tr><th>Employee</th><th>Training</th><th>Dept</th><th>Status</th><th>Assigned</th><th>Approved By</th><th>Approved</th></tr></thead>
+    <tbody>${(!data||data.length===0)?'<tr><td colspan="7" style="text-align:center;color:var(--gray-400)">No records.</td></tr>':
+      data.map(r=>`<tr>
+        <td>${r.assigned_to_name}<br><small class="chip">${r.assigned_to_emp_id}</small></td>
+        <td>${r.training_title}</td><td>${r.department_name||'—'}</td>
+        <td>${STATUS_BADGE[r.status]||r.status}</td>
+        <td>${fmtDate(r.assigned_at)}</td>
+        <td>${r.approved_by_name||'—'}</td>
+        <td>${r.approved_at?fmtDate(r.approved_at):'—'}</td>
+      </tr>`).join('')}
+    </tbody></table></div></div>`;
 }
 
-async function loadAssignmentsReport() {
-  const { data } = await SB
-    .from('v_training_assignment_summary')
-    .select('*')
-    .order('assigned_at', {ascending:false})
-    .limit(100);
-
-  document.getElementById('report-content').innerHTML = `
-    <div class="card"><div class="card-body table-wrap">
-      <table>
-        <thead><tr><th>Employee</th><th>Training</th><th>Dept</th><th>Status</th><th>Assigned</th><th>Approved By</th><th>Approved</th></tr></thead>
-        <tbody>
-          ${!data || data.length === 0
-            ? '<tr><td colspan="7" style="text-align:center;color:var(--gray-400)">No records.</td></tr>'
-            : data.map(r=>`<tr>
-                <td>${r.assigned_to_name}<br><small class="chip">${r.assigned_to_emp_id}</small></td>
-                <td>${r.training_title}</td>
-                <td>${r.department_name||'—'}</td>
-                <td>${STATUS_BADGE[r.status]||r.status}</td>
-                <td>${fmtDate(r.assigned_at)}</td>
-                <td>${r.approved_by_name||'—'}</td>
-                <td>${r.approved_at?fmtDate(r.approved_at):'—'}</td>
-              </tr>`).join('')}
-        </tbody>
-      </table>
-    </div></div>`;
+async function loadAuditReport(){
+  const {data}=await SB.from('audit_log').select('*,users(full_name)').order('created_at',{ascending:false}).limit(200);
+  document.getElementById('rep-audit-body').innerHTML=`<div class="card"><div class="card-body table-wrap">
+    <table><thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Entity</th></tr></thead>
+    <tbody>${(!data||data.length===0)?'<tr><td colspan="4" style="text-align:center;color:var(--gray-400)">No entries.</td></tr>':
+      data.map(r=>`<tr>
+        <td style="white-space:nowrap">${fmtDateTime(r.created_at)}</td>
+        <td>${r.users?.full_name||'System'}</td>
+        <td><code style="font-size:.75rem">${r.action}</code></td>
+        <td style="font-size:.75rem">${r.entity_type||'—'}</td>
+      </tr>`).join('')}
+    </tbody></table></div></div>`;
 }
 
-async function loadAuditLog() {
-  const { data } = await SB
-    .from('audit_log')
-    .select('*, users(full_name, employee_id)')
-    .order('created_at', {ascending:false})
-    .limit(200);
-
-  document.getElementById('report-content').innerHTML = `
-    <div class="card"><div class="card-body table-wrap">
-      <table>
-        <thead><tr><th>Time</th><th>Actor</th><th>Action</th><th>Entity</th><th>Detail</th></tr></thead>
-        <tbody>
-          ${!data || data.length === 0
-            ? '<tr><td colspan="5" style="text-align:center;color:var(--gray-400)">No log entries.</td></tr>'
-            : data.map(r=>`<tr>
-                <td style="white-space:nowrap">${fmtDateTime(r.created_at)}</td>
-                <td>${r.users?.full_name||'System'}</td>
-                <td><code style="font-size:.75rem">${r.action}</code></td>
-                <td style="font-size:.75rem">${r.entity_type||'—'}</td>
-                <td style="font-size:.75rem;max-width:180px;overflow:hidden;text-overflow:ellipsis">${r.detail?JSON.stringify(r.detail).slice(0,80):'—'}</td>
-              </tr>`).join('')}
-        </tbody>
-      </table>
-    </div></div>`;
-}
-
-/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════
    SETTINGS
-═══════════════════════════════════════════════════════════ */
-function pageSettings() {
-  const mc = document.getElementById('main-content');
-  mc.innerHTML = `
+═══════════════════════════════ */
+function pageSettings(){
+  document.getElementById('main-content').innerHTML=`
     <div class="page-header"><h1>Settings</h1></div>
     <div class="card" style="max-width:480px">
-      <div class="card-header"><h2>Supabase Connection</h2></div>
-      <div class="card-body">
-        <div class="form-group"><label>Supabase URL</label>
-          <input class="form-control" id="cfg-url" value="${localStorage.getItem('sb_url')||''}"/></div>
-        <div class="form-group"><label>Anon Key</label>
-          <input class="form-control" id="cfg-key" value="${localStorage.getItem('sb_key')||''}"/></div>
-        <button class="btn btn-primary" onclick="saveConfig()">Save Connection</button>
-      </div>
-    </div>
-    <div class="card" style="max-width:480px;margin-top:16px">
       <div class="card-header"><h2>Change My Password</h2></div>
       <div class="card-body">
-        <div class="form-group"><label>New Password</label>
-          <input class="form-control" type="password" id="cfg-pw1"/></div>
-        <div class="form-group"><label>Confirm</label>
-          <input class="form-control" type="password" id="cfg-pw2"/></div>
-        <button class="btn btn-primary" onclick="changeSelfPassword()">Update Password</button>
+        <div class="form-group"><label>New Password</label><input class="form-control" type="password" id="s-pw1"/></div>
+        <div class="form-group"><label>Confirm</label><input class="form-control" type="password" id="s-pw2"/></div>
+        <button class="btn btn-primary" onclick="changeSelfPw()">Update Password</button>
+      </div>
+    </div>
+    <div class="card" style="max-width:480px;margin-top:0">
+      <div class="card-header"><h2>Supabase Connection</h2></div>
+      <div class="card-body">
+        <div class="form-group"><label>URL</label><input class="form-control" id="s-url" value="${localStorage.getItem('sb_url')||''}"/></div>
+        <div class="form-group"><label>Anon Key</label><input class="form-control" id="s-key" value="${localStorage.getItem('sb_key')||''}"/></div>
+        <button class="btn btn-outline" onclick="saveConn()">Save & Re-login</button>
       </div>
     </div>`;
 }
 
-function saveConfig() {
-  const url = document.getElementById('cfg-url').value.trim();
-  const key = document.getElementById('cfg-key').value.trim();
-  localStorage.setItem('sb_url', url);
-  localStorage.setItem('sb_key', key);
-  SB = supabase.createClient(url, key);
-  toast('Connection updated. Please sign in again.','info');
+async function changeSelfPw(){
+  const p1=document.getElementById('s-pw1').value;
+  const p2=document.getElementById('s-pw2').value;
+  if(p1.length<8)return toast('Min 8 characters.','error');
+  if(p1!==p2)return toast('Passwords do not match.','error');
+  const {error}=await SB.rpc('update_user_password',{p_user_id:SESSION.user.id,p_new_password:p1});
+  if(error)return toast('Error: '+error.message,'error');
+  toast('Password updated!','success');
+  document.getElementById('s-pw1').value='';document.getElementById('s-pw2').value='';
+}
+
+function saveConn(){
+  localStorage.setItem('sb_url',document.getElementById('s-url').value.trim());
+  localStorage.setItem('sb_key',document.getElementById('s-key').value.trim());
+  toast('Saved. Please sign in again.','info');
   logout();
 }
 
-async function changeSelfPassword() {
-  const p1 = document.getElementById('cfg-pw1').value;
-  const p2 = document.getElementById('cfg-pw2').value;
-  if (p1.length < 8) return toast('Minimum 8 characters.','error');
-  if (p1 !== p2) return toast('Passwords do not match.','error');
-  const { error } = await SB.rpc('update_user_password', { p_user_id: SESSION.user.id, p_new_password: p1 });
-  if (error) return toast('Error: ' + error.message,'error');
-  toast('Password updated!','success');
-  document.getElementById('cfg-pw1').value = '';
-  document.getElementById('cfg-pw2').value = '';
-}
-
-/* ═══════════════════════════════════════════════════════════
-   MODAL HELPERS
-═══════════════════════════════════════════════════════════ */
-function openModal(title, bodyHtml, buttons = []) {
+/* ═══════════════════════════════
+   MODAL
+═══════════════════════════════ */
+function openModal(title, bodyHtml, buttons=[]) {
   document.getElementById('gm-title').textContent = title;
   document.getElementById('gm-body').innerHTML = bodyHtml;
   const footer = document.getElementById('gm-footer');
   footer.innerHTML = '';
-  if (buttons.length > 0) {
-    buttons.forEach(b => {
-      const btn = document.createElement('button');
-      btn.className = `btn ${b.style||'btn-outline'}`;
-      btn.textContent = b.label;
-      btn.onclick = b.action;
-      footer.appendChild(btn);
-    });
-  }
+  buttons.forEach(b => {
+    const btn = document.createElement('button');
+    btn.className = `btn ${b.style||'btn-outline'}`;
+    btn.textContent = b.label;
+    btn.onclick = b.action;
+    footer.appendChild(btn);
+  });
   document.getElementById('generic-modal').classList.add('open');
 }
 
-function closeModal() {
-  document.getElementById('generic-modal').classList.remove('open');
-}
+function closeModal() { document.getElementById('generic-modal').classList.remove('open'); }
 
-// Close modal on overlay click
 document.getElementById('generic-modal').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeModal();
 });
 
-/* ═══════════════════════════════════════════════════════════
-   AUDIT LOG HELPER
-═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════
+   HELPERS
+═══════════════════════════════ */
 async function auditLog(action, entityType, entityId, detail) {
-  try {
-    await SB.from('audit_log').insert({
-      actor_id: SESSION?.user?.id || null,
-      action,
-      entity_type: entityType,
-      entity_id: entityId || null,
-      detail,
-    });
-  } catch(e) { /* non-critical */ }
+  try { await SB.from('audit_log').insert({actor_id:SESSION?.user?.id||null,action,entity_type:entityType,entity_id:entityId||null,detail}); } catch(_){}
 }
 
-/* ═══════════════════════════════════════════════════════════
-   UTILITIES
-═══════════════════════════════════════════════════════════ */
-function toast(msg, type = 'info') {
+function toast(msg, type='info') {
   const c = document.getElementById('toast-container');
   const el = document.createElement('div');
   el.className = `toast toast-${type}`;
   el.textContent = msg;
   c.appendChild(el);
-  setTimeout(() => el.remove(), 3500);
+  setTimeout(() => el.remove(), 4000);
 }
 
-function fmtDate(iso) {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
-}
-
-function fmtDateTime(iso) {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
-}
-
-function escHtml(str) {
-  return (str||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;');
-}
-
+function fmtDate(iso) { if(!iso)return'—'; return new Date(iso).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); }
+function fmtDateTime(iso) { if(!iso)return'—'; return new Date(iso).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}); }
+function esc(s) { return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;'); }
 function filterTable(input, tbodyId) {
   const q = input.value.toLowerCase();
   const tb = document.getElementById(tbodyId);
-  if (!tb) return;
-  Array.from(tb.rows).forEach(row => {
-    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
-  });
+  if(!tb)return;
+  Array.from(tb.rows).forEach(row => { row.style.display = row.textContent.toLowerCase().includes(q)?'':'none'; });
 }
-
 function toggleTheme() {
-  const current = document.documentElement.getAttribute('data-theme');
-  const next = current === 'light' ? 'dark' : 'light';
-  document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem('theme', next);
-  document.querySelector('.theme-btn').textContent = next === 'dark' ? '☀️' : '🌙';
+  const next = document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('theme',next);
+  document.querySelector('.theme-btn').textContent = next==='dark'?'☀️':'🌙';
 }
+
+// fix report tab switching to also load data
+const origSwitch = switchTab;
+window.switchTab = function(show, hide, el) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(show).style.display='';
+  document.getElementById(hide).style.display='none';
+  if(show==='assign-workflow') renderAssignWorkflow();
+  if(show==='rep-audit') loadAuditReport();
+};
 </script>
-
-<!-- ══ SUPABASE RPC SETUP NOTE ═══════════════════════════════
-  The following PostgreSQL functions must also be added to your
-  Supabase project (SQL Editor). They are called by the app.
-  Add them AFTER running the main setup SQL file.
-═══════════════════════════════════════════════════════════ -->
-<!--
--- Run these in Supabase SQL Editor as well:
-
-CREATE OR REPLACE FUNCTION check_user_password(p_user_id UUID, p_password TEXT)
-RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM users
-    WHERE id = p_user_id AND password_hash = crypt(p_password, password_hash)
-  );
-$$;
-
-CREATE OR REPLACE FUNCTION update_user_password(p_user_id UUID, p_new_password TEXT)
-RETURNS VOID LANGUAGE sql SECURITY DEFINER AS $$
-  UPDATE users SET
-    password_hash  = crypt(p_new_password, gen_salt('bf', 10)),
-    must_change_pw = FALSE,
-    updated_at     = NOW()
-  WHERE id = p_user_id;
-$$;
-
-CREATE OR REPLACE FUNCTION create_user_with_password(
-  p_employee_id TEXT, p_full_name TEXT, p_email TEXT,
-  p_department_id UUID, p_reports_to UUID, p_password TEXT,
-  p_is_admin BOOLEAN, p_created_by UUID
-) RETURNS VOID LANGUAGE sql SECURITY DEFINER AS $$
-  INSERT INTO users(employee_id, full_name, email, department_id, reports_to,
-                    password_hash, is_admin, must_change_pw, created_by)
-  VALUES(p_employee_id, p_full_name, p_email, p_department_id, p_reports_to,
-         crypt(p_password, gen_salt('bf', 10)), p_is_admin, TRUE, p_created_by);
-$$;
-
-CREATE OR REPLACE FUNCTION set_app_user(p_user_id UUID)
-RETURNS VOID LANGUAGE plpgsql SECURITY DEFINER AS $$
-BEGIN
-  PERFORM set_config('app.current_user_id', p_user_id::TEXT, TRUE);
-END;
-$$;
--->
 </body>
 </html>
